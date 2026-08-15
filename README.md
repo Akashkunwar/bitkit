@@ -87,40 +87,38 @@ stale, so run it after adding a tool.
 
 The output in `dist/` is a static SPA. Both configs are already committed.
 
-### Cloudflare Workers (recommended)
+### Cloudflare Pages
 
-`wrangler.jsonc` is committed, so importing the repo in the Cloudflare dashboard
-needs no further configuration:
+`wrangler.jsonc` sets `pages_build_output_dir`, which marks this as a Pages
+project. Create the project in the dashboard under **Workers & Pages → Create →
+Pages → Connect to Git**, pick this repo, and set:
 
 | Setting | Value |
 | --- | --- |
-| Deploy command | `npx wrangler deploy` |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
 | Node version | `20` |
 
-No build command is needed in the dashboard — `wrangler.jsonc` declares
-`build.command`, so `wrangler deploy` builds before it uploads. (Wrangler only
-runs its own framework detection when there is *no* config file, so once the
-config is committed the build has to be declared in it.)
+That serves the site from `bitkit.pages.dev`. SPA routing comes from
+`public/_redirects`; caching and security headers from `public/_headers`.
 
-SPA routing comes from `assets.not_found_handling: "single-page-application"`.
-Do **not** add a `_redirects` rule for it — Workers normalises `/index.html`
-back to `/`, so a `/* /index.html 200` rule is rejected as an infinite loop.
-`public/_headers` still works and sets the caching and security headers.
-
-To deploy from your machine:
+To deploy from your machine instead:
 
 ```bash
 npx wrangler login && npm run deploy
 ```
 
-### Netlify
+**Pages, not Workers.** `wrangler deploy` builds a Worker, which is served from
+`<name>.<account>.workers.dev` — there is no way to get a `pages.dev` address
+from one. Workers Assets also rejects the `_redirects` SPA rule above, because
+it normalises `/index.html` back to `/` and sees the rule loop. If you ever
+switch to Workers, delete that file and use
+`assets.not_found_handling: "single-page-application"` instead.
 
-Workers and Vercel both handle the SPA fallback through their own config, so no
-`_redirects` file is committed. If you deploy to Netlify, add one:
+### Vercel
 
-```
-/*    /index.html   200
-```
+Import the repo — `vercel.json` already sets the framework, rewrites, and
+headers. No dashboard configuration needed.
 
 ### Anywhere else
 

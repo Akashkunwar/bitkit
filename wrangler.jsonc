@@ -2,21 +2,14 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "bitkit",
   "compatibility_date": "2026-08-15",
-  "observability": {
-    "enabled": true
-  },
-  // Wrangler only runs its framework-detection setup (which builds for you)
-  // when there is no config file. With this file committed it goes straight to
-  // deploy, so the build has to be declared here or `dist` will not exist.
-  "build": {
-    "command": "npm run build"
-  },
-  "assets": {
-    "directory": "./dist",
-    // Workers Assets serves index.html for any unmatched path, which is what a
-    // client-routed SPA needs. A `_redirects` rule doing the same thing is
-    // rejected as a loop: Workers normalises `/index.html` back to `/`, which
-    // re-triggers the rule. This setting replaces that file entirely.
-    "not_found_handling": "single-page-application"
-  }
+
+  // The presence of this field is what marks the project as Cloudflare Pages
+  // rather than a Worker, which is what gives the site a *.pages.dev address.
+  // A Worker would be served from <name>.<account>.workers.dev instead.
+  //
+  // Pages has no `assets.not_found_handling`, so SPA routing comes from
+  // public/_redirects. That file is valid here — the "infinite loop" rejection
+  // was Workers Assets, which normalises /index.html back to / and so trips
+  // over the same rule.
+  "pages_build_output_dir": "./dist"
 }

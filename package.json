@@ -16,8 +16,7 @@
     "sitemap": "node scripts/generate-sitemap.mjs",
     "test:e2e": "playwright test",
     "check:bundle": "node scripts/check-bundle.mjs",
-    "deploy": "npm run build && wrangler deploy",
-    "preview:cf": "npm run build && wrangler dev"
+    "deploy": "npm run build && wrangler pages deploy dist --project-name=bitkit"
   },
   "dependencies": {
     "@fontsource-variable/figtree": "^5.2.8",
