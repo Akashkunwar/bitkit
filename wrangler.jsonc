@@ -5,6 +5,12 @@
   "observability": {
     "enabled": true
   },
+  // Wrangler only runs its framework-detection setup (which builds for you)
+  // when there is no config file. With this file committed it goes straight to
+  // deploy, so the build has to be declared here or `dist` will not exist.
+  "build": {
+    "command": "npm run build"
+  },
   "assets": {
     "directory": "./dist",
     // Workers Assets serves index.html for any unmatched path, which is what a

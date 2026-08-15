@@ -94,9 +94,13 @@ needs no further configuration:
 
 | Setting | Value |
 | --- | --- |
-| Build command | `npm run build` |
 | Deploy command | `npx wrangler deploy` |
 | Node version | `20` |
+
+No build command is needed in the dashboard — `wrangler.jsonc` declares
+`build.command`, so `wrangler deploy` builds before it uploads. (Wrangler only
+runs its own framework detection when there is *no* config file, so once the
+config is committed the build has to be declared in it.)
 
 SPA routing comes from `assets.not_found_handling: "single-page-application"`.
 Do **not** add a `_redirects` rule for it — Workers normalises `/index.html`
