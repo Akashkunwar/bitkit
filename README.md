@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/favicon.svg" width="72" height="72" alt="">
   <h1>BitKit</h1>
-  <p><strong>42 everyday tools that run entirely in your browser.</strong></p>
+  <p><strong>59 everyday tools that run entirely in your browser.</strong></p>
   <p>No account. No server. Nothing you open ever leaves your device.</p>
 </div>
 
@@ -15,13 +15,14 @@ using the platform APIs browsers already ship. After the first load it works off
 
 | Group | Tools |
 | --- | --- |
-| **Daily** | Convert (time, zones, units, percent, GST), Links & cards (WhatsApp, UTM, vCard, ICS), Meeting planner |
-| **Image** | Clipboard download, Resize & compress, Image finishing, Image metadata (EXIF/GPS), Favicon set, Passport sheet, Background cutout, SVG convert |
+| **Daily** | Convert (time, zones, units, percent, GST), Links & cards, Meeting planner, Age & date difference, Deadline calculator, Timers, Random picker, Number to words, Health calculators, Trip cost |
+| **Image** | Clipboard download, Resize & compress, Image finishing, Image metadata (EXIF/GPS), Favicon set, Passport sheet, Background cutout, SVG convert, Carousel splitter, Meme generator, ASCII from image |
 | **Document** | Markdown to PDF, PDF editor, PDF merge & split, Image ↔ PDF, OCR, PDF form fill, PDF shrink, Markdown table, Invoice |
 | **Data** | Data table (CSV/TSV/JSON/XLSX), Chart maker |
-| **Media** | Video & audio trim, Screen & camera recorder |
+| **Media** | Video & audio trim, Screen & camera recorder, Noise generator, Sound meter |
 | **Developer** | JSON formatter, Text diff, Password generator, QR code, Encode (Base64/JWT/SHA), Text bench, Regex tester, Checksum, JSON·YAML·TOML, Cron builder, Number base |
 | **Design** | Gradient builder, Tailwind theme builder, Contrast checker, Colour picker, Diagram (Mermaid), Colour vision |
+| **Writing** | Unicode text styler, Emoji search, Platform counter, Readability, Box drawing |
 | **Notes** | Local notes |
 
 Press <kbd>/</kbd> or <kbd>⌘K</kbd> to search. Many tools have a `G` chord shortcut
@@ -46,7 +47,7 @@ npm run dev
 ```
 
 ```bash
-npm test          # 111 unit tests
+npm test          # 170 unit tests
 npm run typecheck # tsc project references
 npm run build     # regenerates assets, typechecks, then builds
 ```
