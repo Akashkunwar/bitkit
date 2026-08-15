@@ -1552,6 +1552,7 @@ input[type='color'] {
   background: color-mix(in srgb, var(--accent) 6%, transparent);
 }
 .th-sort {
+  min-height: 24px;
   background: none;
   border: 0;
   padding: 0;
@@ -1889,14 +1890,17 @@ audio.media-preview {
 }
 .bmi-band[data-tone='warn'] {
   background: color-mix(in srgb, #c2610a 18%, transparent);
-  color: #8a5a10;
+  color: #6f480c;
 }
 .bmi-band[data-tone='high'] {
   background: color-mix(in srgb, var(--danger) 18%, transparent);
-  color: var(--danger);
+  color: #96241f;
+}
+[data-theme='dark'] .bmi-band[data-tone='high'] {
+  color: #f0a0a0;
 }
 [data-theme='dark'] .bmi-band[data-tone='warn'] {
-  color: #d9ad63;
+  color: #e8c184;
 }
 
 .macro-bar {
@@ -2212,4 +2216,321 @@ audio.media-preview {
 @media (max-width: 560px) {
   .score-card { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
   .panel-card { width: 8.5rem; }
+}
+
+/* ---------- Platform: cheatsheet, status, undo, chords ---------- */
+
+.lang-select {
+  border: 1px solid var(--line-strong);
+  background: var(--bg-elev);
+  border-radius: var(--radius-sm);
+  padding: 0.42rem 0.5rem;
+  font-size: 0.85rem;
+  flex: none;
+}
+
+.chord-hint {
+  position: fixed;
+  left: 50%;
+  bottom: 1.4rem;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 0.85rem;
+  box-shadow: var(--shadow-pop);
+}
+.chord-hint kbd {
+  background: color-mix(in srgb, var(--bg) 22%, transparent);
+  border-color: transparent;
+  color: inherit;
+}
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: color-mix(in srgb, #000 52%, transparent);
+  backdrop-filter: blur(2px);
+}
+.sheet {
+  width: min(46rem, 100%);
+  max-height: min(80dvh, 44rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  box-shadow: var(--shadow-pop);
+}
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.sheet-head h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+.sheet-body {
+  overflow-y: auto;
+  display: grid;
+  gap: 1.1rem;
+  padding-right: 0.2rem;
+}
+.sheet-group h3 {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  font-weight: 600;
+}
+.sheet-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.12rem;
+}
+.sheet-group li {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.28rem 0.35rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+.sheet-group li:hover {
+  background: var(--bg-mute);
+}
+.sheet-keys {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  min-width: 8.5rem;
+  flex: none;
+}
+.sheet-alias {
+  display: inline-flex;
+  gap: 0.22rem;
+  margin-left: 0.35rem;
+  opacity: 0.5;
+}
+.sheet-foot {
+  border-top: 1px solid var(--line);
+  padding-top: 0.7rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.status-stack {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1.1rem;
+}
+.status-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  font-size: 0.9rem;
+}
+.status-chip[data-tone='update'],
+.status-chip[data-tone='install'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.status-chip .btn,
+.status-chip .btn-ghost {
+  padding: 0.28rem 0.7rem;
+  font-size: 0.85rem;
+}
+.status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--muted);
+  flex: none;
+}
+
+.undo-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.4rem;
+  transform: translateX(-50%);
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.6rem 0.5rem 1rem;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 0.88rem;
+  box-shadow: var(--shadow-pop);
+}
+.undo-toast .btn {
+  padding: 0.26rem 0.8rem;
+  font-size: 0.83rem;
+}
+.undo-toast .btn-ghost {
+  color: inherit;
+  opacity: 0.7;
+  padding: 0.2rem 0.4rem;
+}
+
+.crash {
+  max-width: 42rem;
+  padding: 1.4rem;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+}
+.crash h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+}
+.crash p {
+  color: var(--muted);
+  margin: 0 0 0.8rem;
+}
+.crash-detail {
+  margin: 0 0 1rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-mute);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.command-verb {
+  color: var(--accent-strong);
+  margin-right: 0.4rem;
+  font-size: 0.8em;
+}
+.command-message {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 11;
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  border: 1px solid var(--line-strong);
+  font-size: 0.85rem;
+  color: var(--muted);
+  box-shadow: var(--shadow);
+}
+
+.run-steps {
+  margin: 0.4rem 0 0.7rem;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.run-steps li[data-state='done'] {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+.run-steps li[data-state='now'] {
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.batch-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  padding: 0.6rem 0.75rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+  margin-top: 0.8rem;
+}
+
+@media (max-width: 560px) {
+  .sheet-keys { min-width: 6.5rem; }
+  .lang-select { display: none; }
+}
+
+/* ---------- Accessibility: hit areas ---------- */
+
+/*
+ * WCAG 2.2 asks for a 24x24 minimum target. These controls are visually small
+ * on purpose, so the hit area is grown with padding and pulled back with a
+ * negative margin — the target grows without the layout shifting.
+ */
+.pin-btn {
+  min-width: 24px;
+  min-height: 24px;
+  display: inline-grid;
+  place-items: center;
+}
+
+.th-tools button {
+  min-width: 24px;
+  min-height: 24px;
+}
+
+.rail-foot-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0.2rem 0;
+}
+
+.btn-ghost {
+  min-height: 24px;
+}
+
+/* Coarse pointers get the full 44px recommendation. */
+@media (pointer: coarse) {
+  .pin-btn,
+  .th-tools button,
+  .btn-ghost {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+
+/* Native checkboxes are 13x13; WCAG 2.2 asks for a 24px target. */
+input[type='checkbox'],
+input[type='radio'] {
+  width: 1.05rem;
+  height: 1.05rem;
+  min-width: 24px;
+  min-height: 24px;
+  accent-color: var(--accent);
+}
+input[type='color'] {
+  min-width: 44px;
+  min-height: 32px;
 }

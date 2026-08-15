@@ -109,6 +109,7 @@ export default function GradientTool() {
               <span>Angle — {state.angle}°</span>
               <input
                 type="range"
+                aria-label="Gradient angle in degrees"
                 min={0}
                 max={360}
                 value={state.angle}
@@ -147,11 +148,17 @@ export default function GradientTool() {
               <span className="field-label">Color stops</span>
               {[...state.stops]
                 .sort((a, b) => a.position - b.position)
-                .map((stop) => (
+                .map((stop, i) => (
                   <div key={stop.id} className="stop-row">
-                    <input type="color" value={stop.color} onChange={(e) => updateStop(stop.id, { color: e.target.value })} />
+                    <input
+                      type="color"
+                      aria-label={`Colour for stop ${i + 1}`}
+                      value={stop.color}
+                      onChange={(e) => updateStop(stop.id, { color: e.target.value })}
+                    />
                     <input
                       type="range"
+                      aria-label={`Position of stop ${i + 1}`}
                       min={0}
                       max={100}
                       value={stop.position}
@@ -193,7 +200,12 @@ export default function GradientTool() {
               {state.meshBlobs.map((blob, i) => (
                 <div key={blob.id} className="mesh-row">
                   <div className="stop-row">
-                    <input type="color" value={blob.color} onChange={(e) => updateBlob(blob.id, { color: e.target.value })} />
+                    <input
+                      type="color"
+                      aria-label={`Colour for mesh point ${i + 1}`}
+                      value={blob.color}
+                      onChange={(e) => updateBlob(blob.id, { color: e.target.value })}
+                    />
                     <span className="mono-val">#{i + 1}</span>
                     <button
                       type="button"
@@ -208,9 +220,30 @@ export default function GradientTool() {
                   <label className="field">
                     <span>X {blob.x}% · Y {blob.y}% · spread {blob.radius}%</span>
                     <div className="row">
-                      <input type="range" min={0} max={100} value={blob.x} onChange={(e) => updateBlob(blob.id, { x: Number(e.target.value) })} />
-                      <input type="range" min={0} max={100} value={blob.y} onChange={(e) => updateBlob(blob.id, { y: Number(e.target.value) })} />
-                      <input type="range" min={20} max={100} value={blob.radius} onChange={(e) => updateBlob(blob.id, { radius: Number(e.target.value) })} />
+                      <input
+                        type="range"
+                        aria-label={`Horizontal position of mesh point ${i + 1}`}
+                        min={0}
+                        max={100}
+                        value={blob.x}
+                        onChange={(e) => updateBlob(blob.id, { x: Number(e.target.value) })}
+                      />
+                      <input
+                        type="range"
+                        aria-label={`Vertical position of mesh point ${i + 1}`}
+                        min={0}
+                        max={100}
+                        value={blob.y}
+                        onChange={(e) => updateBlob(blob.id, { y: Number(e.target.value) })}
+                      />
+                      <input
+                        type="range"
+                        aria-label={`Spread of mesh point ${i + 1}`}
+                        min={20}
+                        max={100}
+                        value={blob.radius}
+                        onChange={(e) => updateBlob(blob.id, { radius: Number(e.target.value) })}
+                      />
                     </div>
                   </label>
                 </div>

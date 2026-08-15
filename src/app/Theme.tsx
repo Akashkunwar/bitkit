@@ -2,9 +2,10 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 
 type Theme = 'light' | 'dark'
 
-const ThemeContext = createContext<{ theme: Theme; toggle: () => void }>({
+const ThemeContext = createContext<{ theme: Theme; toggle: () => void; setTheme: (t: Theme) => void }>({
   theme: 'light',
   toggle: () => undefined,
+  setTheme: () => undefined,
 })
 
 function initialTheme(): Theme {
@@ -31,6 +32,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       theme,
+      setTheme,
       toggle: () => setTheme((t) => (t === 'dark' ? 'light' : 'dark')),
     }),
     [theme],

@@ -1,18 +1,35 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { searchTools, type ToolMeta } from '../registry'
+import { searchActions, type Action, type ActionContext } from '../lib/actions'
+import { useTheme } from './Theme'
 
 type Props = {
   onPick?: (tool: ToolMeta) => void
+  onOpenCheatsheet?: () => void
 }
 
-export function CommandBar({ onPick }: Props) {
+type Row =
+  | { kind: 'tool'; tool: ToolMeta }
+  | { kind: 'action'; action: Action }
+
+export function CommandBar({ onPick, onOpenCheatsheet }: Props) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(0)
+  const [message, setMessage] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
-  const results = useMemo(() => searchTools(query).slice(0, 8), [query])
+  const { theme, setTheme } = useTheme()
+
+  const rows = useMemo<Row[]>(() => {
+    // Actions first: if you typed a verb you meant to do something, not browse.
+    const actions = searchActions(query).slice(0, 4).map((action) => ({ kind: 'action' as const, action }))
+    const tools = searchTools(query)
+      .slice(0, actions.length ? 6 : 8)
+      .map((tool) => ({ kind: 'tool' as const, tool }))
+    return [...actions, ...tools]
+  }, [query])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -30,12 +47,29 @@ export function CommandBar({ onPick }: Props) {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const go = (tool: ToolMeta) => {
-    onPick?.(tool)
-    navigate(tool.path)
+  const ctx: ActionContext = {
+    navigate,
+    setTheme,
+    currentTheme: theme,
+    openCheatsheet: () => onOpenCheatsheet?.(),
+    notify: (text) => {
+      setMessage(text)
+      window.setTimeout(() => setMessage(null), 4000)
+    },
+  }
+
+  const run = (row: Row) => {
     setQuery('')
     setOpen(false)
+    if (row.kind === 'tool') {
+      onPick?.(row.tool)
+      navigate(row.tool.path)
+    } else {
+      void row.action.run(ctx)
+    }
   }
+
+  const rowId = (row: Row) => (row.kind === 'tool' ? `t-${row.tool.id}` : `a-${row.action.id}`)
 
   return (
     <div className="command-wrap">
@@ -46,14 +80,14 @@ export function CommandBar({ onPick }: Props) {
       <input
         ref={inputRef}
         className="command-input"
-        placeholder="Search tools — or press /"
+        placeholder="Search or run — press /"
         value={query}
         role="combobox"
-        aria-label="Search tools"
-        aria-expanded={open && results.length > 0}
+        aria-label="Search tools and actions"
+        aria-expanded={open && rows.length > 0}
         aria-controls="command-results"
         aria-autocomplete="list"
-        aria-activedescendant={open && results[active] ? `command-opt-${results[active].id}` : undefined}
+        aria-activedescendant={open && rows[active] ? `command-opt-${rowId(rows[active])}` : undefined}
         onChange={(event) => {
           setQuery(event.target.value)
           setOpen(true)
@@ -66,32 +100,49 @@ export function CommandBar({ onPick }: Props) {
         onKeyDown={(event) => {
           if (event.key === 'ArrowDown') {
             event.preventDefault()
-            setActive((n) => Math.min(results.length - 1, n + 1))
+            setActive((n) => Math.min(rows.length - 1, n + 1))
           } else if (event.key === 'ArrowUp') {
             event.preventDefault()
             setActive((n) => Math.max(0, n - 1))
-          } else if (event.key === 'Enter' && results[active]) {
+          } else if (event.key === 'Enter' && rows[active]) {
             event.preventDefault()
-            go(results[active])
+            run(rows[active])
           }
         }}
       />
-      {open && results.length > 0 ? (
+
+      {message ? <p className="command-message" role="status">{message}</p> : null}
+
+      {open && rows.length > 0 ? (
         <div className="command-list" id="command-results" role="listbox">
-          {results.map((tool, index) => (
+          {rows.map((row, index) => (
             <button
-              key={tool.id}
-              id={`command-opt-${tool.id}`}
+              key={rowId(row)}
+              id={`command-opt-${rowId(row)}`}
               type="button"
               className="command-item"
               role="option"
               aria-selected={index === active}
               data-active={index === active}
               onMouseDown={(event) => event.preventDefault()}
-              onClick={() => go(tool)}
+              onClick={() => run(row)}
             >
-              <strong>{tool.title}</strong>
-              <div className="muted">{tool.blurb}</div>
+              {row.kind === 'action' ? (
+                <>
+                  <strong>
+                    <span className="command-verb" aria-hidden="true">
+                      ▸
+                    </span>
+                    {row.action.label}
+                  </strong>
+                  <div className="muted">{row.action.hint ?? row.action.group}</div>
+                </>
+              ) : (
+                <>
+                  <strong>{row.tool.title}</strong>
+                  <div className="muted">{row.tool.blurb}</div>
+                </>
+              )}
             </button>
           ))}
         </div>

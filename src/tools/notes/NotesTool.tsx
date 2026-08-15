@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { deleteNote, exportNotes, importNotes, listNotes, newNote, replaceNotes, upsertNote, type Note } from '../../lib/db'
+import { useUndo } from '../../lib/undo'
 import { renderMarkdown } from '../../lib/markdown'
 import { markdownHtmlToPdf } from '../../lib/pdf'
 import { triggerDownload } from '../../lib/download'
@@ -9,6 +10,7 @@ import { SendTo } from '../../components/SendTo'
 
 export default function NotesTool() {
   const [notes, setNotes] = useState<Note[]>([])
+  const undo = useUndo()
   const [activeId, setActiveId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [preview, setPreview] = useState(false)
@@ -170,8 +172,17 @@ export default function NotesTool() {
                   type="button"
                   className="btn"
                   onClick={async () => {
-                    await deleteNote(active.id)
+                    // Capture before deleting so the undo can put it back verbatim.
+                    const removed = active
+                    await deleteNote(removed.id)
                     await refresh()
+                    undo.push({
+                      label: `Deleted “${removed.title || 'Untitled'}”`,
+                      undo: async () => {
+                        await upsertNote(removed)
+                        await refresh()
+                      },
+                    })
                   }}
                 >
                   Delete

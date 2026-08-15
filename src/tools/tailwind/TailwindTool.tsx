@@ -65,6 +65,7 @@ export default function TailwindTool() {
                   <div className="row">
                     <input
                       type="color"
+                      aria-label={`Base colour for ${color.name}`}
                       title="Pick a base color — hue and chroma are derived from it"
                       value={oklchToHex({ l: 0.62, c: color.chroma, h: color.hue })}
                       onChange={(e) => setFromHex(color.id, e.target.value)}

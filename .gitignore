@@ -1,6 +1,10 @@
 # dependencies
 node_modules
 
+# test output
+playwright-report
+test-results
+
 # build output
 dist
 dev-dist

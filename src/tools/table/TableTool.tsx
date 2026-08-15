@@ -4,6 +4,7 @@ import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
 import { triggerDownload, saveAs } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
+import { useUndo } from '../../lib/undo'
 import { useCopied } from '../../lib/useCopied'
 import {
   columnStats,
@@ -42,6 +43,7 @@ export default function TableTool() {
   const [page, setPage] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const { copied, copy } = useCopied()
+  const undo = useUndo()
 
   const load = async (files: File[]) => {
     const file = files[0]
@@ -84,9 +86,19 @@ export default function TableTool() {
   const safePage = Math.min(page, pageCount - 1)
   const pageRows = view.rows.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE)
 
-  const apply = (next: Table) => {
+  const apply = (next: Table, label?: string) => {
+    const before = table
     setTable(next)
     setSelected(null)
+    if (label) {
+      undo.push({
+        label,
+        undo: () => {
+          setTable(before)
+          setSelected(null)
+        },
+      })
+    }
   }
 
   const toggleSort = (index: number) => {
@@ -156,13 +168,19 @@ export default function TableTool() {
       </div>
 
       <div className="row" style={{ flexWrap: 'wrap', marginBottom: '0.75rem' }}>
-        <button type="button" className="btn" onClick={() => apply(dedupeRows(table))}>
+        <button type="button" className="btn" onClick={() => {
+            const next = dedupeRows(table)
+            apply(next, `Removed ${table.rows.length - next.rows.length} duplicate rows`)
+          }}>
           Remove duplicates
         </button>
-        <button type="button" className="btn" onClick={() => apply(dropEmptyRows(table))}>
+        <button type="button" className="btn" onClick={() => {
+            const next = dropEmptyRows(table)
+            apply(next, `Dropped ${table.rows.length - next.rows.length} empty rows`)
+          }}>
           Drop empty rows
         </button>
-        <button type="button" className="btn" onClick={() => apply(trimCells(table))}>
+        <button type="button" className="btn" onClick={() => apply(trimCells(table), 'Trimmed whitespace')}>
           Trim whitespace
         </button>
       </div>
@@ -209,7 +227,7 @@ export default function TableTool() {
                     >
                       ✎
                     </button>
-                    <button type="button" title="Delete column" onClick={() => apply(removeColumn(table, i))}>
+                    <button type="button" title="Delete column" onClick={() => apply(removeColumn(table, i), `Deleted column “${header}”`)}>
                       ✕
                     </button>
                   </div>

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CATEGORIES, searchTools, tools, type ToolCategory } from '../registry'
 import { getPref, setPref } from '../lib/db'
+import { readUsage, sortByUsage, type Usage } from '../lib/prefs'
+import { useI18n } from '../lib/i18n'
 
 type Filter = 'All' | ToolCategory
 
@@ -10,11 +12,14 @@ export function Home() {
   const [recents, setRecents] = useState<string[]>([])
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<Filter>('All')
+  const [usage, setUsage] = useState<Usage>({})
+  const { t } = useI18n()
 
   useEffect(() => {
     void (async () => {
       setFavorites(await getPref<string[]>('favorites', []))
       setRecents(await getPref<string[]>('recents', []))
+      setUsage(await readUsage())
     })()
   }, [])
 
@@ -25,6 +30,11 @@ export function Home() {
   }
 
   const matches = useMemo(() => searchTools(query), [query])
+  // Within a category, the tools you actually reach for float up.
+  const mostUsed = useMemo(
+    () => sortByUsage(tools, usage).filter((tool) => usage[tool.id]?.count).slice(0, 4),
+    [usage],
+  )
   const visible = useMemo(
     () => (filter === 'All' ? matches : matches.filter((tool) => tool.category === filter)),
     [matches, filter],
@@ -66,12 +76,10 @@ export function Home() {
     <div className="home">
       <section className="hero">
         <h1>
-          Your everyday tools, <span>without the uploads.</span>
+          {t('home.title').replace(t('home.titleAccent'), '')}
+          <span>{t('home.titleAccent')}</span>
         </h1>
-        <p>
-          {tools.length} small utilities for images, PDFs, data, and code — all running in this browser tab.
-          No account, no server, nothing leaves your device.
-        </p>
+        <p>{t('home.lede', { count: tools.length })}</p>
       </section>
 
       <div className="finder">
@@ -84,7 +92,7 @@ export function Home() {
             type="search"
             value={query}
             aria-label="Search tools"
-            placeholder={`Search ${tools.length} tools — try “pdf”, “colour”, or “csv”`}
+            placeholder={t('home.searchPlaceholder', { count: tools.length })}
             onChange={(e) => setQuery(e.target.value)}
           />
           {query ? (
@@ -103,7 +111,7 @@ export function Home() {
               aria-pressed={filter === option}
               onClick={() => setFilter(option)}
             >
-              {option}
+              {option === 'All' ? t('home.all') : t(`category.${option}`)}
             </button>
           ))}
         </div>
@@ -111,14 +119,21 @@ export function Home() {
 
       {!searching && pinnedTools.length ? (
         <section className="home-section">
-          <h2>Pinned</h2>
+          <h2>{t('home.pinned')}</h2>
           <div className="grid-tools">{pinnedTools.map((tool) => (tool ? card(tool, true) : null))}</div>
+        </section>
+      ) : null}
+
+      {!searching && mostUsed.length >= 3 ? (
+        <section className="home-section">
+          <h2>{t('home.mostUsed')}</h2>
+          <div className="grid-tools">{mostUsed.map((tool) => card(tool, true))}</div>
         </section>
       ) : null}
 
       {!searching && recentTools.length ? (
         <section className="home-section">
-          <h2>Recent</h2>
+          <h2>{t('home.recent')}</h2>
           <div className="chip-row">
             {recentTools.map((tool) => (
               <Link key={tool.id} className="chip" to={tool.path}>
@@ -132,13 +147,13 @@ export function Home() {
       {searching ? (
         <section className="home-section">
           <h2>
-            {visible.length} {visible.length === 1 ? 'tool' : 'tools'}
+            {visible.length} {visible.length === 1 ? t('home.tool') : t('home.tools')}
           </h2>
           {visible.length ? (
             <div className="grid-tools">{visible.map((tool) => card(tool, true))}</div>
           ) : (
             <p className="muted">
-              Nothing matched “{query}”. Try a file type, a format, or what you want to do.
+              {t('home.noMatch', { query })}
             </p>
           )}
         </section>
@@ -148,8 +163,8 @@ export function Home() {
           if (!list.length) return null
           return (
             <section key={category} className="home-section">
-              <h2>{category}</h2>
-              <div className="grid-tools">{list.map((tool) => card(tool))}</div>
+              <h2>{t(`category.${category}`)}</h2>
+              <div className="grid-tools">{sortByUsage(list, usage).map((tool) => card(tool))}</div>
             </section>
           )
         })
@@ -157,8 +172,7 @@ export function Home() {
 
       <footer className="home-foot">
         <p>
-          Files never leave this device. Notes live in IndexedDB, which the browser can clear — export
-          anything that matters. <Link to="/privacy">How this works</Link>.
+          {t('home.footer')} <Link to="/privacy">{t('home.howItWorks')}</Link>.
         </p>
       </footer>
     </div>

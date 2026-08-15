@@ -7,6 +7,8 @@ import '@fontsource-variable/space-grotesk'
 import './styles/global.css'
 import App from './App'
 import { ThemeProvider } from './app/Theme'
+import { UndoProvider } from './app/UndoToast'
+import { I18nProvider } from './app/I18nProvider'
 
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   registerSW({ immediate: true })
@@ -14,10 +16,14 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ThemeProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </ThemeProvider>
+    <I18nProvider>
+      <ThemeProvider>
+        <UndoProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </UndoProvider>
+      </ThemeProvider>
+    </I18nProvider>
   </StrictMode>,
 )

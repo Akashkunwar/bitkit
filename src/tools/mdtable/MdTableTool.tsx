@@ -4,6 +4,7 @@ import { Segmented } from '../../components/Segmented'
 import { SendTo } from '../../components/SendTo'
 import { triggerDownload } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
+import { useUndo } from '../../lib/undo'
 import { useCopied } from '../../lib/useCopied'
 import { tableFromCsv, tableToCsv, type Table } from '../../lib/table'
 
@@ -93,6 +94,7 @@ export default function MdTableTool() {
   const [pad, setPad] = useState(true)
   const [selected, setSelected] = useState(0)
   const { copied, copy } = useCopied()
+  const undo = useUndo()
 
   const adopt = (next: Table, nextAligns?: Align[]) => {
     setTable(next)
@@ -139,14 +141,28 @@ export default function MdTableTool() {
     setTable((c) => ({ headers: [...c.headers, `Column ${c.headers.length + 1}`], rows: c.rows.map((r) => [...r, '']) }))
     setAligns((a) => [...a, 'left'])
   }
-  const removeRow = (r: number) => setTable((c) => ({ ...c, rows: c.rows.filter((_, i) => i !== r) }))
+  const removeRow = (r: number) => {
+    const before = table
+    setTable((c) => ({ ...c, rows: c.rows.filter((_, i) => i !== r) }))
+    undo.push({ label: `Deleted row ${r + 1}`, undo: () => setTable(before) })
+  }
   const removeColumn = (col: number) => {
+    const beforeTable = table
+    const beforeAligns = aligns
+    const name = table.headers[col]
     setTable((c) => ({
       headers: c.headers.filter((_, i) => i !== col),
       rows: c.rows.map((r) => r.filter((_, i) => i !== col)),
     }))
     setAligns((a) => a.filter((_, i) => i !== col))
     setSelected(0)
+    undo.push({
+      label: `Deleted column “${name}”`,
+      undo: () => {
+        setTable(beforeTable)
+        setAligns(beforeAligns)
+      },
+    })
   }
 
   return (

@@ -13,7 +13,9 @@
     "assets": "npm run icons && npm run og && npm run sitemap",
     "icons": "node scripts/generate-icons.mjs",
     "og": "node scripts/generate-og.mjs",
-    "sitemap": "node scripts/generate-sitemap.mjs"
+    "sitemap": "node scripts/generate-sitemap.mjs",
+    "test:e2e": "playwright test",
+    "check:bundle": "node scripts/check-bundle.mjs"
   },
   "dependencies": {
     "@fontsource-variable/figtree": "^5.2.8",
@@ -36,6 +38,7 @@
     "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.15.21",
     "@types/qrcode": "^1.5.6",

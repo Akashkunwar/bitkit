@@ -21,13 +21,32 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Test
+      - name: Unit tests
         run: npm test
 
       - name: Build
         run: npm run build
 
+      - name: Bundle budget
+        run: npm run check:bundle
+
       - name: Check generated assets are current
         run: |
           git diff --exit-code -- public/ \
             || (echo "::error::Generated assets are stale. Run 'npm run assets' and commit." && exit 1)
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end and accessibility
+        run: npm run test:e2e
+
+      - name: Upload failure traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

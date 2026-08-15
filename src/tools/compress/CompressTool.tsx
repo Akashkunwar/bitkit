@@ -12,6 +12,9 @@ import { filesFromPaste } from '../../lib/clipboard'
 import { useHandoff } from '../../lib/useHandoff'
 import { SendTo } from '../../components/SendTo'
 import { filesFromBlobs } from '../../lib/handoff'
+import { FolderBatch } from '../../components/FolderBatch'
+import { compressImage } from '../../lib/image/compress'
+import { takePreset } from '../../lib/actions'
 
 type Item = {
   id: string
@@ -34,6 +37,12 @@ export default function CompressTool() {
   const [preset, setPreset] = useState('450kb-free')
 
   const maxBytes = parseByteLimit(maxBytesInput)
+
+  // A palette action such as "compress to 300 KB" arrives as a preset.
+  useEffect(() => {
+    const preset = takePreset('compress')
+    if (preset && typeof preset.maxBytes === 'string') setMaxBytesInput(preset.maxBytes)
+  }, [])
 
   useEffect(() => {
     const onPaste = (event: ClipboardEvent) => {
@@ -202,7 +211,27 @@ export default function CompressTool() {
               dimension or a lossy format.
             </p>
           ) : null}
-          <SendTo
+          <FolderBatch
+        extensions={['jpg', 'jpeg', 'png', 'webp', 'avif']}
+        outputFolder="compressed"
+        label="Compress a whole folder"
+        onFilesPicked={addFiles}
+        process={async (file) => {
+          const result = await compressImage(file, {
+            width: width ? Number(width) : undefined,
+            height: height ? Number(height) : undefined,
+            fit,
+            mime,
+            maxBytes,
+          })
+          return {
+            name: applyFilenamePattern('{original}', { original: file.name, ext: mimeToExt(mime) }),
+            blob: result.blob,
+          }
+        }}
+      />
+
+      <SendTo
             from="compress"
             files={
               items.some((item) => item.result)

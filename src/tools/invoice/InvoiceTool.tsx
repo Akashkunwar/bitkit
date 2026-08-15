@@ -3,6 +3,7 @@ import { ToolLayout } from '../../components/ToolLayout'
 import { SendTo } from '../../components/SendTo'
 import { saveAs } from '../../lib/download'
 import { getPref, setPref } from '../../lib/db'
+import { useUndo } from '../../lib/undo'
 import { emptyInvoice, invoicePdf, itemId, money, totalsOf, type Invoice } from '../../lib/invoice'
 
 const STORE_KEY = 'invoice-draft'
@@ -11,6 +12,7 @@ export default function InvoiceTool() {
   const [invoice, setInvoice] = useState<Invoice>(() => emptyInvoice())
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const undo = useUndo()
 
   const totals = useMemo(() => totalsOf(invoice), [invoice])
   const set = <K extends keyof Invoice>(key: K, value: Invoice[K]) =>
@@ -129,7 +131,14 @@ export default function InvoiceTool() {
                   <button
                     type="button"
                     className="btn-ghost"
-                    onClick={() => set('items', invoice.items.filter((i) => i.id !== item.id))}
+                    onClick={() => {
+                      const before = invoice.items
+                      set('items', invoice.items.filter((i) => i.id !== item.id))
+                      undo.push({
+                        label: `Removed “${item.description || 'line item'}”`,
+                        undo: () => set('items', before),
+                      })
+                    }}
                   >
                     ✕
                   </button>

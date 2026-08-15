@@ -4,6 +4,8 @@ interface FileSystemWritableFileStream extends WritableStream {
 }
 
 interface FileSystemFileHandle {
+  kind: 'file'
+  name: string
   getFile(): Promise<File>
   createWritable(): Promise<FileSystemWritableFileStream>
 }
@@ -29,7 +31,7 @@ interface Window {
     suggestedName?: string
     types?: { description: string; accept: Record<string, string[]> }[]
   }) => Promise<FileSystemFileHandle>
-  showDirectoryPicker?: () => Promise<FileSystemDirectoryHandle>
+  showDirectoryPicker?: (options?: { mode?: 'read' | 'readwrite' }) => Promise<FileSystemDirectoryHandle>
   launchQueue?: LaunchQueue
   EyeDropper?: new () => EyeDropper
 }
@@ -39,14 +41,9 @@ declare const BarcodeDetector: {
 }
 
 interface FileSystemDirectoryHandle {
+  kind: 'directory'
   name: string
   getFileHandle(name: string, options?: { create?: boolean }): Promise<FileSystemFileHandle>
-}
-
-interface Window {
-  showSaveFilePicker?: (options?: {
-    suggestedName?: string
-    types?: { description: string; accept: Record<string, string[]> }[]
-  }) => Promise<FileSystemFileHandle>
-  showDirectoryPicker?: () => Promise<FileSystemDirectoryHandle>
+  getDirectoryHandle(name: string, options?: { create?: boolean }): Promise<FileSystemDirectoryHandle>
+  entries(): AsyncIterableIterator<[string, FileSystemFileHandle | FileSystemDirectoryHandle]>
 }

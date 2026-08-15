@@ -53,6 +53,7 @@ export function DropZone({ accept = 'image/*', multiple, label, hint, onFiles, c
         accept={accept}
         multiple={multiple}
         hidden
+        aria-label={label ?? 'Choose a file'}
         onChange={onChange}
       />
       {children}

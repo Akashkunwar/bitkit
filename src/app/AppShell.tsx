@@ -1,24 +1,17 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { CommandBar } from './CommandBar'
+import { Cheatsheet } from './Cheatsheet'
+import { StatusBar } from './StatusBar'
+import { ToolBoundary } from './ToolBoundary'
 import { Logo } from './Brand'
 import { useTheme } from './Theme'
 import { CATEGORIES, tools } from '../registry'
 import { getPref, setPref } from '../lib/db'
 import { setHandoff, suggestPath } from '../lib/handoff'
-
-/** Derived from the registry so a shortcut is declared in exactly one place. */
-const CHORDS: Record<string, string> = {
-  h: '/',
-  ...Object.fromEntries(
-    tools
-      .map((tool) => [tool.shortcut?.split(' then ')[1]?.toLowerCase(), tool.path])
-      .filter((pair): pair is [string, string] => Boolean(pair[0])),
-  ),
-}
-
-/** How long a pending "G" waits for its second key before it lapses. */
-const CHORD_TIMEOUT_MS = 1200
+import { CHORD_TIMEOUT_MS, LEADER, matchChord } from '../lib/chords'
+import { recordUse } from '../lib/prefs'
+import { LANGUAGES, useI18n } from '../lib/i18n'
 
 const OPEN_SECTIONS_KEY = 'bitkit-open-sections'
 
@@ -33,9 +26,13 @@ function readOpenSections(): string[] | null {
 
 export function AppShell() {
   const { theme, toggle } = useTheme()
+  const { t, language, setLanguage } = useI18n()
   const location = useLocation()
   const navigate = useNavigate()
   const pendingG = useRef(false)
+  const chordKeys = useRef<string[]>([])
+  const [chordHint, setChordHint] = useState<string | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
   const [pinned, setPinned] = useState<string[]>([])
 
@@ -70,6 +67,7 @@ export function AppShell() {
       const recents = await getPref<string[]>('recents', [])
       const next = [activeTool.id, ...recents.filter((id) => id !== activeTool.id)].slice(0, 6)
       await setPref('recents', next)
+      await recordUse(activeTool.id)
     })()
   }, [activeTool])
 
@@ -98,31 +96,63 @@ export function AppShell() {
     let lapse: number | undefined
     const clear = () => {
       pendingG.current = false
+      chordKeys.current = []
+      setChordHint(null)
       window.clearTimeout(lapse)
     }
+    const arm = () => {
+      window.clearTimeout(lapse)
+      // A partial chord lapses rather than waiting forever for its next key.
+      lapse = window.setTimeout(clear, CHORD_TIMEOUT_MS)
+    }
+
     const onKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null
       const tag = target?.tagName
-      if (event.key === 'Escape') setNavOpen(false)
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return
+      if (event.key === 'Escape') {
+        setNavOpen(false)
+        clear()
+      }
+      const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable
+      if (typing) return
       if (event.metaKey || event.ctrlKey || event.altKey) return
-      if (event.key === 'g') {
-        pendingG.current = true
-        window.clearTimeout(lapse)
-        // Without this, a stray "g" arms the chord indefinitely and the next
-        // keypress — minutes later — navigates away.
-        lapse = window.setTimeout(clear, CHORD_TIMEOUT_MS)
+
+      if (event.key === '?') {
+        event.preventDefault()
+        setSheetOpen(true)
         return
       }
-      if (pendingG.current) {
-        clear()
-        const path = CHORDS[event.key.toLowerCase()]
-        if (path) {
-          event.preventDefault()
-          navigate(path)
-        }
+
+      if (!pendingG.current) {
+        if (event.key.toLowerCase() !== LEADER) return
+        pendingG.current = true
+        chordKeys.current = []
+        setChordHint(LEADER.toUpperCase())
+        arm()
+        return
       }
+
+      const key = event.key.toLowerCase()
+      const next = [...chordKeys.current, key]
+      const result = matchChord(next)
+
+      if (result.kind === 'match') {
+        event.preventDefault()
+        clear()
+        if (result.chord.path === '#shortcuts') setSheetOpen(true)
+        else navigate(result.chord.path)
+        return
+      }
+      if (result.kind === 'pending') {
+        event.preventDefault()
+        chordKeys.current = next
+        setChordHint([LEADER, ...next].map((k) => k.toUpperCase()).join(' '))
+        arm()
+        return
+      }
+      clear()
     }
+
     window.addEventListener('keydown', onKey)
     return () => {
       window.removeEventListener('keydown', onKey)
@@ -156,14 +186,14 @@ export function AppShell() {
   return (
     <div className="shell">
       <a className="skip-link" href="#main">
-        Skip to content
+        {t('nav.skip')}
       </a>
 
       <header className="topbar no-print">
         <button
           type="button"
           className="nav-toggle"
-          aria-label={navOpen ? 'Close menu' : 'Open menu'}
+          aria-label={navOpen ? t('nav.closeMenu') : t('nav.openMenu')}
           aria-expanded={navOpen}
           onClick={() => setNavOpen((v) => !v)}
         >
@@ -177,14 +207,37 @@ export function AppShell() {
           </span>
         </Link>
 
-        <CommandBar />
+        <CommandBar onOpenCheatsheet={() => setSheetOpen(true)} />
+
+        <button
+          type="button"
+          className="icon-btn"
+          onClick={() => setSheetOpen(true)}
+          aria-label={t('action.shortcuts')}
+          title={`${t('action.shortcuts')} — ?`}
+        >
+          ?
+        </button>
+
+        <select
+          className="lang-select"
+          value={language}
+          aria-label={t('action.language')}
+          onChange={(e) => setLanguage(e.target.value as typeof language)}
+        >
+          {LANGUAGES.map((entry) => (
+            <option key={entry.code} value={entry.code}>
+              {entry.label}
+            </option>
+          ))}
+        </select>
 
         <button
           type="button"
           className="icon-btn"
           onClick={toggle}
-          aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-          title={theme === 'dark' ? 'Light theme' : 'Dark theme'}
+          aria-label={theme === 'dark' ? t('action.lightTheme') : t('action.darkTheme')}
+          title={theme === 'dark' ? t('action.lightTheme') : t('action.darkTheme')}
         >
           {theme === 'dark' ? '☀' : '☾'}
         </button>
@@ -196,15 +249,15 @@ export function AppShell() {
         ) : null}
 
         <aside className="sidebar no-print" data-open={navOpen}>
-          <nav className="rail" aria-label="Tools">
+          <nav className="rail" aria-label={t('nav.tools')}>
             <NavLink className="rail-link" to="/" end>
-              <span>Home</span>
+              <span>{t('nav.home')}</span>
               <kbd>G H</kbd>
             </NavLink>
 
             {pinnedTools.length ? (
               <section className="rail-section">
-                <p className="rail-heading">Pinned</p>
+                <p className="rail-heading">{t('nav.pinned')}</p>
                 {pinnedTools.map((tool) =>
                   tool ? (
                     <NavLink key={tool.id} className="rail-link" to={tool.path}>
@@ -232,7 +285,7 @@ export function AppShell() {
                     <span className="rail-caret" aria-hidden="true" data-open={isOpen}>
                       ›
                     </span>
-                    {category}
+                    {t(`category.${category}`)}
                     <span className="rail-count">{list.length}</span>
                   </button>
                   {isOpen ? (
@@ -252,20 +305,32 @@ export function AppShell() {
 
           <div className="rail-foot">
             <NavLink className="rail-foot-link" to="/privacy">
-              Privacy
+              {t('nav.privacy')}
             </NavLink>
             <span className="rail-badge" title="Everything runs in your browser">
-              100% on-device
+              {t('nav.onDevice')}
             </span>
           </div>
         </aside>
 
         <main id="main" className="main">
-          <Suspense fallback={<p className="muted">Loading tool…</p>}>
-            <Outlet />
-          </Suspense>
+          <StatusBar />
+          <ToolBoundary resetKey={location.pathname} toolTitle={activeTool?.title ?? 'This page'}>
+            <Suspense fallback={<p className="muted">Loading tool…</p>}>
+              <Outlet />
+            </Suspense>
+          </ToolBoundary>
         </main>
       </div>
+
+      {chordHint ? (
+        <div className="chord-hint no-print" role="status" aria-live="polite">
+          <kbd>{chordHint}</kbd>
+          <span>waiting for the next key…</span>
+        </div>
+      ) : null}
+
+      <Cheatsheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
     </div>
   )
 }
