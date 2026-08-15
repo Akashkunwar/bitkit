@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bitkit",
+  "compatibility_date": "2026-08-15",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "./dist",
+    // Workers Assets serves index.html for any unmatched path, which is what a
+    // client-routed SPA needs. A `_redirects` rule doing the same thing is
+    // rejected as a loop: Workers normalises `/index.html` back to `/`, which
+    // re-triggers the rule. This setting replaces that file entirely.
+    "not_found_handling": "single-page-application"
+  }
+}

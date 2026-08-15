@@ -87,21 +87,36 @@ stale, so run it after adding a tool.
 
 The output in `dist/` is a static SPA. Both configs are already committed.
 
-### Cloudflare Pages
+### Cloudflare Workers (recommended)
+
+`wrangler.jsonc` is committed, so importing the repo in the Cloudflare dashboard
+needs no further configuration:
 
 | Setting | Value |
 | --- | --- |
 | Build command | `npm run build` |
-| Output directory | `dist` |
+| Deploy command | `npx wrangler deploy` |
 | Node version | `20` |
 
-`public/_redirects` handles the SPA fallback and `public/_headers` sets caching and
-security headers.
+SPA routing comes from `assets.not_found_handling: "single-page-application"`.
+Do **not** add a `_redirects` rule for it — Workers normalises `/index.html`
+back to `/`, so a `/* /index.html 200` rule is rejected as an infinite loop.
+`public/_headers` still works and sets the caching and security headers.
 
-### Vercel
+To deploy from your machine:
 
-Import the repo — `vercel.json` already sets the framework, rewrites, and headers.
-No dashboard configuration needed.
+```bash
+npx wrangler login && npm run deploy
+```
+
+### Netlify
+
+Workers and Vercel both handle the SPA fallback through their own config, so no
+`_redirects` file is committed. If you deploy to Netlify, add one:
+
+```
+/*    /index.html   200
+```
 
 ### Anywhere else
 

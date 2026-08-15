@@ -5,6 +5,10 @@ node_modules
 playwright-report
 test-results
 
+# cloudflare
+.wrangler
+.dev.vars
+
 # build output
 dist
 dev-dist

@@ -15,7 +15,9 @@
     "og": "node scripts/generate-og.mjs",
     "sitemap": "node scripts/generate-sitemap.mjs",
     "test:e2e": "playwright test",
-    "check:bundle": "node scripts/check-bundle.mjs"
+    "check:bundle": "node scripts/check-bundle.mjs",
+    "deploy": "npm run build && wrangler deploy",
+    "preview:cf": "npm run build && wrangler dev"
   },
   "dependencies": {
     "@fontsource-variable/figtree": "^5.2.8",
@@ -50,7 +52,8 @@
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
     "vite-plugin-pwa": "^1.0.0",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "wrangler": "^4.123.0"
   },
   "description": "42 privacy-first browser tools. Images, PDFs, data, media, and code utilities that run entirely on your device.",
   "license": "MIT",
