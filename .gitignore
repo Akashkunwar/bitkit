@@ -1,0 +1,21 @@
+# dependencies
+node_modules
+
+# build output
+dist
+dev-dist
+*.tsbuildinfo
+
+# local env / editor
+*.local
+.env
+.env.*
+!.env.example
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# tooling caches
+graphify-out/
+.claude/settings.local.json
