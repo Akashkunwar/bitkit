@@ -12,6 +12,14 @@ export function cssFilter(adjust: ColorAdjust): string {
   return `brightness(${adjust.brightness}) contrast(${adjust.contrast}) saturate(${adjust.saturation})`
 }
 
+export function rotatedCropSize(
+  crop: { w: number; h: number },
+  rotate: 0 | 90 | 180 | 270,
+): { width: number; height: number } {
+  const swapped = rotate === 90 || rotate === 270
+  return swapped ? { width: crop.h, height: crop.w } : { width: crop.w, height: crop.h }
+}
+
 export async function renderFinished(options: {
   source: CanvasImageSource
   width: number
@@ -28,9 +36,7 @@ export async function renderFinished(options: {
   quality?: number
 }): Promise<Blob> {
   const crop = options.crop ?? { x: 0, y: 0, w: options.width, h: options.height }
-  const rotated = options.rotate === 90 || options.rotate === 270
-  const outW = rotated ? crop.h : crop.w
-  const outH = rotated ? crop.w : crop.h
+  const { width: outW, height: outH } = rotatedCropSize(crop, options.rotate)
   const canvas = document.createElement('canvas')
   canvas.width = Math.max(1, Math.round(outW))
   canvas.height = Math.max(1, Math.round(outH))

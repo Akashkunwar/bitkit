@@ -5,6 +5,7 @@ import { SendTo } from '../../components/SendTo'
 import { triggerDownload } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { useCopied } from '../../lib/useCopied'
+import { themeMeta } from '../../lib/theme'
 import { useTheme } from '../../app/Theme'
 import { svgToPng } from '../../lib/chart'
 
@@ -78,7 +79,7 @@ export default function DiagramTool() {
       mod.default.initialize({
         startOnLoad: false,
         securityLevel: 'strict',
-        theme: theme === 'dark' ? 'dark' : 'default',
+        theme: themeMeta(theme).appearance === 'dark' ? 'dark' : 'default',
         fontFamily: 'Figtree Variable, Figtree, system-ui, sans-serif',
       })
       setReady(true)

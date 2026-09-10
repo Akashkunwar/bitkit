@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/favicon.svg" width="72" height="72" alt="">
   <h1>BitKit</h1>
-  <p><strong>61 everyday tools that run entirely in your browser.</strong></p>
+  <p><strong>65 everyday tools that run entirely in your browser.</strong></p>
   <p>No account. No server. Nothing you open ever leaves your device.</p>
 </div>
 
@@ -17,8 +17,8 @@ using the platform APIs browsers already ship. After the first load it works off
 | --- | --- |
 | **Daily** | Convert (time, zones, units, percent, GST), Links & cards, Meeting planner, Age & date difference, Deadline calculator, Timers, Random picker, Number to words, Health calculators, Trip cost |
 | **Image** | Clipboard download, Resize & compress, Image finishing, Image metadata (EXIF/GPS), Favicon set, Passport sheet, Background cutout, SVG convert, Carousel splitter, Meme generator, ASCII from image |
-| **Document** | Markdown to PDF, PDF editor, PDF merge & split, Image ↔ PDF, OCR, PDF form fill, PDF shrink, Markdown table, Invoice |
-| **Data** | Data table (CSV/TSV/JSON/XLSX), Chart maker |
+| **Document** | Markdown to PDF, PDF editor, PDF merge & split, Image ↔ PDF, OCR, PDF form fill, Office to PDF (Word/PowerPoint/Excel), PDF to Word & text, Watermark & page numbers, PDF shrink, Markdown table, Invoice |
+| **Data** | Data table (CSV/TSV/JSON/XLSX), Chart maker, ZIP archive |
 | **Media** | Video & audio trim, Screen & camera recorder, Noise generator, Sound meter |
 | **Developer** | JSON formatter, Text diff, Password generator, QR code, Encode (Base64/JWT/SHA), Text bench, Regex tester, Checksum, JSON·YAML·TOML, Cron builder, Number base |
 | **Design** | Gradient builder, Tailwind theme builder, Contrast checker, Colour picker, Diagram (Mermaid), Colour vision |
@@ -29,12 +29,17 @@ Press <kbd>/</kbd> or <kbd>⌘K</kbd> to search — the palette runs actions too
 navigation ("paste and compress to 450 KB"). Press <kbd>?</kbd> for every shortcut.
 
 Every tool has a chord. Twenty-four keep a single letter (<kbd>G</kbd> <kbd>R</kbd> for
-resize), and all 61 are reachable by category (<kbd>G</kbd> <kbd>4</kbd> <kbd>D</kbd> —
+resize), and all 65 are reachable by category (<kbd>G</kbd> <kbd>4</kbd> <kbd>D</kbd> —
 fourth group, Data table). Digits can never collide with the single-letter chords, which
 is what made room for the rest.
 
 ## Beyond the tools
 
+- **Five themes.** Mist and Deep, plus Paper (warm, low-blue), Midnight (true black
+  for OLED), and Contrast (AAA body text, no shadows). *Match system* follows the OS
+  and lets you pick which pair it switches between — Paper by day, Midnight by night is
+  a valid answer. Text size, density, and a reduced-motion override sit beside them in
+  *Data & settings*. The accessibility suite audits contrast in all five.
 - **Your data is yours to move.** Export notes, pins, settings, and pipelines as one
   file from *Data & settings*, and restore it by merge or replace. IndexedDB can be
   evicted without warning, so the app also offers to request persistent storage.

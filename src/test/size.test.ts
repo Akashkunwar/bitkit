@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { computeTargetSize, nextQualityBounds } from '../lib/image/size'
+import { compressPlan } from '../lib/image/compress'
 import { applyFilenamePattern, parseByteLimit, formatBytes } from '../lib/format'
 
 describe('computeTargetSize', () => {
@@ -54,5 +55,13 @@ describe('byte limits', () => {
 describe('filename pattern', () => {
   it('injects original and extension', () => {
     expect(applyFilenamePattern('{original}-out', { original: 'Shot.PNG', ext: 'jpg' })).toBe('Shot-out.jpg')
+  })
+})
+
+describe('compress plan', () => {
+  it('downscales PNG against a byte cap instead of giving up', () => {
+    expect(compressPlan('image/png', undefined)).toEqual({ qualityBisect: false, downscale: false })
+    expect(compressPlan('image/png', 450_000)).toEqual({ qualityBisect: false, downscale: true })
+    expect(compressPlan('image/jpeg', 450_000)).toEqual({ qualityBisect: true, downscale: true })
   })
 })

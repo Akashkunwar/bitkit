@@ -1,4 +1,5 @@
-import { PDFDocument, type PDFCheckBox, type PDFDropdown, type PDFField, type PDFRadioGroup, type PDFTextField } from 'pdf-lib'
+import { type PDFCheckBox, type PDFDropdown, type PDFField, type PDFRadioGroup, type PDFTextField } from 'pdf-lib'
+import { loadPdf } from './pdfLoad'
 
 export type FormFieldView = {
   name: string
@@ -41,7 +42,7 @@ function readOptions(field: PDFField): string[] | undefined {
 }
 
 export async function listFormFields(bytes: Uint8Array): Promise<FormFieldView[]> {
-  const pdf = await PDFDocument.load(bytes, { ignoreEncryption: true })
+  const { doc: pdf } = await loadPdf(bytes)
   return pdf.getForm().getFields().map((field) => ({
     name: field.getName(),
     type: fieldType(field),
@@ -50,8 +51,12 @@ export async function listFormFields(bytes: Uint8Array): Promise<FormFieldView[]
   }))
 }
 
-export async function fillForm(bytes: Uint8Array, values: Record<string, string>): Promise<Uint8Array> {
-  const pdf = await PDFDocument.load(bytes, { ignoreEncryption: true })
+export async function fillForm(
+  bytes: Uint8Array,
+  values: Record<string, string>,
+  options: { flatten?: boolean } = {},
+): Promise<Uint8Array> {
+  const { doc: pdf } = await loadPdf(bytes)
   const form = pdf.getForm()
   for (const field of form.getFields()) {
     const name = field.getName()
@@ -71,5 +76,6 @@ export async function fillForm(bytes: Uint8Array, values: Record<string, string>
     }
   }
   form.updateFieldAppearances()
+  if (options.flatten) form.flatten()
   return pdf.save()
 }

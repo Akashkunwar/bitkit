@@ -1,5 +1,5 @@
 import { parseCsv } from './textbench'
-import { readXlsx, buildXlsx } from './xlsx'
+import { readXlsx, readXlsxWorkbook, buildXlsx } from './xlsx'
 
 export type ColumnType = 'number' | 'date' | 'boolean' | 'text'
 
@@ -85,14 +85,19 @@ export function tableFromJson(input: string): Table {
   return { headers, rows }
 }
 
-export async function tableFromFile(file: File): Promise<Table> {
+export async function tableFromFile(file: File, sheetName?: string): Promise<Table> {
   const name = file.name.toLowerCase()
   if (name.endsWith('.xlsx')) {
-    return fromMatrix(await readXlsx(new Uint8Array(await file.arrayBuffer())))
+    return fromMatrix(await readXlsx(new Uint8Array(await file.arrayBuffer()), sheetName))
   }
   const text = await file.text()
   if (name.endsWith('.json')) return tableFromJson(text)
   return tableFromCsv(text, detectDelimiter(text))
+}
+
+export async function workbookFromFile(file: File): Promise<{ name: string; table: Table }[]> {
+  const sheets = await readXlsxWorkbook(new Uint8Array(await file.arrayBuffer()))
+  return sheets.map((sheet) => ({ name: sheet.name, table: fromMatrix(sheet.rows) }))
 }
 
 // --- inference and stats ---

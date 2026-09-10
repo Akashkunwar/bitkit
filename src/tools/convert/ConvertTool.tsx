@@ -7,6 +7,7 @@ import { COMMON_ZONES, formatInZone, parseInstant, zoneOffset } from '../../lib/
 import {
   FAMILIES,
   addTax,
+  extractTax,
   convert,
   fluidClamp,
   percentChange,
@@ -58,6 +59,7 @@ export default function ConvertTool() {
     }
   }, [minPx, maxPx, minVw, maxVw, remRoot])
 
+  const [taxInclusive, setTaxInclusive] = useState(false)
   const [pct, setPct] = useState('18')
   const [of, setOf] = useState('1000')
   const [part, setPart] = useState('180')
@@ -83,13 +85,17 @@ export default function ConvertTool() {
         of: Number.isFinite(p) && Number.isFinite(o) ? percentOf(p, o) : null,
         what: Number.isFinite(pa) && Number.isFinite(w) ? whatPercent(pa, w) : null,
         change: Number.isFinite(fa) && Number.isFinite(ta) ? percentChange(fa, ta) : null,
-        tax: Number.isFinite(o) && Number.isFinite(p) ? addTax(o, p) : null,
+        tax: Number.isFinite(o) && Number.isFinite(p)
+          ? taxInclusive
+            ? extractTax(o, p)
+            : { ...addTax(o, p), base: o }
+          : null,
         split: Number.isFinite(b) && Number.isFinite(n) && Number.isFinite(t) ? splitBill(b, n, t) : null,
       }
     } catch {
       return { of: null, what: null, change: null, tax: null, split: null }
     }
-  }, [pct, of, part, whole, fromAmt, toAmt, bill, people, tip])
+  }, [pct, of, part, whole, fromAmt, toAmt, bill, people, tip, taxInclusive])
 
   const fmt = (n: number | null, digits = 4) =>
     n == null || !Number.isFinite(n) ? '—' : Number(n.toPrecision(digits)).toString()
@@ -346,9 +352,15 @@ export default function ConvertTool() {
           <aside className="panel">
             <h3>GST / tax</h3>
             <p className="hint">Uses the percent and amount from the left. Default 18% is a common GST rate.</p>
+            <label className="row">
+              <input type="checkbox" checked={taxInclusive} onChange={(e) => setTaxInclusive(e.target.checked)} />
+              Amount already includes tax (reverse GST)
+            </label>
             {money.tax ? (
               <p className="status-ok">
-                Tax {fmt(money.tax.tax)} · Total {fmt(money.tax.total)}
+                {taxInclusive
+                  ? `Base ${fmt(money.tax.base)} · Tax ${fmt(money.tax.tax)} · Total ${fmt(money.tax.total)}`
+                  : `Tax ${fmt(money.tax.tax)} · Total ${fmt(money.tax.total)}`}
               </p>
             ) : (
               <p className="hint">Enter a valid amount and rate.</p>

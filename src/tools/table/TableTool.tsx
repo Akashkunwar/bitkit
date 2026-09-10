@@ -17,6 +17,7 @@ import {
   sortTable,
   tableFromCsv,
   tableFromFile,
+  workbookFromFile,
   tableToCsv,
   tableToJson,
   tableToMarkdown,
@@ -42,6 +43,8 @@ export default function TableTool() {
   const [selected, setSelected] = useState<number | null>(null)
   const [page, setPage] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [sheets, setSheets] = useState<{ name: string; table: Table }[] | null>(null)
+  const [sheetName, setSheetName] = useState<string | null>(null)
   const { copied, copy } = useCopied()
   const undo = useUndo()
 
@@ -50,8 +53,16 @@ export default function TableTool() {
     if (!file) return
     try {
       setError(null)
-      const next = await tableFromFile(file)
-      setTable(next)
+      if (file.name.toLowerCase().endsWith('.xlsx')) {
+        const book = await workbookFromFile(file)
+        setSheets(book)
+        setSheetName(book[0]?.name ?? null)
+        setTable(book[0]?.table ?? tableFromCsv(SAMPLE))
+      } else {
+        setSheets(null)
+        setSheetName(null)
+        setTable(await tableFromFile(file))
+      }
       setSort(null)
       setPage(0)
       setSelected(null)
@@ -140,6 +151,32 @@ export default function TableTool() {
         onFiles={(files) => void load(files)}
       />
       {error ? <p className="status-bad">{error}</p> : null}
+      {sheets && sheets.length > 1 ? (
+        <label className="field" style={{ marginTop: '0.8rem' }}>
+          <span>Sheet</span>
+          <select
+            className="text-input"
+            value={sheetName ?? ''}
+            onChange={(e) => {
+              const name = e.target.value
+              setSheetName(name)
+              const found = sheets.find((s) => s.name === name)
+              if (found) {
+                setTable(found.table)
+                setSort(null)
+                setPage(0)
+                setSelected(null)
+              }
+            }}
+          >
+            {sheets.map((s) => (
+              <option key={s.name} value={s.name}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
 
       <div className="row" style={{ margin: '1rem 0 0.5rem', flexWrap: 'wrap' }}>
         <input

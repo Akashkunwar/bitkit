@@ -17,21 +17,28 @@ function walk(dir: string): string[] {
   })
 }
 
+const NETWORK_ALLOWLIST = new Set([
+  join(srcRoot, 'lib/ocr.ts'),
+  join(srcRoot, 'lib/cutout.ts'),
+])
+
 describe('privacy: processors do not upload', () => {
-  it('core modules never call fetch or XMLHttpRequest', () => {
-    const files = [
-      join(srcRoot, 'lib/image/compress.ts'),
-      join(srcRoot, 'lib/db.ts'),
-      join(srcRoot, 'lib/markdown.ts'),
-      join(srcRoot, 'lib/pdf.ts'),
-      join(srcRoot, 'lib/clipboard.ts'),
-      join(srcRoot, 'lib/download.ts'),
-    ]
+  it('lib modules never call fetch or XMLHttpRequest except allowlisted engines', () => {
+    const files = walk(join(srcRoot, 'lib')).filter((file) => !NETWORK_ALLOWLIST.has(file))
+    expect(files.length).toBeGreaterThan(20)
     for (const file of files) {
       const text = readFileSync(file, 'utf8')
       expect(text, file).not.toMatch(/\bfetch\s*\(/)
       expect(text, file).not.toMatch(/XMLHttpRequest/)
       expect(text, file).not.toMatch(/navigator\.sendBeacon/)
+    }
+  })
+
+  it('allowlisted engines fetch models, not user files', () => {
+    for (const file of NETWORK_ALLOWLIST) {
+      const text = readFileSync(file, 'utf8')
+      expect(text).toMatch(/cdn\.jsdelivr\.net|storage\.googleapis\.com|tessdata/)
+      expect(text).not.toMatch(/fetch\s*\(\s*file/)
     }
   })
 

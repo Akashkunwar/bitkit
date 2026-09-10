@@ -1,15 +1,19 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import * as pdfjs from 'pdfjs-dist'
-import type { PDFDocumentLoadingTask } from 'pdfjs-dist'
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
 import { SendTo } from '../../components/SendTo'
 import { saveAs } from '../../lib/download'
-import { useHandoff } from '../../lib/useHandoff'
+import { useToolPreset } from '../../lib/actions'
 import { formatBytes, parseByteLimit } from '../../lib/format'
+import { encryptionWarning, loadPdf } from '../../lib/pdfLoad'
+import { destroyPdfJs, isPdfPasswordError, openPdfJs } from '../../lib/pdfJs'
+import { PdfPassword } from '../../components/PdfPassword'
 import { repackPdf, shrinkPdf, stripPdfMetadata, type ShrinkPreset } from '../../lib/pdfShrink'
+import { shrinkStateFromPreset } from '../../lib/toolPresets'
+import { useHandoff } from '../../lib/useHandoff'
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
 
@@ -31,13 +35,27 @@ export default function ShrinkTool() {
   const [status, setStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [output, setOutput] = useState<Output | null>(null)
-  const taskRef = useRef<PDFDocumentLoadingTask | null>(null)
+  const [encrypted, setEncrypted] = useState(false)
+  const [password, setPassword] = useState('')
+  const [needsPassword, setNeedsPassword] = useState(false)
 
   const take = (next: File) => {
     setFile(next)
     setOutput(null)
     setError(null)
     setStatus(null)
+    setEncrypted(false)
+    setNeedsPassword(false)
+    setPassword('')
+    void next.arrayBuffer().then(async (buf) => {
+      try {
+        const { encrypted: locked } = await loadPdf(new Uint8Array(buf))
+        setEncrypted(locked)
+        if (locked) setNeedsPassword(true)
+      } catch {
+        setEncrypted(false)
+      }
+    })
   }
 
   useHandoff((payload) => {
@@ -45,12 +63,11 @@ export default function ShrinkTool() {
     if (pdf) take(pdf)
   })
 
-  useEffect(() => {
-    return () => {
-      void taskRef.current?.destroy()
-      taskRef.current = null
-    }
+  const applyLimit = useCallback((preset: { limit?: unknown }) => {
+    const next = shrinkStateFromPreset(preset)
+    if (next.limit) setLimit(next.limit)
   }, [])
+  useToolPreset('shrink', applyLimit)
 
   const run = async () => {
     if (!file) return
@@ -63,6 +80,11 @@ export default function ShrinkTool() {
       const name = `${file.name.replace(/\.pdf$/i, '')}-smaller.pdf`
 
       if (lossless) {
+        if (encrypted) {
+          throw new Error(
+            'Lossless rewrite cannot decrypt a passworded PDF. Turn lossless off and enter the password, or unlock the file in a reader first.',
+          )
+        }
         setStatus('Rewriting the document…')
         const stripped = await stripPdfMetadata(await repackPdf(source))
         const blob = new Blob([stripped.slice().buffer as ArrayBuffer], { type: 'application/pdf' })
@@ -71,17 +93,20 @@ export default function ShrinkTool() {
       }
 
       // pdf.js transfers and detaches the buffer it is handed, so pass a copy.
-      const task = pdfjs.getDocument({ data: source.slice() })
-      taskRef.current = task
-      const doc = await task.promise
+      const doc = await openPdfJs(pdfjs, source, password || undefined)
       const result = await shrinkPdf(doc, { preset, maxBytes, grayscale }, ({ page, pages, pass }) =>
         setStatus(`Pass ${pass} · page ${page} of ${pages}`),
       )
       const blob = new Blob([result.bytes.slice().buffer as ArrayBuffer], { type: 'application/pdf' })
       setOutput({ blob, name, withinLimit: result.withinLimit, pages: result.pages })
-      await task.destroy()
-      taskRef.current = null
+      await destroyPdfJs(doc)
+      setNeedsPassword(false)
     } catch (err) {
+      if (isPdfPasswordError(err)) {
+        setNeedsPassword(true)
+        setError(err.message)
+        return
+      }
       setError(err instanceof Error ? err.message : 'Could not shrink this PDF.')
     } finally {
       setBusy(false)
@@ -113,6 +138,16 @@ export default function ShrinkTool() {
           <p className="hint">
             {file.name} · {formatBytes(file.size)}
           </p>
+          {encryptionWarning(encrypted, 'pdfjs') ? <p className="banner warn">{encryptionWarning(encrypted, 'pdfjs')}</p> : null}
+          {needsPassword ? (
+            <PdfPassword
+              value={password}
+              onChange={setPassword}
+              busy={busy}
+              error={error}
+              onUnlock={() => void run()}
+            />
+          ) : null}
 
           <label className="row" style={{ marginTop: '0.6rem' }}>
             <input type="checkbox" checked={lossless} onChange={(e) => setLossless(e.target.checked)} />
@@ -138,9 +173,15 @@ export default function ShrinkTool() {
               {busy ? 'Working…' : 'Shrink PDF'}
             </button>
             {output ? (
-              <button type="button" className="btn" onClick={() => void saveAs(output.blob, output.name)}>
-                Save PDF
-              </button>
+              output.withinLimit ? (
+                <button type="button" className="btn" onClick={() => void saveAs(output.blob, output.name)}>
+                  Save PDF
+                </button>
+              ) : (
+                <button type="button" className="btn-ghost" onClick={() => void saveAs(output.blob, output.name)}>
+                  Download anyway
+                </button>
+              )
             ) : null}
           </div>
 

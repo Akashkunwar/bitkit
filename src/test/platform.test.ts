@@ -205,6 +205,16 @@ describe('palette actions', () => {
     // Consumed, so a later visit does not silently re-apply it.
     expect(takePreset('compress')).toBeNull()
   })
+
+  it('writes shrink and password presets in the shape those tools apply', async () => {
+    const { shrinkStateFromPreset, passwordStateFromPreset } = await import('../lib/toolPresets')
+    setPreset('shrink', { limit: '2mb' })
+    expect(shrinkStateFromPreset(takePreset('shrink')!)).toEqual({ limit: '2mb' })
+    setPreset('password', { mode: 'password', length: 24 })
+    expect(passwordStateFromPreset(takePreset('password')!)).toEqual({ mode: 'password', length: 24 })
+    setPreset('password', { mode: 'token', tokenFormat: 'uuid' })
+    expect(passwordStateFromPreset(takePreset('password')!)).toEqual({ mode: 'token', tokenFormat: 'uuid' })
+  })
 })
 
 describe('i18n', () => {

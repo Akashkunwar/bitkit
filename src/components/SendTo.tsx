@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fileKind, SEND_TARGETS, setHandoff, type HandoffKind } from '../lib/handoff'
+import { reportPipelineOutput } from '../lib/pipelines'
 
 type Props = {
   from: string
@@ -20,6 +22,11 @@ function payloadKinds(files: File[] | undefined, text: string | undefined): Hand
 export function SendTo({ from, files, text }: Props) {
   const navigate = useNavigate()
   const kinds = payloadKinds(files, text)
+
+  useEffect(() => {
+    if (files?.length || text?.trim()) reportPipelineOutput({ files, text })
+  }, [files, text])
+
   if (!kinds.length) return null
   const targets = SEND_TARGETS.filter((tool) => tool.id !== from && tool.accepts.some((kind) => kinds.includes(kind)))
   if (!targets.length) return null
@@ -35,7 +42,8 @@ export function SendTo({ from, files, text }: Props) {
             className="btn"
             onClick={() => {
               setHandoff({ files, text, from })
-              navigate(tool.path)
+              reportPipelineOutput({ files, text })
+              navigate(tool.path, { state: { handoff: Date.now() } })
             }}
           >
             {tool.title}

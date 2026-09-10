@@ -19,8 +19,148 @@ import {
   type RestoreMode,
 } from '../../lib/backup'
 import { clearUsage, readUsage, sortByUsage, usageScore, type Usage } from '../../lib/prefs'
+import { Segmented } from '../../components/Segmented'
+import { useTheme } from '../../app/Theme'
+import { ThemeChip } from '../../app/ThemeMenu'
+import { THEMES, TEXT_SCALES, themeMeta, type ThemeId } from '../../lib/theme'
+
+/**
+ * Appearance lives in Settings rather than only behind the header popover:
+ * the popover is for switching theme quickly, this is where the rest of the
+ * choices — the system pair, text size, density, motion — have room to explain
+ * themselves. Everything here is exported and restored with the backup.
+ */
+function AppearancePanel() {
+  const { mode, systemTheme, pair, prefs, setMode, setPair, setPrefs } = useTheme()
+  const lights = THEMES.filter((entry) => entry.appearance === 'light')
+  const darks = THEMES.filter((entry) => entry.appearance === 'dark')
+
+  return (
+    <div className="panel">
+      <p className="field-label">Appearance</p>
+      <p className="hint">
+        Five themes. Stored on this device, and included in the backup below.
+      </p>
+
+      <div className="theme-grid" role="radiogroup" aria-label="Theme">
+        {THEMES.map((entry) => (
+          <button
+            key={entry.id}
+            type="button"
+            role="radio"
+            className="theme-option"
+            aria-checked={mode === entry.id}
+            onClick={() => setMode(entry.id)}
+          >
+            <ThemeChip id={entry.id} />
+            <span className="theme-option-text">
+              <span className="theme-name">{entry.label}</span>
+              <span className="theme-option-hint">{entry.hint}</span>
+            </span>
+          </button>
+        ))}
+        <button
+          type="button"
+          role="radio"
+          className="theme-option"
+          aria-checked={mode === 'system'}
+          onClick={() => setMode('system')}
+        >
+          <ThemeChip id={systemTheme} />
+          <span className="theme-option-text">
+            <span className="theme-name">Match system</span>
+            <span className="theme-option-hint">
+              Follows the operating system and switches with it. Right now that is{' '}
+              {themeMeta(systemTheme).label}.
+            </span>
+          </span>
+        </button>
+      </div>
+
+      {mode === 'system' ? (
+        <>
+          <p className="hint" style={{ marginTop: '0.9rem' }}>
+            Which pair to switch between. Paper by day and Midnight by night is a valid answer.
+          </p>
+          <div className="row">
+            <label className="field" style={{ flex: 1, minWidth: '10rem' }}>
+              <span>When the system is light</span>
+              <select
+                value={pair.light}
+                onChange={(e) => setPair({ ...pair, light: e.target.value as ThemeId })}
+              >
+                {lights.map((entry) => (
+                  <option key={entry.id} value={entry.id}>
+                    {entry.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field" style={{ flex: 1, minWidth: '10rem' }}>
+              <span>When the system is dark</span>
+              <select
+                value={pair.dark}
+                onChange={(e) => setPair({ ...pair, dark: e.target.value as ThemeId })}
+              >
+                {darks.map((entry) => (
+                  <option key={entry.id} value={entry.id}>
+                    {entry.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </>
+      ) : null}
+
+      <Segmented
+        label="Text size"
+        value={String(prefs.textScale)}
+        options={TEXT_SCALES.map((entry) => ({ value: String(entry.value), label: entry.label }))}
+        onChange={(value) => setPrefs({ textScale: Number(value) })}
+      />
+
+      <Segmented
+        label="Density"
+        value={prefs.density}
+        options={[
+          { value: 'comfortable', label: 'Comfortable' },
+          { value: 'compact', label: 'Compact' },
+        ]}
+        onChange={(value) => setPrefs({ density: value })}
+      />
+
+      <Segmented
+        label="Motion"
+        value={prefs.motion}
+        options={[
+          { value: 'system', label: 'Follow system' },
+          { value: 'off', label: 'Reduce motion' },
+        ]}
+        onChange={(value) => setPrefs({ motion: value })}
+      />
+
+      <div className="appearance-sample">
+        <p>
+          The quick brown fox jumps over the lazy dog — this block renders at the current size,
+          spacing, and palette.
+        </p>
+        <div className="row">
+          <button type="button" className="btn btn-primary">
+            Primary
+          </button>
+          <button type="button" className="btn">
+            Secondary
+          </button>
+          <span className="pill">Pill</span>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function SettingsTool() {
+  const { syncFromStorage } = useTheme()
   const [usage, setUsage] = useState<Usage>({})
   const [estimate, setEstimate] = useState<{ usage: number; quota: number } | null>(null)
   const [persisted, setPersisted] = useState(false)
@@ -66,6 +206,9 @@ export default function SettingsTool() {
     if (!incoming) return
     try {
       const result = await restoreBackup(incoming, mode)
+      // The backup carries theme and appearance; without this the panel above
+      // would keep rendering the old one against freshly rewritten storage.
+      syncFromStorage()
       setStatus(
         mode === 'replace'
           ? `Replaced everything with ${result.notesAdded} notes and ${result.prefsWritten} settings.`
@@ -84,9 +227,11 @@ export default function SettingsTool() {
   return (
     <ToolLayout
       title="Data & settings"
-      lede="Everything BitKit stores lives in this browser. Export it, bring it to another device, or clear it."
+      lede="How BitKit looks, and everything it stores. All of it lives in this browser — export it, bring it to another device, or clear it."
     >
-      <div className="panel">
+      <AppearancePanel />
+
+      <div className="panel" style={{ marginTop: '1rem' }}>
         <p className="field-label">Storage</p>
         <div className="pill-row">
           {estimate ? (
@@ -246,6 +391,7 @@ export default function SettingsTool() {
                   void wipeEverything().then(() => {
                     setConfirmWipe(false)
                     setStatus('Everything cleared.')
+                    syncFromStorage()
                     refresh()
                   })
                 }}

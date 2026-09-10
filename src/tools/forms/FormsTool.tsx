@@ -6,6 +6,7 @@ import { filesFromBlobs } from '../../lib/handoff'
 import { triggerDownload } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { fillForm, listFormFields, type FormFieldView } from '../../lib/pdfForm'
+import { encryptionWarning, loadPdf } from '../../lib/pdfLoad'
 
 export default function FormsTool() {
   const [file, setFile] = useState<File | null>(null)
@@ -15,6 +16,8 @@ export default function FormsTool() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [filled, setFilled] = useState<Blob | null>(null)
+  const [flatten, setFlatten] = useState(false)
+  const [encrypted, setEncrypted] = useState(false)
 
   const load = async (next: File) => {
     setBusy(true)
@@ -22,9 +25,11 @@ export default function FormsTool() {
     setFilled(null)
     try {
       const raw = new Uint8Array(await next.arrayBuffer())
+      const { encrypted: locked } = await loadPdf(raw)
       const listed = await listFormFields(raw)
       setFile(next)
       setBytes(raw)
+      setEncrypted(locked)
       setFields(listed)
       setValues(Object.fromEntries(listed.map((f) => [f.name, f.value])))
       if (!listed.length) setError('No AcroForm fields found. Scanned PDFs and flattened forms cannot be filled here.')
@@ -45,7 +50,7 @@ export default function FormsTool() {
     setBusy(true)
     setError(null)
     try {
-      const out = await fillForm(bytes, values)
+      const out = await fillForm(bytes, values, { flatten })
       setFilled(new Blob([out.buffer as ArrayBuffer], { type: 'application/pdf' }))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fill failed.')
@@ -63,6 +68,7 @@ export default function FormsTool() {
         <section className="panel">
           <DropZone accept="application/pdf,.pdf" label="Drop a fillable PDF." onFiles={(files) => files[0] && void load(files[0])} />
           {file ? <p className="hint" style={{ marginTop: '0.8rem' }}>{file.name} · {fields.length} field{fields.length === 1 ? '' : 's'}</p> : null}
+          {encryptionWarning(encrypted) ? <p className="banner warn">{encryptionWarning(encrypted)}</p> : null}
           {error ? <p className="status-bad">{error}</p> : null}
           {fields.length ? (
             <div style={{ marginTop: '1rem' }}>
@@ -105,9 +111,18 @@ export default function FormsTool() {
           ) : null}
         </section>
         <aside className="panel">
+          <label className="row" style={{ margin: '0.8rem 0' }}>
+            <input type="checkbox" checked={flatten} onChange={(e) => setFlatten(e.target.checked)} />
+            Flatten fields so recipients cannot edit them
+          </label>
           <button type="button" className="btn btn-primary" disabled={!bytes || !fields.length || busy} onClick={() => void save()}>
             {busy ? 'Working…' : 'Fill and preview download'}
           </button>
+          {!flatten ? (
+            <p className="hint" style={{ marginTop: '0.6rem' }}>
+              Without flatten, the filled PDF stays editable.
+            </p>
+          ) : null}
           {filled ? (
             <button
               type="button"

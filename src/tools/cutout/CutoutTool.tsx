@@ -6,6 +6,7 @@ import { filesFromBlobs } from '../../lib/handoff'
 import { triggerDownload } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { removeBackground } from '../../lib/cutout'
+import { grantEngineConsent, hasEngineConsent } from '../../lib/cdnConsent'
 
 export default function CutoutTool() {
   const [file, setFile] = useState<File | null>(null)
@@ -16,6 +17,7 @@ export default function CutoutTool() {
   const [invert, setInvert] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [allowed, setAllowed] = useState(() => hasEngineConsent())
 
   useHandoff((payload) => {
     const image = payload.files?.find((f) => f.type.startsWith('image/'))
@@ -41,6 +43,10 @@ export default function CutoutTool() {
 
   const run = async () => {
     if (!file) return
+    if (!allowed) {
+      setError('Allow the cutout model to download once from a CDN first.')
+      return
+    }
     setBusy(true)
     setError(null)
     try {
@@ -58,6 +64,24 @@ export default function CutoutTool() {
       lede="On-device person/subject cutout. Your photo stays in this tab. The MediaPipe model and WASM may load once from a CDN."
     >
       <p className="banner">Best on a single person or a clear subject. This is not a studio-grade remover and it does not send the image anywhere.</p>
+      {!allowed ? (
+        <div className="panel" style={{ marginBottom: '1rem' }}>
+          <p>
+            First run fetches MediaPipe WASM from jsDelivr and a selfie model from Google Storage. Your photo stays in
+            this tab. Cached files can be reused offline afterwards.
+          </p>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => {
+              grantEngineConsent()
+              setAllowed(true)
+            }}
+          >
+            Allow model download
+          </button>
+        </div>
+      ) : null}
       <div className="split">
         <section className="panel">
           <DropZone

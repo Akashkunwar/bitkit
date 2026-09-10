@@ -32,7 +32,15 @@ export async function runRegexSafely(
   if (!pattern) return runRegex(pattern, flags, text, replace)
   worker ??= spawn()
   const active = worker
-  if (!active) return runRegex(pattern, flags, text, replace)
+  if (!active) {
+    return {
+      flags,
+      hits: [],
+      replaced: text,
+      error:
+        'Regex evaluation could not start a worker, so this pattern was not run on the main thread (a catastrophic pattern would freeze the tab).',
+    }
+  }
 
   const id = (seq += 1)
   return new Promise<RegexResult>((resolve) => {

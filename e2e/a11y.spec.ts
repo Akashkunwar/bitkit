@@ -166,12 +166,72 @@ for (const route of SAMPLE) {
   })
 }
 
-test('dark theme keeps the same contrast', async ({ page }) => {
+// Every theme, not only the two that shipped first: a palette that fails
+// contrast is invisible in review and obvious to the person using it.
+const THEME_IDS = [...readFileSync(resolve(process.cwd(), 'src/lib/theme.ts'), 'utf8').matchAll(/^    id: '([^']+)',$/gm)].map(
+  (m) => m[1],
+)
+
+for (const theme of THEME_IDS) {
+  test(`the ${theme} theme keeps the same contrast`, async ({ page }) => {
+    // Seeded before the first paint so the audit never measures a transition.
+    await page.addInitScript((id) => localStorage.setItem('bitkit-theme', id), theme)
+    await page.goto('/')
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
+    const issues = (await audit(page)).filter((i) => i.rule === 'contrast')
+    expect(issues, JSON.stringify(issues, null, 2)).toEqual([])
+  })
+}
+
+test('the theme picker switches theme and reports the current one', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: /switch to dark theme/i }).click()
+  await page.getByRole('button', { name: /^theme/i }).click()
+  await page.getByRole('radio', { name: 'Midnight' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'midnight')
+  await expect(page.getByRole('button', { name: /theme — midnight/i })).toBeVisible()
+
+  // The choice has to outlive a reload, which is the whole point of storing it.
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'midnight')
+})
+
+test('the theme menu is one tab stop and arrows move within it', async ({ page }) => {
+  // Seeded so the menu opens on a known option: with nothing stored it opens on
+  // 'Match system', and arrowing off that lands on a theme that looks the same.
+  await page.addInitScript(() => localStorage.setItem('bitkit-theme', 'light'))
+  await page.goto('/')
+  await page.getByRole('button', { name: /^theme/i }).click()
+  const radios = page.getByRole('radio')
+  await expect(radios).toHaveCount(6)
+
+  // Exactly one option is reachable by Tab; the rest are arrow-key targets.
+  const tabbable = await radios.evaluateAll((els) => els.filter((el) => el.tabIndex === 0).length)
+  expect(tabbable).toBe(1)
+  await expect(page.getByRole('radio', { name: 'Mist' })).toBeFocused()
+
+  // Arrows select as they move, so each theme previews against the live page.
+  await page.keyboard.press('ArrowDown')
+  await expect(page.getByRole('radio', { name: 'Deep' })).toBeFocused()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-  const issues = (await audit(page)).filter((i) => i.rule === 'contrast')
-  expect(issues, JSON.stringify(issues, null, 2)).toEqual([])
+
+  await page.keyboard.press('Home')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+
+  // End wraps to 'Match system' at the bottom of the list.
+  await page.keyboard.press('End')
+  await expect(page.getByRole('radio', { name: /match system/i })).toBeChecked()
+
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('radio')).toHaveCount(0)
+})
+
+test('text size and density apply to the document', async ({ page }) => {
+  await page.goto('/settings')
+  await page.getByRole('radio', { name: 'Large', exact: true }).click()
+  await page.getByRole('radio', { name: 'Compact' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-density', 'compact')
+  const scaled = await page.evaluate(() => getComputedStyle(document.documentElement).fontSize)
+  expect(parseFloat(scaled)).toBeGreaterThan(16)
 })
 
 test('keyboard focus is always visible', async ({ page }) => {

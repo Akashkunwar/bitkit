@@ -16,8 +16,20 @@ export default function NotesTool() {
   const [preview, setPreview] = useState(false)
   const [pdfBusy, setPdfBusy] = useState(false)
   const timer = useRef<number | null>(null)
+  const pending = useRef<Note | null>(null)
+
+  const flush = () => {
+    if (timer.current) {
+      window.clearTimeout(timer.current)
+      timer.current = null
+    }
+    const note = pending.current
+    pending.current = null
+    if (note) void upsertNote(note)
+  }
 
   const refresh = async (select?: string) => {
+    flush()
     const all = await listNotes()
     setNotes(all)
     setActiveId((id) => select ?? id ?? all[0]?.id ?? null)
@@ -38,10 +50,23 @@ export default function NotesTool() {
     })()
   }, [])
 
+  useEffect(() => {
+    const hide = () => flush()
+    window.addEventListener('pagehide', hide)
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) hide()
+    })
+    return () => {
+      hide()
+      window.removeEventListener('pagehide', hide)
+    }
+  }, [])
+
   useHandoff((payload) => {
     const body = payload.text
     if (!body) return
     void (async () => {
+      flush()
       const note = newNote()
       note.body = body
       note.title = body.split('\n')[0]?.slice(0, 80) ?? 'Imported'
@@ -61,9 +86,13 @@ export default function NotesTool() {
     if (!active) return
     const next = { ...active, ...patch }
     setNotes((list) => list.map((note) => (note.id === next.id ? next : note)))
+    pending.current = next
     if (timer.current) window.clearTimeout(timer.current)
     timer.current = window.setTimeout(() => {
-      void upsertNote(next)
+      timer.current = null
+      const note = pending.current
+      pending.current = null
+      if (note) void upsertNote(note)
     }, 280)
   }
 
@@ -114,6 +143,15 @@ export default function NotesTool() {
                 onChange={async (event) => {
                   const file = event.target.files?.[0]
                   if (!file) return
+                  if (
+                    !window.confirm(
+                      'Importing replaces every note in this browser. Export first if you might need them back.',
+                    )
+                  ) {
+                    event.target.value = ''
+                    return
+                  }
+                  flush()
                   const imported = importNotes(await file.text())
                   await replaceNotes(imported)
                   await refresh(imported[0]?.id)
@@ -128,7 +166,10 @@ export default function NotesTool() {
                 type="button"
                 className="note-item"
                 data-active={note.id === activeId}
-                onClick={() => setActiveId(note.id)}
+                onClick={() => {
+                  flush()
+                  setActiveId(note.id)
+                }}
               >
                 {note.pinned ? '📌 ' : ''}
                 {note.title || 'Untitled'}

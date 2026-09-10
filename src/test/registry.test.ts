@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { searchTools, tools } from '../registry'
+import { searchTools, tools, TOOL_COUNT } from '../registry'
 
 describe('tool registry', () => {
   it('registers all tools with unique ids, paths, and titles', () => {
     const ids = tools.map((t) => t.id)
     const paths = tools.map((t) => t.path)
     const titles = tools.map((t) => t.title)
-    expect(ids.length).toBeGreaterThanOrEqual(40)
+    expect(ids.length).toBe(TOOL_COUNT)
+    expect(TOOL_COUNT).toBe(65)
     expect(new Set(ids).size).toBe(ids.length)
     expect(new Set(paths).size).toBe(paths.length)
     expect(new Set(titles).size).toBe(titles.length)

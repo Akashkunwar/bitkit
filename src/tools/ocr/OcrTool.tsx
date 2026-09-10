@@ -6,6 +6,7 @@ import { triggerDownload } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { useCopied } from '../../lib/useCopied'
 import { recognizeImage } from '../../lib/ocr'
+import { grantEngineConsent, hasEngineConsent } from '../../lib/cdnConsent'
 
 export default function OcrTool() {
   const [file, setFile] = useState<File | null>(null)
@@ -14,6 +15,7 @@ export default function OcrTool() {
   const [confidence, setConfidence] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [allowed, setAllowed] = useState(() => hasEngineConsent())
   const { copied, copy } = useCopied()
 
   useHandoff((payload) => {
@@ -30,6 +32,10 @@ export default function OcrTool() {
 
   const run = async () => {
     if (!file) return
+    if (!allowed) {
+      setError('Allow the OCR engine to download once from a CDN first.')
+      return
+    }
     setBusy(true)
     setError(null)
     try {
@@ -49,6 +55,24 @@ export default function OcrTool() {
       lede="Read printed text from a photo. The image never leaves this tab. The recognition engine and English language pack may load once from a CDN."
     >
       <p className="banner">Your photo stays local. Tesseract WASM and the English traineddata can download the first time you run this.</p>
+      {!allowed ? (
+        <div className="panel" style={{ marginBottom: '1rem' }}>
+          <p>
+            First run fetches the recognition engine from jsDelivr and tessdata.projectnaptha.com. The photo itself is
+            never uploaded. After that, this browser can reuse the cached files offline.
+          </p>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => {
+              grantEngineConsent()
+              setAllowed(true)
+            }}
+          >
+            Allow engine download
+          </button>
+        </div>
+      ) : null}
       <div className="split">
         <section className="panel">
           <DropZone

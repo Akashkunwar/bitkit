@@ -12,6 +12,10 @@ export function Privacy() {
         <li>Notes live in IndexedDB for this origin. That is not a backup — export if they matter.</li>
         <li>Paste works only while this tab is focused. The site cannot write silently to an arbitrary folder.</li>
         <li>
+          Camera, microphone, and screen capture are requested only for Screen & camera recorder, QR scan, and Sound
+          meter, after you click. Captured media stays in this tab.
+        </li>
+        <li>
           Image finishing does not remove SynthID or other provenance watermarks, and it does not claim to beat AI
           detectors.
         </li>

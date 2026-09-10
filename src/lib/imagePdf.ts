@@ -1,5 +1,6 @@
 import { PDFDocument, PageSizes } from 'pdf-lib'
 import { decodeImage } from './image/compress'
+import { stageDownscale } from './image/limits'
 
 export type PageFit = 'fit' | 'a4' | 'letter'
 
@@ -9,28 +10,25 @@ const SIZES: Record<Exclude<PageFit, 'fit'>, [number, number]> = {
 }
 
 async function toEmbeddable(blob: Blob): Promise<{ kind: 'jpeg' | 'png'; bytes: Uint8Array }> {
-  const type = blob.type
-  const bytes = new Uint8Array(await blob.arrayBuffer())
-  if (type === 'image/jpeg' || (bytes[0] === 0xff && bytes[1] === 0xd8)) {
-    return { kind: 'jpeg', bytes }
-  }
-  if (type === 'image/png' || (bytes[0] === 0x89 && bytes[1] === 0x50)) {
-    return { kind: 'png', bytes }
-  }
   const source = await decodeImage(blob)
   const width = 'naturalWidth' in source && source.naturalWidth ? source.naturalWidth : source.width
   const height = 'naturalHeight' in source && source.naturalHeight ? source.naturalHeight : source.height
+  const { width: w, height: h } = stageDownscale(width, height)
   const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
+  canvas.width = w
+  canvas.height = h
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Canvas is unavailable.')
-  ctx.drawImage(source as CanvasImageSource, 0, 0)
+  ctx.drawImage(source as CanvasImageSource, 0, 0, w, h)
   if ('close' in source) source.close()
-  const png = await new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('PNG encode failed.'))), 'image/png')
+  const type = blob.type === 'image/png' ? 'image/png' : 'image/jpeg'
+  const encoded = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Image encode failed.'))), type, 0.92)
   })
-  return { kind: 'png', bytes: new Uint8Array(await png.arrayBuffer()) }
+  return {
+    kind: type === 'image/png' ? 'png' : 'jpeg',
+    bytes: new Uint8Array(await encoded.arrayBuffer()),
+  }
 }
 
 export async function imagesToPdf(files: Blob[], fit: PageFit = 'fit'): Promise<Uint8Array> {

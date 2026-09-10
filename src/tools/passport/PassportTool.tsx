@@ -7,6 +7,7 @@ import { triggerDownload } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { filesFromPaste } from '../../lib/clipboard'
 import { decodeImage } from '../../lib/image/compress'
+import { workingBitmap } from '../../lib/image/safeCanvas'
 import { PASSPORT_PX, passportLayout, type SheetKind } from '../../lib/passport'
 
 export default function PassportTool() {
@@ -40,7 +41,7 @@ export default function PassportTool() {
     }
     window.addEventListener('paste', onPaste)
     return () => window.removeEventListener('paste', onPaste)
-  })
+  }, [])
 
   const render = async () => {
     if (!file) return
@@ -51,9 +52,10 @@ export default function PassportTool() {
       const source = await decodeImage(file)
       const sw = 'naturalWidth' in source && source.naturalWidth ? source.naturalWidth : source.width
       const sh = 'naturalHeight' in source && source.naturalHeight ? source.naturalHeight : source.height
-      const scale = Math.max(PASSPORT_PX / sw, PASSPORT_PX / sh)
-      const tw = sw * scale
-      const th = sh * scale
+      const work = workingBitmap(source as CanvasImageSource, sw, sh)
+      const scale = Math.max(PASSPORT_PX / work.width, PASSPORT_PX / work.height)
+      const tw = work.width * scale
+      const th = work.height * scale
       const sx = (tw - PASSPORT_PX) / 2 / scale
       const sy = (th - PASSPORT_PX) / 2 / scale
       const canvas = canvasRef.current ?? document.createElement('canvas')
@@ -64,7 +66,7 @@ export default function PassportTool() {
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(0, 0, layout.pageW, layout.pageH)
       for (const cell of layout.cells) {
-        ctx.drawImage(source as CanvasImageSource, sx, sy, PASSPORT_PX / scale, PASSPORT_PX / scale, cell.x, cell.y, cell.w, cell.h)
+        ctx.drawImage(work.source, sx, sy, PASSPORT_PX / scale, PASSPORT_PX / scale, cell.x, cell.y, cell.w, cell.h)
         ctx.strokeStyle = '#dddddd'
         ctx.strokeRect(cell.x + 0.5, cell.y + 0.5, cell.w - 1, cell.h - 1)
       }

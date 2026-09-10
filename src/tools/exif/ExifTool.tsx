@@ -44,7 +44,7 @@ export default function ExifTool() {
     }
     window.addEventListener('paste', onPaste)
     return () => window.removeEventListener('paste', onPaste)
-  })
+  }, [])
 
   const strip = async () => {
     if (!file) return
