@@ -12,7 +12,7 @@ export type MediaInfo = {
   duration: number
   width: number
   height: number
-  hasAudio: boolean
+  hasAudio: boolean | null
 }
 
 /** Container/codec combinations, best first. Safari only does mp4. */
@@ -59,8 +59,13 @@ export function probeMedia(file: File): Promise<MediaInfo> {
         duration: Number.isFinite(el.duration) ? el.duration : 0,
         width: kind === 'video' ? video.videoWidth : 0,
         height: kind === 'video' ? video.videoHeight : 0,
-        // No portable metadata flag exists, so assume audio unless proven otherwise.
-        hasAudio: true,
+        hasAudio: (() => {
+          if (kind === 'audio') return true
+          const probe = video as HTMLVideoElement & { mozHasAudio?: boolean; audioTracks?: { length: number } }
+          if (typeof probe.mozHasAudio === 'boolean') return probe.mozHasAudio
+          if (probe.audioTracks) return probe.audioTracks.length > 0
+          return null
+        })(),
       })
     }
     el.onerror = () => {

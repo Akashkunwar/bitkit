@@ -14,12 +14,15 @@ body,
 
 html {
   background: var(--bg);
+  /* Text size scales the root so rem-based spacing grows with the type rather
+     than leaving larger text crammed into the original gaps. */
+  font-size: calc(100% * var(--text-scale, 1));
 }
 
 body {
   margin: 0;
   font-family: var(--font-ui);
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.5;
   color: var(--ink);
   background:
@@ -2533,4 +2536,155 @@ input[type='radio'] {
 input[type='color'] {
   min-width: 44px;
   min-height: 32px;
+}
+
+/* ---------- Theme picker ---------- */
+
+.theme-picker {
+  position: relative;
+  flex: none;
+}
+
+/* The search field is the only thing in the header that should give up width.
+   Without this the icon buttons shrink below the 24px target on a narrow
+   window — the picker being flex: none simply moved the squeeze onto '?'. */
+.topbar .icon-btn {
+  flex: none;
+}
+
+.theme-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.4rem);
+  z-index: 50;
+  width: 16rem;
+  max-width: calc(100vw - 1.5rem);
+  padding: 0.4rem;
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  box-shadow: var(--shadow-pop);
+}
+
+.theme-menu-head {
+  padding: 0.4rem 0.5rem 0.2rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.theme-menu-foot {
+  margin-top: 0.3rem;
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--line);
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 2.4rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: left;
+  font-size: 0.9rem;
+  transition: background 120ms, border-color 120ms;
+}
+
+.theme-option:hover {
+  background: var(--bg-mute);
+}
+
+.theme-option[aria-checked='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.theme-option[aria-checked='true'] .theme-name {
+  font-weight: 600;
+}
+
+/* Muted ink on the selected card's accent tint measures 4.36:1 in Mist —
+   under the 4.5 bar the app holds itself to, so the selected hint uses ink. */
+.theme-option[aria-checked='true'] .theme-option-hint {
+  color: var(--ink);
+}
+
+/* Three bands — page, surface, accent — which is enough to tell the five
+   apart at a glance without rendering a miniature of the whole app. */
+.theme-chip {
+  display: flex;
+  flex: none;
+  width: 2.2rem;
+  height: 1.4rem;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+}
+
+.theme-chip i {
+  flex: 1;
+}
+
+.theme-chip i:last-child {
+  flex: 1.4;
+}
+
+.theme-name {
+  flex: 1;
+}
+
+.theme-check {
+  color: var(--accent-strong);
+  font-size: 0.95rem;
+}
+
+/* ---------- Appearance settings ---------- */
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.theme-grid .theme-option {
+  border-color: var(--line);
+  background: var(--bg-elev);
+  align-items: flex-start;
+}
+
+.theme-grid .theme-option[aria-checked='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.theme-option-text {
+  flex: 1;
+  display: grid;
+  gap: 0.1rem;
+}
+
+.theme-option-hint {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.appearance-sample {
+  margin-top: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.appearance-sample p {
+  margin: 0 0 0.5rem;
 }

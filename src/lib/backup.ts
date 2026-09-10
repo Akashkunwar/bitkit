@@ -20,7 +20,13 @@ export type Backup = {
   local: Record<string, string>
 }
 
-const LOCAL_KEYS = ['bitkit-theme', 'bitkit-open-sections', 'bitkit-language']
+const LOCAL_KEYS = [
+  'bitkit-theme',
+  'bitkit-theme-pair',
+  'bitkit-appearance',
+  'bitkit-open-sections',
+  'bitkit-language',
+]
 
 export async function createBackup(): Promise<Backup> {
   const [notes, prefs] = await Promise.all([db.notes.toArray(), db.prefs.toArray()])
@@ -124,6 +130,7 @@ export async function restoreBackup(backup: Backup, mode: RestoreMode): Promise<
       await db.prefs.clear()
       notesAdded = backup.notes.length
       if (backup.notes.length) await db.notes.bulkPut(backup.notes)
+      for (const pref of backup.prefs) await db.prefs.put(pref)
     } else {
       for (const note of backup.notes) {
         const existing = await db.notes.get(note.id)
@@ -131,13 +138,15 @@ export async function restoreBackup(backup: Backup, mode: RestoreMode): Promise<
           await db.notes.put(note)
           notesAdded += 1
         } else if (note.updatedAt > existing.updatedAt) {
-          // Newer wins, so importing an older backup never loses recent edits.
           await db.notes.put(note)
           notesUpdated += 1
         }
       }
+      for (const pref of backup.prefs) {
+        const existing = await db.prefs.get(pref.key)
+        if (!existing) await db.prefs.put(pref)
+      }
     }
-    for (const pref of backup.prefs) await db.prefs.put(pref)
   })
 
   for (const [key, value] of Object.entries(backup.local ?? {})) {

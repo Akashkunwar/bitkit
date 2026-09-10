@@ -1,4 +1,5 @@
 import { PDFDocument, LineCapStyle, StandardFonts, degrees, rgb, type RGB } from 'pdf-lib'
+import { loadPdf } from './pdfLoad'
 
 export type Point = { x: number; y: number }
 
@@ -28,7 +29,9 @@ export function annotationId(): string {
 }
 
 export function hexToRgb(hex: string): RGB {
-  const m = hex.replace('#', '')
+  const raw = hex.trim().replace('#', '')
+  const m = raw.length === 3 ? raw.split('').map((c) => c + c).join('') : raw
+  if (!/^[0-9a-fA-F]{6}$/.test(m)) return rgb(0, 0, 0)
   return rgb(parseInt(m.slice(0, 2), 16) / 255, parseInt(m.slice(2, 4), 16) / 255, parseInt(m.slice(4, 6), 16) / 255)
 }
 
@@ -57,7 +60,7 @@ function sanitizeForHelvetica(text: string): string {
 }
 
 export async function exportPdf(sourceBytes: Uint8Array, pages: PageState[]): Promise<Uint8Array> {
-  const src = await PDFDocument.load(sourceBytes, { ignoreEncryption: true })
+  const { doc: src } = await loadPdf(sourceBytes)
   const out = await PDFDocument.create()
   const font = await out.embedFont(StandardFonts.Helvetica)
   const copied = await out.copyPages(src, pages.map((p) => p.sourceIndex))

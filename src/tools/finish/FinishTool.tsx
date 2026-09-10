@@ -19,6 +19,8 @@ export default function FinishTool() {
   const [natural, setNatural] = useState({ width: 0, height: 0 })
   const [crop, setCrop] = useState<Crop | null>(null)
   const [rotate, setRotate] = useState<0 | 90 | 180 | 270>(0)
+  const [flipX, setFlipX] = useState(false)
+  const [flipY, setFlipY] = useState(false)
   const [adjust, setAdjust] = useState<ColorAdjust>({ brightness: 1, contrast: 1, saturation: 1 })
   const [overlayText, setOverlayText] = useState('')
   const [background, setBackground] = useState('#ffffff')
@@ -36,7 +38,7 @@ export default function FinishTool() {
     }
     window.addEventListener('paste', onPaste)
     return () => window.removeEventListener('paste', onPaste)
-  })
+  }, [])
 
   const load = async (next: File) => {
     if (url) URL.revokeObjectURL(url)
@@ -66,6 +68,8 @@ export default function FinishTool() {
         height: natural.height,
         crop,
         rotate,
+        flipX,
+        flipY,
         adjust,
         overlayText,
         background,
@@ -158,7 +162,6 @@ export default function FinishTool() {
                 alt="Working image"
                 style={{
                   filter: `brightness(${adjust.brightness}) contrast(${adjust.contrast}) saturate(${adjust.saturation})`,
-                  transform: `rotate(${rotate}deg)`,
                 }}
               />
               {crop ? <div className="crop-box" style={cropStyle()} /> : null}
@@ -170,7 +173,13 @@ export default function FinishTool() {
         <aside className="panel">
           <div className="row">
             <button type="button" className="btn" onClick={() => setRotate((r) => ((r + 90) % 360) as 0 | 90 | 180 | 270)}>
-              Rotate 90°
+              Rotate 90°{rotate ? ` · ${rotate}°` : ''}
+            </button>
+            <button type="button" className="btn" onClick={() => setFlipX((v) => !v)}>
+              Flip H{flipX ? ' · on' : ''}
+            </button>
+            <button type="button" className="btn" onClick={() => setFlipY((v) => !v)}>
+              Flip V{flipY ? ' · on' : ''}
             </button>
             <button
               type="button"
@@ -243,6 +252,9 @@ export default function FinishTool() {
           />
           <DownloadButton label={busy ? 'Exporting…' : 'Download'} disabled={!file || busy} onClick={() => void exportImage()} />
           <SendTo from="finish" files={file ? [file] : undefined} />
+          <p className="hint">
+            Crop on the unrotated image. Rotate and flip apply when you export.
+          </p>
           <p className="hint">
             Re-encoding strips most EXIF. That is a side effect, not a way to hide origin.
           </p>

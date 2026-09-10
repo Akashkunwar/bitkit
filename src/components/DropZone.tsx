@@ -1,4 +1,5 @@
 import { useRef, useState, type ChangeEvent, type DragEvent, type ReactNode } from 'react'
+import { imageFormatHint } from '../lib/image/formatHint'
 
 type Props = {
   accept?: string
@@ -12,10 +13,14 @@ type Props = {
 export function DropZone({ accept = 'image/*', multiple, label, hint, onFiles, children }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [active, setActive] = useState(false)
+  const [formatNote, setFormatNote] = useState<string | null>(null)
 
   const take = (list: FileList | File[] | null) => {
     const files = list ? [...list] : []
-    if (files.length) onFiles(files)
+    if (!files.length) return
+    const note = files.map(imageFormatHint).find(Boolean) ?? null
+    setFormatNote(note)
+    onFiles(files)
   }
 
   const onDrop = (event: DragEvent) => {
@@ -42,6 +47,7 @@ export function DropZone({ accept = 'image/*', multiple, label, hint, onFiles, c
     >
       <p>{label ?? 'Drop a file, click to choose, or paste.'}</p>
       {hint ? <p className="hint">{hint}</p> : null}
+      {formatNote ? <p className="banner">{formatNote}</p> : null}
       <div className="row" style={{ justifyContent: 'center', marginTop: '0.8rem' }}>
         <button type="button" className="btn" onClick={() => inputRef.current?.click()}>
           Choose file

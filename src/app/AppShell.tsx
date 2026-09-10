@@ -5,7 +5,7 @@ import { Cheatsheet } from './Cheatsheet'
 import { StatusBar } from './StatusBar'
 import { ToolBoundary } from './ToolBoundary'
 import { Logo } from './Brand'
-import { useTheme } from './Theme'
+import { ThemeMenu } from './ThemeMenu'
 import { CATEGORIES, tools } from '../registry'
 import { getPref, setPref } from '../lib/db'
 import { setHandoff, suggestPath } from '../lib/handoff'
@@ -25,7 +25,6 @@ function readOpenSections(): string[] | null {
 }
 
 export function AppShell() {
-  const { theme, toggle } = useTheme()
   const { t, language, setLanguage } = useI18n()
   const location = useLocation()
   const navigate = useNavigate()
@@ -232,15 +231,7 @@ export function AppShell() {
           ))}
         </select>
 
-        <button
-          type="button"
-          className="icon-btn"
-          onClick={toggle}
-          aria-label={theme === 'dark' ? t('action.lightTheme') : t('action.darkTheme')}
-          title={theme === 'dark' ? t('action.lightTheme') : t('action.darkTheme')}
-        >
-          {theme === 'dark' ? '☀' : '☾'}
-        </button>
+        <ThemeMenu />
       </header>
 
       <div className="shell-body">

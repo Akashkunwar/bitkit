@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { DownloadButton } from '../../components/DownloadButton'
@@ -14,7 +14,7 @@ import { SendTo } from '../../components/SendTo'
 import { filesFromBlobs } from '../../lib/handoff'
 import { FolderBatch } from '../../components/FolderBatch'
 import { compressImage } from '../../lib/image/compress'
-import { takePreset } from '../../lib/actions'
+import { useToolPreset } from '../../lib/actions'
 
 type Item = {
   id: string
@@ -37,12 +37,22 @@ export default function CompressTool() {
   const [preset, setPreset] = useState('450kb-free')
 
   const maxBytes = parseByteLimit(maxBytesInput)
+  const itemsRef = useRef(items)
+  itemsRef.current = items
 
-  // A palette action such as "compress to 300 KB" arrives as a preset.
   useEffect(() => {
-    const preset = takePreset('compress')
-    if (preset && typeof preset.maxBytes === 'string') setMaxBytesInput(preset.maxBytes)
+    return () => {
+      for (const item of itemsRef.current) {
+        URL.revokeObjectURL(item.url)
+        if (item.result) URL.revokeObjectURL(item.result.url)
+      }
+    }
   }, [])
+
+  const applyPalettePreset = useCallback((preset: { maxBytes?: unknown }) => {
+    if (typeof preset.maxBytes === 'string') setMaxBytesInput(preset.maxBytes)
+  }, [])
+  useToolPreset('compress', applyPalettePreset)
 
   useEffect(() => {
     const onPaste = (event: ClipboardEvent) => {
@@ -52,7 +62,7 @@ export default function CompressTool() {
     }
     window.addEventListener('paste', onPaste)
     return () => window.removeEventListener('paste', onPaste)
-  })
+  }, [])
 
   const addFiles = (files: File[]) => {
     const next = files
@@ -189,7 +199,7 @@ export default function CompressTool() {
           ) : null}
           <div className="row">
             <DownloadButton label="Convert" disabled={!items.length} onClick={() => void run()} />
-            <button type="button" className="btn" disabled={!summary} onClick={() => {
+            <button type="button" className="btn" disabled={!summary || anyOver} onClick={() => {
               items.forEach((item, index) => {
                 if (!item.result) return
                 triggerDownload(
@@ -204,6 +214,27 @@ export default function CompressTool() {
             }}>
               Download all
             </button>
+            {anyOver ? (
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={() => {
+                  items.forEach((item, index) => {
+                    if (!item.result) return
+                    triggerDownload(
+                      item.result.blob,
+                      applyFilenamePattern('{original}', {
+                        original: item.file.name,
+                        ext: mimeToExt(mime),
+                        index: index + 1,
+                      }),
+                    )
+                  })
+                }}
+              >
+                Download anyway
+              </button>
+            ) : null}
           </div>
           {anyOver ? (
             <p className="status-bad">
@@ -223,6 +254,7 @@ export default function CompressTool() {
             fit,
             mime,
             maxBytes,
+            background: mime === 'image/jpeg' ? '#ffffff' : undefined,
           })
           return {
             name: applyFilenamePattern('{original}', { original: file.name, ext: mimeToExt(mime) }),
@@ -271,6 +303,17 @@ export default function CompressTool() {
                 </p>
               ) : null}
               {item.error ? <p className="status-bad">{item.error}</p> : null}
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={() => {
+                  URL.revokeObjectURL(item.url)
+                  if (item.result) URL.revokeObjectURL(item.result.url)
+                  setItems((prev) => prev.filter((row) => row.id !== item.id))
+                }}
+              >
+                Remove
+              </button>
             </div>
           ))}
         </aside>

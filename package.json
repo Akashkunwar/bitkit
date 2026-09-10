@@ -54,7 +54,7 @@
     "vitest": "^3.2.4",
     "wrangler": "^4.123.0"
   },
-  "description": "42 privacy-first browser tools. Images, PDFs, data, media, and code utilities that run entirely on your device.",
+  "description": "65 privacy-first browser tools. Images, PDFs, data, media, and code utilities that run entirely on your device.",
   "license": "MIT",
   "engines": {
     "node": ">=20"

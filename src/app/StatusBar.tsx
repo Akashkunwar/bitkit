@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
+import { useI18n } from '../lib/i18n'
 
 type InstallPrompt = Event & {
   prompt: () => Promise<void>
@@ -16,6 +17,7 @@ const INSTALL_DISMISSED = 'bitkit-install-dismissed'
  * prompt is discarded unless something calls it.
  */
 export function StatusBar() {
+  const { t } = useI18n()
   const [offline, setOffline] = useState(() => typeof navigator !== 'undefined' && !navigator.onLine)
   const [installPrompt, setInstallPrompt] = useState<InstallPrompt | null>(null)
   const [installDismissed, setInstallDismissed] = useState(
@@ -71,25 +73,25 @@ export function StatusBar() {
       {offline ? (
         <div className="status-chip" data-tone="info" role="status">
           <span className="status-dot" aria-hidden="true" />
-          Offline — every tool still works. Only the first load needed the network.
+          {t('status.offline')}
         </div>
       ) : null}
 
       {needRefresh ? (
         <div className="status-chip" data-tone="update" role="status">
-          <span>A new version is ready.</span>
+          <span>{t('status.updateReady')}</span>
           <button type="button" className="btn btn-primary" onClick={() => void updateServiceWorker(true)}>
-            Reload
+            {t('status.reload')}
           </button>
           <button type="button" className="btn-ghost" onClick={() => setNeedRefresh(false)}>
-            Later
+            {t('status.later')}
           </button>
         </div>
       ) : null}
 
       {showInstall ? (
         <div className="status-chip" data-tone="install">
-          <span>Install BitKit for offline use and a spot in your dock.</span>
+          <span>{t('status.install')}</span>
           <button
             type="button"
             className="btn btn-primary"
@@ -101,10 +103,10 @@ export function StatusBar() {
               })
             }}
           >
-            Install
+            {t('status.installNow')}
           </button>
           <button type="button" className="btn-ghost" onClick={dismissInstall}>
-            No thanks
+            {t('status.noThanks')}
           </button>
         </div>
       ) : null}

@@ -1,4 +1,5 @@
 import { decodeImage } from './image/compress'
+import { workingBitmap } from './image/safeCanvas'
 
 export type MemeStyle = 'classic' | 'modern' | 'caption'
 
@@ -99,14 +100,15 @@ function drawBlock(
   })
 }
 
-export async function renderMeme(file: Blob, options: MemeOptions): Promise<Blob> {
+export async function renderMeme(file: Blob, options: MemeOptions): Promise<{ blob: Blob; capped: boolean }> {
   const source = await decodeImage(file)
   const srcW = 'naturalWidth' in source && source.naturalWidth ? source.naturalWidth : source.width
   const srcH = 'naturalHeight' in source && source.naturalHeight ? source.naturalHeight : source.height
+  const work = workingBitmap(source as CanvasImageSource, srcW, srcH)
 
-  const scale = Math.min(1, options.maxWidth / srcW)
-  const width = Math.round(srcW * scale)
-  const imageHeight = Math.round(srcH * scale)
+  const scale = Math.min(1, options.maxWidth / work.width)
+  const width = Math.round(work.width * scale)
+  const imageHeight = Math.round(work.height * scale)
 
   const size = Math.round(width * 0.085 * options.fontScale)
   const lineHeight = size * 1.12
@@ -134,7 +136,7 @@ export async function renderMeme(file: Blob, options: MemeOptions): Promise<Blob
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, width, bandHeight)
   }
-  ctx.drawImage(source as CanvasImageSource, 0, bandHeight, width, imageHeight)
+  ctx.drawImage(work.source, 0, bandHeight, width, imageHeight)
   ctx.font = fontFor(options.style, size)
 
   if (topLines.length) {
@@ -157,7 +159,8 @@ export async function renderMeme(file: Blob, options: MemeOptions): Promise<Blob
   }
 
   if ('close' in source) source.close()
-  return new Promise((resolve, reject) => {
+  const blob = await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Could not render the meme.'))), 'image/jpeg', 0.92)
   })
+  return { blob, capped: work.capped }
 }

@@ -4,7 +4,7 @@ import { tools, type ToolMeta } from '../registry'
  * Keyboard chords, matched as a prefix tree.
  *
  * The original scheme was "G then one letter", which caps out at 25 tools.
- * With 59 tools most had no shortcut at all, so chords may now be two letters
+ * With 65 tools most had no shortcut at all, so chords may now be two letters
  * deep: "G J" still opens JSON, while "G T A" opens the data table. A one-letter
  * chord is only allowed when no longer chord starts with the same letter, so
  * there is never an ambiguous wait.

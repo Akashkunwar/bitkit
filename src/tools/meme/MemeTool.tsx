@@ -6,6 +6,7 @@ import { SendTo } from '../../components/SendTo'
 import { triggerDownload } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { DEFAULT_MEME, MEME_STYLES, renderMeme, type MemeOptions, type MemeStyle } from '../../lib/meme'
+import { CAPPED_HINT } from '../../lib/image/safeCanvas'
 
 export default function MemeTool() {
   const [file, setFile] = useState<File | null>(null)
@@ -13,6 +14,7 @@ export default function MemeTool() {
   const [url, setUrl] = useState<string | null>(null)
   const [blob, setBlob] = useState<Blob | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [capped, setCapped] = useState(false)
 
   useHandoff((payload) => {
     const image = payload.files?.find((f) => f.type.startsWith('image/'))
@@ -28,10 +30,11 @@ export default function MemeTool() {
       void renderMeme(file, options)
         .then((result) => {
           if (!live) return
-          setBlob(result)
+          setBlob(result.blob)
+          setCapped(result.capped)
           setUrl((old) => {
             if (old) URL.revokeObjectURL(old)
-            return URL.createObjectURL(result)
+            return URL.createObjectURL(result.blob)
           })
           setError(null)
         })
@@ -70,6 +73,7 @@ export default function MemeTool() {
         }}
       />
       {error ? <p className="status-bad">{error}</p> : null}
+      {capped ? <p className="banner warn">{CAPPED_HINT}</p> : null}
 
       {file ? (
         <>

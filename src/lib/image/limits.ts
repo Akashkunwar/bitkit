@@ -9,3 +9,13 @@ export function stageDownscale(width: number, height: number, max = CANVAS_SAFE_
     height: Math.max(1, Math.round(height * scale)),
   }
 }
+
+export function sourcePixelSize(source: { width: number; height: number; naturalWidth?: number; naturalHeight?: number }): {
+  width: number
+  height: number
+} {
+  if (source.naturalWidth && source.naturalHeight) {
+    return { width: source.naturalWidth, height: source.naturalHeight }
+  }
+  return { width: source.width, height: source.height }
+}

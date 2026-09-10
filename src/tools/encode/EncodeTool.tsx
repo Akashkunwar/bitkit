@@ -209,7 +209,9 @@ export default function EncodeTool() {
           ) : null}
           {mode === 'jwt' ? (
             <>
-              <p className="banner warn">Inspect only. Signatures are not checked against a key or JWKS.</p>
+              <p className="banner warn">
+                Inspect only. Signatures are not checked. Do not treat this payload as authentic.
+              </p>
               {jwt?.error ? <p className="status-bad">{jwt.error}</p> : null}
               {jwt?.view ? (
                 <>

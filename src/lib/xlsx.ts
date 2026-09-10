@@ -1,3 +1,4 @@
+import { unzip, type ZipFile } from './zipRead'
 import { zipStore, type ZipEntry } from './zip'
 
 /**
@@ -67,10 +68,17 @@ export function columnIndex(ref: string): number {
 
 const NUMERIC = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/
 
+function looksLikePlainNumber(value: string): boolean {
+  const t = value.trim()
+  if (!NUMERIC.test(t)) return false
+  // Keep leading zeros as text so IDs like 01234 survive a round-trip.
+  if (/^0\d/.test(t)) return false
+  return true
+}
+
 function cellXml(ref: string, value: string): string {
   if (value === '') return ''
-  // Inline strings avoid needing a shared-strings part entirely.
-  if (NUMERIC.test(value.trim())) return `<c r="${ref}"><v>${value.trim()}</v></c>`
+  if (looksLikePlainNumber(value)) return `<c r="${ref}"><v>${value.trim()}</v></c>`
   return `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${escapeXml(value)}</t></is></c>`
 }
 
@@ -99,55 +107,6 @@ export function buildXlsx(rows: string[][], sheetName = 'Sheet1'): Uint8Array {
 
 // --- reading ---
 
-type ZipFile = { name: string; data: Uint8Array }
-
-async function inflateRaw(data: Uint8Array): Promise<Uint8Array> {
-  if (typeof DecompressionStream === 'undefined') {
-    throw new Error('This browser cannot read compressed .xlsx files. Export the sheet as CSV instead.')
-  }
-  const stream = new Blob([data.slice().buffer as ArrayBuffer])
-    .stream()
-    .pipeThrough(new DecompressionStream('deflate-raw'))
-  return new Uint8Array(await new Response(stream).arrayBuffer())
-}
-
-/** Reads a ZIP central directory and returns every entry, inflating as needed. */
-export async function unzip(bytes: Uint8Array): Promise<ZipFile[]> {
-  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-  // Scan backwards for the end-of-central-directory signature.
-  let eocd = -1
-  for (let i = bytes.length - 22; i >= 0 && i > bytes.length - 22 - 65_536; i -= 1) {
-    if (dv.getUint32(i, true) === 0x06054b50) {
-      eocd = i
-      break
-    }
-  }
-  if (eocd < 0) throw new Error('That file is not a valid .xlsx (no ZIP directory found).')
-
-  const count = dv.getUint16(eocd + 10, true)
-  let p = dv.getUint32(eocd + 16, true)
-  const out: ZipFile[] = []
-  for (let i = 0; i < count; i += 1) {
-    if (p + 46 > bytes.length || dv.getUint32(p, true) !== 0x02014b50) break
-    const method = dv.getUint16(p + 10, true)
-    const compressedSize = dv.getUint32(p + 20, true)
-    const nameLen = dv.getUint16(p + 28, true)
-    const extraLen = dv.getUint16(p + 30, true)
-    const commentLen = dv.getUint16(p + 32, true)
-    const localOffset = dv.getUint32(p + 42, true)
-    const name = new TextDecoder().decode(bytes.subarray(p + 46, p + 46 + nameLen))
-
-    // The local header repeats name/extra lengths, and they may differ.
-    const localNameLen = dv.getUint16(localOffset + 26, true)
-    const localExtraLen = dv.getUint16(localOffset + 28, true)
-    const start = localOffset + 30 + localNameLen + localExtraLen
-    const raw = bytes.subarray(start, start + compressedSize)
-    out.push({ name, data: method === 0 ? raw : await inflateRaw(raw) })
-    p += 46 + nameLen + extraLen + commentLen
-  }
-  return out
-}
-
 function unescapeXml(value: string): string {
   return value
     .replaceAll('&lt;', '<')
@@ -166,18 +125,41 @@ function textOf(xml: string, tag: string): string[] {
   return out
 }
 
-export async function readXlsx(bytes: Uint8Array): Promise<string[][]> {
-  const files = await unzip(bytes)
-  const sheet = files.find((f) => /^xl\/worksheets\/sheet\d+\.xml$/.test(f.name))
-  if (!sheet) throw new Error('No worksheet found in that .xlsx file.')
+export type XlsxSheet = { name: string; rows: string[][] }
+
+function sheetPathFromRel(target: string): string {
+  if (target.startsWith('/')) return target.slice(1)
+  if (target.startsWith('xl/')) return target
+  return `xl/${target.replace(/^\.\//, '')}`
+}
+
+function parseWorkbookSheets(files: ZipFile[]): { name: string; path: string }[] {
   const decoder = new TextDecoder()
+  const workbook = files.find((f) => f.name === 'xl/workbook.xml')
+  const rels = files.find((f) => f.name === 'xl/_rels/workbook.xml.rels')
+  if (!workbook) return []
+  const relMap = new Map<string, string>()
+  if (rels) {
+    const xml = decoder.decode(rels.data)
+    for (const m of xml.matchAll(/Id="([^"]+)"[^>]*Target="([^"]+)"|Target="([^"]+)"[^>]*Id="([^"]+)"/g)) {
+      const id = m[1] || m[4]
+      const target = m[2] || m[3]
+      if (id && target) relMap.set(id, sheetPathFromRel(target))
+    }
+  }
+  const book = decoder.decode(workbook.data)
+  const sheets: { name: string; path: string }[] = []
+  for (const m of book.matchAll(/<sheet\b([^>]+)\/>/g)) {
+    const attrs = m[1]
+    const name = attrs.match(/name="([^"]+)"/)?.[1] ?? `Sheet${sheets.length + 1}`
+    const rid = attrs.match(/r:id="([^"]+)"/)?.[1]
+    const path = (rid && relMap.get(rid)) || `xl/worksheets/sheet${sheets.length + 1}.xml`
+    sheets.push({ name: unescapeXml(name), path })
+  }
+  return sheets
+}
 
-  const sharedPart = files.find((f) => f.name === 'xl/sharedStrings.xml')
-  const shared = sharedPart
-    ? textOf(decoder.decode(sharedPart.data), 'si').map((si) => unescapeXml(textOf(si, 't').join('')))
-    : []
-
-  const xml = decoder.decode(sheet.data)
+function rowsFromSheetXml(xml: string, shared: string[]): string[][] {
   const rows: string[][] = []
   for (const m of xml.matchAll(/<row(?:\s[^>]*)?>([\s\S]*?)<\/row>/g)) {
     const cells: string[] = []
@@ -208,3 +190,38 @@ export async function readXlsx(bytes: Uint8Array): Promise<string[][]> {
     return padded
   })
 }
+
+export async function readXlsxWorkbook(bytes: Uint8Array): Promise<XlsxSheet[]> {
+  const files = await unzip(bytes)
+  const decoder = new TextDecoder()
+  const sharedPart = files.find((f) => f.name === 'xl/sharedStrings.xml')
+  const shared = sharedPart
+    ? textOf(decoder.decode(sharedPart.data), 'si').map((si) => unescapeXml(textOf(si, 't').join('')))
+    : []
+  const listed = parseWorkbookSheets(files)
+  const fallback = files.filter((f) => /^xl\/worksheets\/sheet\d+\.xml$/.test(f.name))
+  const targets = listed.length
+    ? listed
+    : fallback.map((f, i) => ({ name: `Sheet${i + 1}`, path: f.name }))
+  const out: XlsxSheet[] = []
+  for (const sheet of targets) {
+    const file = files.find((f) => f.name === sheet.path || f.name.endsWith(sheet.path.replace(/^xl\//, '')))
+    if (!file) continue
+    out.push({ name: sheet.name, rows: rowsFromSheetXml(decoder.decode(file.data), shared) })
+  }
+  if (!out.length) throw new Error('No worksheet found in that .xlsx file.')
+  return out
+}
+
+export async function readXlsx(bytes: Uint8Array, sheetName?: string): Promise<string[][]> {
+  const sheets = await readXlsxWorkbook(bytes)
+  if (sheetName) {
+    const found = sheets.find((s) => s.name === sheetName)
+    if (!found) throw new Error(`No sheet named “${sheetName}”.`)
+    return found.rows
+  }
+  return sheets[0].rows
+}
+
+/** Re-exported so callers that already import from `xlsx` keep working. */
+export { unzip }

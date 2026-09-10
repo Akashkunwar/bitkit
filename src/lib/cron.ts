@@ -41,6 +41,7 @@ export function expandField(
     const step = stepPart ? Number(stepPart) : 1
     if (!Number.isInteger(step) || step < 1) throw new Error(`Step “${stepPart}” must be a positive whole number.`)
 
+    const max = field.names === DAYS ? 7 : field.max
     let from: number
     let to: number
     if (rangePart === '*') {
@@ -57,10 +58,12 @@ export function expandField(
       from = n
       to = stepPart ? field.max : n
     }
-    if (from < field.min || to > field.max || from > to) {
+    if (from < field.min || to > max || from > to) {
       throw new Error(`“${part}” is outside ${field.min}–${field.max}.`)
     }
-    for (let v = from; v <= to; v += step) values.add(v)
+    for (let v = from; v <= to; v += step) {
+      values.add(field.names === DAYS && v === 7 ? 0 : v)
+    }
   }
   return [...values].sort((a, b) => a - b)
 }

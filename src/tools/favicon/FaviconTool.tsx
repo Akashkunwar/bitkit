@@ -37,7 +37,7 @@ export default function FaviconTool() {
     }
     window.addEventListener('paste', onPaste)
     return () => window.removeEventListener('paste', onPaste)
-  })
+  }, [])
 
   const run = async () => {
     if (!file) return

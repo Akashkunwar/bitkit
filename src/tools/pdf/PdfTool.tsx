@@ -7,6 +7,9 @@ import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
 import { triggerDownload } from '../../lib/download'
 import { annotationId, exportPdf, type Annotation, type PageState, type Point } from '../../lib/pdfEdit'
+import { encryptionWarning, loadPdf } from '../../lib/pdfLoad'
+import { destroyPdfJs, isPdfPasswordError, openPdfJs } from '../../lib/pdfJs'
+import { PdfPassword } from '../../components/PdfPassword'
 import { useHandoff } from '../../lib/useHandoff'
 import { SendTo } from '../../components/SendTo'
 
@@ -160,12 +163,16 @@ export default function PdfTool() {
   const [selectedAnnotation, setSelectedAnnotation] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [encrypted, setEncrypted] = useState(false)
+  const [password, setPassword] = useState('')
+  const [needsPassword, setNeedsPassword] = useState(false)
+  const pendingFile = useRef<File | null>(null)
   const dragStart = useRef<Point | null>(null)
 
   const selected = pages.find((p) => p.id === selectedId) ?? null
   const selectedIndex = selected ? pages.indexOf(selected) : -1
 
-  const loadFile = useCallback(async (files: File[]) => {
+  const loadFile = useCallback(async (files: File[], unlock?: string) => {
     const file = files.find((f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))
     if (!file) {
       setError('That was not a PDF file.')
@@ -173,10 +180,13 @@ export default function PdfTool() {
     }
     setError(null)
     setBusy(true)
+    pendingFile.current = file
     try {
       const buf = new Uint8Array(await file.arrayBuffer())
       sourceBytes.current = buf.slice()
-      const loaded = await pdfjs.getDocument({ data: buf }).promise
+      const { encrypted: locked } = await loadPdf(buf.slice())
+      setEncrypted(locked)
+      const loaded = await openPdfJs(pdfjs, buf, unlock)
       const next: PageState[] = Array.from({ length: loaded.numPages }, (_, i) => ({
         id: pageId(),
         sourceIndex: i,
@@ -187,7 +197,14 @@ export default function PdfTool() {
       setPages(next)
       setSelectedId(next[0]?.id ?? null)
       setFileName(file.name)
+      setNeedsPassword(false)
     } catch (err) {
+      if (isPdfPasswordError(err)) {
+        setNeedsPassword(true)
+        setEncrypted(true)
+        setError(err.message)
+        return
+      }
       setError(err instanceof Error ? err.message : 'Could not open that PDF.')
     } finally {
       setBusy(false)
@@ -197,6 +214,12 @@ export default function PdfTool() {
   useHandoff((payload) => {
     if (payload.files?.length) void loadFile(payload.files)
   })
+
+  useEffect(() => {
+    return () => {
+      void destroyPdfJs(doc)
+    }
+  }, [doc])
 
   const patchPage = (id: string, partial: Partial<PageState> | ((page: PageState) => Partial<PageState>)) => {
     setPages((prev) =>
@@ -390,7 +413,20 @@ export default function PdfTool() {
             onFiles={(files) => void loadFile(files)}
           />
           {busy ? <p className="muted">Opening…</p> : null}
-          {error ? <p className="status-bad">{error}</p> : null}
+          {encryptionWarning(encrypted || needsPassword, 'pdfjs') ? (
+            <p className="banner warn">{encryptionWarning(true, 'pdfjs')}</p>
+          ) : null}
+          {needsPassword ? (
+            <PdfPassword
+              value={password}
+              onChange={setPassword}
+              busy={busy}
+              error={error}
+              onUnlock={() => pendingFile.current && void loadFile([pendingFile.current], password)}
+            />
+          ) : error ? (
+            <p className="status-bad">{error}</p>
+          ) : null}
           <SendTo from="pdf" />
         </section>
       </ToolLayout>
@@ -412,6 +448,10 @@ export default function PdfTool() {
             onClick={() => {
               setDoc(null)
               setPages([])
+              setEncrypted(false)
+              setNeedsPassword(false)
+              setPassword('')
+              pendingFile.current = null
               sourceBytes.current = null
             }}
           >
@@ -421,6 +461,13 @@ export default function PdfTool() {
       }
     >
       {error ? <p className="status-bad">{error}</p> : null}
+      {encryptionWarning(encrypted, 'pdfjs') ? <p className="banner warn">{encryptionWarning(encrypted, 'pdfjs')}</p> : null}
+      {encrypted ? (
+        <p className="hint">
+          Preview is unlocked in this tab. Saving annotations still writes the original file — if the download is blank,
+          unlock a copy in a PDF reader first.
+        </p>
+      ) : null}
       {sourceBytes.current ? (
         <SendTo
           from="pdf"

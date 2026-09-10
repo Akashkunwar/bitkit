@@ -28,9 +28,9 @@ export type Instant = {
 export function parseInstant(input: string, now = new Date()): Instant | null {
   const trimmed = input.trim()
   if (!trimmed) return fromDate(now)
-  if (/^\d{10}$/.test(trimmed)) return fromDate(new Date(Number(trimmed) * 1000))
+  if (/^\d{9,10}$/.test(trimmed)) return fromDate(new Date(Number(trimmed) * 1000))
   if (/^\d{13}$/.test(trimmed)) return fromDate(new Date(Number(trimmed)))
-  if (/^\d{9,12}$/.test(trimmed)) return fromDate(new Date(Number(trimmed) * 1000))
+  if (/^\d{11,12}$/.test(trimmed)) return fromDate(new Date(Number(trimmed)))
   const ms = Date.parse(trimmed)
   if (!Number.isNaN(ms)) return fromDate(new Date(ms))
   return null

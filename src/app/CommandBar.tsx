@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { searchTools, type ToolMeta } from '../registry'
 import { searchActions, type Action, type ActionContext } from '../lib/actions'
 import { useTheme } from './Theme'
+import { useI18n } from '../lib/i18n'
 
 type Props = {
   onPick?: (tool: ToolMeta) => void
@@ -20,7 +21,8 @@ export function CommandBar({ onPick, onOpenCheatsheet }: Props) {
   const [message, setMessage] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
-  const { theme, setTheme } = useTheme()
+  const { theme, setMode } = useTheme()
+  const { t } = useI18n()
 
   const rows = useMemo<Row[]>(() => {
     // Actions first: if you typed a verb you meant to do something, not browse.
@@ -48,8 +50,8 @@ export function CommandBar({ onPick, onOpenCheatsheet }: Props) {
   }, [])
 
   const ctx: ActionContext = {
-    navigate,
-    setTheme,
+    navigate: (path) => navigate(path, { state: { handoff: Date.now() } }),
+    setTheme: setMode,
     currentTheme: theme,
     openCheatsheet: () => onOpenCheatsheet?.(),
     notify: (text) => {
@@ -80,7 +82,7 @@ export function CommandBar({ onPick, onOpenCheatsheet }: Props) {
       <input
         ref={inputRef}
         className="command-input"
-        placeholder="Search or run — press /"
+        placeholder={t('action.search')}
         value={query}
         role="combobox"
         aria-label="Search tools and actions"

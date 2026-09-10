@@ -98,6 +98,13 @@ export function addTax(amount: number, rate: number): { tax: number; total: numb
   return { tax, total: amount + tax }
 }
 
+/** Reverse GST: amount already includes tax. */
+export function extractTax(inclusive: number, rate: number): { base: number; tax: number; total: number } {
+  const base = inclusive / (1 + rate / 100)
+  const tax = inclusive - base
+  return { base, tax, total: inclusive }
+}
+
 export function splitBill(total: number, people: number, tipPercent: number): { tip: number; grand: number; each: number } {
   if (people < 1) throw new Error('Need at least one person.')
   const tip = (total * tipPercent) / 100

@@ -1,6 +1,9 @@
+import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { tools, type ToolMeta } from '../registry'
 import { setHandoff, suggestPath } from './handoff'
 import { filesFromPaste } from './clipboard'
+import { THEMES, counterpart, DEFAULT_PAIR, type ThemeId, type ThemeMode } from './theme'
 
 /**
  * Things the command palette can *do*, not just navigate to.
@@ -12,8 +15,8 @@ import { filesFromPaste } from './clipboard'
 
 export type ActionContext = {
   navigate: (path: string) => void
-  setTheme: (theme: 'light' | 'dark') => void
-  currentTheme: 'light' | 'dark'
+  setTheme: (mode: ThemeMode) => void
+  currentTheme: ThemeId
   openCheatsheet: () => void
   notify: (message: string) => void
 }
@@ -31,10 +34,12 @@ export type Action = {
 export type Preset = Record<string, unknown>
 
 const PRESET_KEY = 'bitkit-preset'
+let presetGen = 0
 
 export function setPreset(toolId: string, preset: Preset): void {
+  presetGen += 1
   try {
-    sessionStorage.setItem(PRESET_KEY, JSON.stringify({ toolId, preset }))
+    sessionStorage.setItem(PRESET_KEY, JSON.stringify({ toolId, preset, gen: presetGen }))
   } catch {
     /* private mode */
   }
@@ -44,13 +49,35 @@ export function takePreset(toolId: string): Preset | null {
   try {
     const raw = sessionStorage.getItem(PRESET_KEY)
     if (!raw) return null
-    const parsed = JSON.parse(raw) as { toolId: string; preset: Preset }
+    const parsed = JSON.parse(raw) as { toolId: string; preset: Preset; gen?: number }
     if (parsed.toolId !== toolId) return null
     sessionStorage.removeItem(PRESET_KEY)
     return parsed.preset
   } catch {
     return null
   }
+}
+
+export function restorePreset(toolId: string, preset: Preset, gen: number): void {
+  if (gen !== presetGen) return
+  try {
+    if (sessionStorage.getItem(PRESET_KEY)) return
+    sessionStorage.setItem(PRESET_KEY, JSON.stringify({ toolId, preset, gen }))
+  } catch {
+    /* private mode */
+  }
+}
+
+/** Apply a palette preset once on arrival, including same-route navigation. */
+export function useToolPreset(toolId: string, apply: (preset: Preset) => void): void {
+  const location = useLocation()
+  useEffect(() => {
+    const gen = presetGen
+    const preset = takePreset(toolId)
+    if (!preset) return undefined
+    apply(preset)
+    return () => restorePreset(toolId, preset, gen)
+  }, [location.key, toolId, apply])
 }
 
 function go(tool: ToolMeta, preset?: Preset) {
@@ -204,10 +231,30 @@ export function buildActions(): Action[] {
   add({
     id: 'theme-toggle',
     label: 'Switch theme',
-    hint: 'Light and dark',
+    hint: 'Flip between light and dark',
     group: 'BitKit',
-    keywords: 'theme dark light mode appearance night',
-    run: (ctx) => ctx.setTheme(ctx.currentTheme === 'dark' ? 'light' : 'dark'),
+    keywords: 'theme dark light mode appearance night toggle',
+    run: (ctx) => ctx.setTheme(counterpart(ctx.currentTheme, DEFAULT_PAIR)),
+  })
+  // Naming each theme means the palette can reach any of the five directly;
+  // cycling through them to find one is not a keyboard workflow.
+  for (const theme of THEMES) {
+    add({
+      id: `theme-${theme.id}`,
+      label: `Theme: ${theme.label}`,
+      hint: theme.hint,
+      group: 'BitKit',
+      keywords: `theme appearance colour color ${theme.label} ${theme.appearance}`,
+      run: (ctx) => ctx.setTheme(theme.id),
+    })
+  }
+  add({
+    id: 'theme-system',
+    label: 'Theme: match system',
+    hint: 'Follow the operating system, light and dark',
+    group: 'BitKit',
+    keywords: 'theme system auto os automatic appearance follow',
+    run: (ctx) => ctx.setTheme('system'),
   })
   add({
     id: 'shortcuts',

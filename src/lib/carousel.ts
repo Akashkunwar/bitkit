@@ -1,4 +1,5 @@
 import { decodeImage } from './image/compress'
+import { workingBitmap } from './image/safeCanvas'
 
 export type CarouselPreset = {
   id: string
@@ -54,17 +55,21 @@ function drawNumber(ctx: CanvasRenderingContext2D, index: number, total: number,
   ctx.fillText(label, x + padX, y + padY + size * 0.82)
 }
 
-export async function sliceCarousel(file: Blob, options: SliceOptions): Promise<Panel[]> {
+export async function sliceCarousel(
+  file: Blob,
+  options: SliceOptions,
+): Promise<{ panels: Panel[]; capped: boolean }> {
   const source = await decodeImage(file)
   const srcW = 'naturalWidth' in source && source.naturalWidth ? source.naturalWidth : source.width
   const srcH = 'naturalHeight' in source && source.naturalHeight ? source.naturalHeight : source.height
+  const work = workingBitmap(source as CanvasImageSource, srcW, srcH)
 
   const { preset, panels, overlap } = options
   const out: Panel[] = []
 
   // Each panel takes an equal horizontal share of the source, then is scaled
   // into the preset's canvas. Overlap widens the sampled strip on both sides.
-  const sliceWidth = srcW / panels
+  const sliceWidth = work.width / panels
 
   for (let i = 0; i < panels; i += 1) {
     const canvas = document.createElement('canvas')
@@ -79,18 +84,18 @@ export async function sliceCarousel(file: Blob, options: SliceOptions): Promise<
     const bleedLeft = i === 0 ? 0 : overlap
     const bleedRight = i === panels - 1 ? 0 : overlap
     const sx = Math.max(0, i * sliceWidth - bleedLeft)
-    const sw = Math.min(srcW - sx, sliceWidth + bleedLeft + bleedRight)
+    const sw = Math.min(work.width - sx, sliceWidth + bleedLeft + bleedRight)
 
     // Cover-fit the strip into the panel so nothing is letterboxed.
-    const scale = Math.max(canvas.width / sw, canvas.height / srcH)
+    const scale = Math.max(canvas.width / sw, canvas.height / work.height)
     const drawW = sw * scale
-    const drawH = srcH * scale
+    const drawH = work.height * scale
     ctx.drawImage(
-      source as CanvasImageSource,
+      work.source,
       sx,
       0,
       sw,
-      srcH,
+      work.height,
       (canvas.width - drawW) / 2,
       (canvas.height - drawH) / 2,
       drawW,
@@ -106,5 +111,5 @@ export async function sliceCarousel(file: Blob, options: SliceOptions): Promise<
   }
 
   if ('close' in source) source.close()
-  return out
+  return { panels: out, capped: work.capped }
 }

@@ -19,6 +19,11 @@ export function renderMarkdown(source: string): string {
   return DOMPurify.sanitize(html, purifyConfig)
 }
 
+/** Sanitises HTML that came from a file on disk before it touches the DOM. */
+export function sanitizeHtml(html: string): string {
+  return DOMPurify.sanitize(html, purifyConfig)
+}
+
 export function extractTitle(source: string): string {
   const heading = source.match(/^#\s+(.+)$/m)
   if (heading) return heading[1].trim()

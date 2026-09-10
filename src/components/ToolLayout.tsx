@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { PipelineBanner } from './PipelineBanner'
 
 type Props = {
   title: string
@@ -15,6 +16,7 @@ export function ToolLayout({ title, lede, actions, children }: Props) {
         {lede ? <p className="lede">{lede}</p> : null}
         {actions ? <div className="row">{actions}</div> : null}
       </header>
+      <PipelineBanner />
       {children}
     </article>
   )

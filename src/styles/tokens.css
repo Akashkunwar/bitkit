@@ -1,3 +1,17 @@
+/**
+ * Five themes, one token contract.
+ *
+ * Every theme redefines the same names — nothing downstream branches on which
+ * one is active. `light` and `dark` keep their original ids so themes stored
+ * before this existed, and backups holding them, still resolve.
+ *
+ * The three additions each answer a real complaint rather than being a colour
+ * variation: `paper` drops blue light for the long-read tools, `midnight` is
+ * true black for OLED phones running the installed PWA, and `contrast` clears
+ * WCAG AAA on body text so the app passes the bar its own Contrast checker
+ * enforces. e2e/a11y.spec.ts audits all five.
+ */
+
 :root {
   color-scheme: light;
   --bg: #f4f7f7;
@@ -30,6 +44,8 @@
   --sidebar: 16.5rem;
   --focus: 2px solid var(--accent);
   --dot-grid: radial-gradient(color-mix(in srgb, var(--ink) 9%, transparent) 1px, transparent 1px);
+  /* Set on <html> by the theme provider. */
+  --text-scale: 1;
 }
 
 [data-theme="dark"] {
@@ -52,8 +68,103 @@
   --dot-grid: radial-gradient(color-mix(in srgb, var(--ink) 7%, transparent) 1px, transparent 1px);
 }
 
+/* Warm, low-blue light. Readability, Notes, and Markdown are read for minutes
+   at a time; this is the theme for that, not for scanning a tool grid. */
+[data-theme="paper"] {
+  color-scheme: light;
+  --bg: #f6f1e7;
+  --bg-elev: #fffdf8;
+  --bg-mute: #ece4d5;
+  --ink: #26201a;
+  --muted: #6a5c4c;
+  --line: #e0d6c4;
+  --line-strong: #c9bca4;
+  --accent: #0b6f60;
+  --accent-strong: #095a4e;
+  --accent-soft: #dfeee7;
+  --accent-ink: #ffffff;
+  --danger: #a8322b;
+  --ok: #1c6b47;
+  --shadow: 0 1px 2px rgba(60, 46, 28, 0.06), 0 8px 24px -18px rgba(60, 46, 28, 0.3);
+  --shadow-pop: 0 12px 32px -12px rgba(60, 46, 28, 0.32);
+  --dot-grid: radial-gradient(color-mix(in srgb, var(--ink) 8%, transparent) 1px, transparent 1px);
+}
+
+/* True black. On an OLED phone the unlit pixels cost nothing to draw, which
+   is worth more than the slight loss of depth from a near-black surface. */
+[data-theme="midnight"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --bg-elev: #0b0f0f;
+  --bg-mute: #151b1a;
+  --ink: #eef4f2;
+  --muted: #94a7a3;
+  --line: #1e2726;
+  --line-strong: #35443f;
+  --accent: #35c9ac;
+  --accent-strong: #5ddcc2;
+  --accent-soft: #0e2b26;
+  --accent-ink: #001510;
+  --danger: #f08a8a;
+  --ok: #63cf99;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.8), 0 10px 28px -18px rgba(0, 0, 0, 0.9);
+  --shadow-pop: 0 14px 36px -12px rgba(0, 0, 0, 0.9);
+  --dot-grid: radial-gradient(color-mix(in srgb, var(--ink) 6%, transparent) 1px, transparent 1px);
+}
+
+/* Everything carries its weight in the border, not in a tint: shadows and the
+   dot grid are removed so shape is the only signal, and focus is 3px of ink
+   rather than 2px of accent. Body text clears 11:1. */
+[data-theme="contrast"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg-elev: #ffffff;
+  --bg-mute: #eef1f1;
+  --ink: #000000;
+  --muted: #333c3b;
+  --line: #6b7776;
+  --line-strong: #000000;
+  --accent: #005f52;
+  --accent-strong: #00443b;
+  --accent-soft: #d3ebe5;
+  --accent-ink: #ffffff;
+  --danger: #99000a;
+  --ok: #005c33;
+  --shadow: none;
+  --shadow-pop: none;
+  --dot-grid: none;
+  --focus: 3px solid var(--ink);
+}
+
+/* Compact trims the vertical rhythm only. Shrinking type as well is how
+   density controls end up unreadable, and text size is its own setting. */
+[data-density="compact"] {
+  --space-3: 0.5rem;
+  --space-4: 0.7rem;
+  --space-5: 1rem;
+  --space-6: 1.5rem;
+  --space-7: 2.25rem;
+  --radius: 11px;
+  --radius-sm: 8px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --motion: 0;
   }
+}
+
+/* The OS preference is honoured above; this is the in-app override for people
+   whose system setting does not match what they want from one site. */
+[data-motion="off"] {
+  --motion: 0;
+}
+
+[data-motion="off"] *,
+[data-motion="off"] *::before,
+[data-motion="off"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
 }

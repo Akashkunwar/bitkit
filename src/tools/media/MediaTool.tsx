@@ -23,7 +23,7 @@ const EDGES = [
   { value: 640, label: '360p' },
 ]
 
-type Output = { blob: Blob; name: string }
+type Output = { blob: Blob; name: string; withinLimit: boolean }
 
 export default function MediaTool() {
   const [file, setFile] = useState<File | null>(null)
@@ -98,7 +98,11 @@ export default function MediaTool() {
         controller.signal,
       )
       const ext = extensionFor(result.mime)
-      setOutput({ blob: result.blob, name: `${file.name.replace(/\.[^.]+$/, '')}-clip.${ext}` })
+      setOutput({
+        blob: result.blob,
+        name: `${file.name.replace(/\.[^.]+$/, '')}-clip.${ext}`,
+        withinLimit: !maxBytes || result.blob.size <= maxBytes,
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not process that clip.')
     } finally {
@@ -244,9 +248,15 @@ export default function MediaTool() {
               </button>
             ) : null}
             {output ? (
-              <button type="button" className="btn" onClick={() => void saveAs(output.blob, output.name)}>
-                Save {formatBytes(output.blob.size)}
-              </button>
+              output.withinLimit ? (
+                <button type="button" className="btn" onClick={() => void saveAs(output.blob, output.name)}>
+                  Save {formatBytes(output.blob.size)}
+                </button>
+              ) : (
+                <button type="button" className="btn-ghost" onClick={() => void saveAs(output.blob, output.name)}>
+                  Download anyway {formatBytes(output.blob.size)}
+                </button>
+              )
             ) : null}
           </div>
 

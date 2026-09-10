@@ -5,7 +5,7 @@ import { createContext, useContext } from 'react'
  *
  * Scope: the shell, home page, and every tool's title and blurb — everything
  * you need to find your way around. Tool interiors stay in English for now;
- * translating 61 tools' worth of copy is a separate project, and shipping a
+ * translating 65 tools' worth of copy is a separate project, and shipping a
  * half-translated tool reads worse than an untranslated one. The language
  * switcher says so rather than pretending otherwise.
  */
@@ -33,8 +33,8 @@ const EN: Dict = {
 
   'action.search': 'Search or run — press /',
   'action.shortcuts': 'Keyboard shortcuts',
-  'action.lightTheme': 'Switch to light theme',
-  'action.darkTheme': 'Switch to dark theme',
+  'action.theme': 'Theme',
+  'theme.system': 'Match system',
   'action.language': 'Language',
 
   'home.title': 'Your everyday tools, without the uploads.',
@@ -87,8 +87,8 @@ const HI: Dict = {
 
   'action.search': 'खोजें या चलाएँ — / दबाएँ',
   'action.shortcuts': 'कीबोर्ड शॉर्टकट',
-  'action.lightTheme': 'लाइट थीम पर जाएँ',
-  'action.darkTheme': 'डार्क थीम पर जाएँ',
+  'action.theme': 'थीम',
+  'theme.system': 'सिस्टम के अनुसार',
   'action.language': 'भाषा',
 
   'home.title': 'रोज़मर्रा के उपकरण, बिना अपलोड किए।',

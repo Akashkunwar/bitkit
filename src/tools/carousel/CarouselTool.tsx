@@ -8,6 +8,7 @@ import { formatBytes } from '../../lib/format'
 import { zipStore } from '../../lib/zip'
 import { decodeImage } from '../../lib/image/compress'
 import { CAROUSEL_PRESETS, sliceCarousel, suggestPanels, type Panel } from '../../lib/carousel'
+import { CAPPED_HINT } from '../../lib/image/safeCanvas'
 
 export default function CarouselTool() {
   const [file, setFile] = useState<File | null>(null)
@@ -21,6 +22,7 @@ export default function CarouselTool() {
   const [urls, setUrls] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [capped, setCapped] = useState(false)
 
   const preset = CAROUSEL_PRESETS.find((p) => p.id === presetId) ?? CAROUSEL_PRESETS[0]
 
@@ -33,6 +35,7 @@ export default function CarouselTool() {
   const take = async (next: File) => {
     setError(null)
     setOutput([])
+    setCapped(false)
     setFile(next)
     try {
       const decoded = await decodeImage(next)
@@ -59,9 +62,10 @@ export default function CarouselTool() {
       const result = await sliceCarousel(file, { preset, panels, overlap, background, numbered })
       setUrls((old) => {
         for (const url of old) URL.revokeObjectURL(url)
-        return result.map((p) => URL.createObjectURL(p.blob))
+        return result.panels.map((p) => URL.createObjectURL(p.blob))
       })
-      setOutput(result)
+      setOutput(result.panels)
+      setCapped(result.capped)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not slice that image.')
     } finally {
@@ -102,6 +106,7 @@ export default function CarouselTool() {
           <p className="hint">
             {file.name} · {size.width}×{size.height} · {formatBytes(file.size)}
           </p>
+          {capped ? <p className="banner warn">{CAPPED_HINT}</p> : null}
 
           <div className="split">
             <label className="field">

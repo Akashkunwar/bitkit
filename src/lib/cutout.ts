@@ -1,5 +1,6 @@
 import { FilesetResolver, ImageSegmenter } from '@mediapipe/tasks-vision'
 import { decodeImage } from './image/compress'
+import { stageDownscale } from './image/limits'
 
 const WASM = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm'
 const MODEL =
@@ -34,8 +35,9 @@ function sampleMask(conf: Float32Array, mw: number, mh: number, x: number, y: nu
 
 export async function removeBackground(file: Blob, threshold = 0.5, invert = false): Promise<Blob> {
   const source = await decodeImage(file)
-  const width = 'naturalWidth' in source && source.naturalWidth ? source.naturalWidth : source.width
-  const height = 'naturalHeight' in source && source.naturalHeight ? source.naturalHeight : source.height
+  const width0 = 'naturalWidth' in source && source.naturalWidth ? source.naturalWidth : source.width
+  const height0 = 'naturalHeight' in source && source.naturalHeight ? source.naturalHeight : source.height
+  const { width, height } = stageDownscale(width0, height0)
   const canvas = document.createElement('canvas')
   canvas.width = width
   canvas.height = height

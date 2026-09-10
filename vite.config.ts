@@ -82,6 +82,24 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
+          {
+            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/npm\/(?:tesseract|@mediapipe)\//,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'kit-cdn-engines',
+              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/(?:tessdata\.projectnaptha\.com|storage\.googleapis\.com\/mediapipe-models)\//,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'kit-cdn-models',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
         ],
         navigateFallback: '/index.html',
         importScripts: ['share-handler.js'],

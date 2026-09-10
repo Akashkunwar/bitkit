@@ -5,7 +5,7 @@
  * Override the host with SITE_URL, e.g.
  *   SITE_URL=https://bitkit.example npm run sitemap
  */
-import { readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -25,12 +25,33 @@ if (!paths.length) {
 const routes = ['/', '/privacy', ...paths]
 const today = new Date().toISOString().slice(0, 10)
 
+/**
+ * Dates already published, keyed by URL.
+ *
+ * `lastmod` must describe when a page last changed, not when the generator
+ * last ran. Re-stamping every route on every run also made the output depend
+ * on the calendar: CI regenerates and diffs against the committed file, so a
+ * branch built yesterday failed the check today through no fault of its own.
+ * Existing routes keep their date; only new ones get today's.
+ */
+const sitemapPath = resolve(ROOT, 'public/sitemap.xml')
+const published = new Map()
+if (existsSync(sitemapPath)) {
+  const previous = readFileSync(sitemapPath, 'utf8')
+  for (const entry of previous.matchAll(/<loc>([^<]+)<\/loc>\s*<lastmod>([^<]+)<\/lastmod>/g)) {
+    published.set(entry[1], entry[2])
+  }
+}
+
 const body = routes
-  .map(
-    (route) =>
-      `  <url>\n    <loc>${SITE}${route}</loc>\n    <lastmod>${today}</lastmod>\n` +
-      `    <changefreq>monthly</changefreq>\n    <priority>${route === '/' ? '1.0' : '0.8'}</priority>\n  </url>`,
-  )
+  .map((route) => {
+    const loc = `${SITE}${route}`
+    const lastmod = published.get(loc) ?? today
+    return (
+      `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n` +
+      `    <changefreq>monthly</changefreq>\n    <priority>${route === '/' ? '1.0' : '0.8'}</priority>\n  </url>`
+    )
+  })
   .join('\n')
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`

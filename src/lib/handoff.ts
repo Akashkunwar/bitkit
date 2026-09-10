@@ -8,6 +8,23 @@ export type HandoffPayload = {
 
 const KEY = 'bitkit-handoff-meta'
 let memory: HandoffPayload | null = null
+let generation = 0
+const listeners = new Set<() => void>()
+
+function notify(): void {
+  for (const listener of listeners) listener()
+}
+
+export function subscribeHandoff(listener: () => void): () => void {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
+  }
+}
+
+export function handoffGeneration(): number {
+  return generation
+}
 
 export function fileKind(file: File): HandoffKind | null {
   if (file.type.startsWith('image/')) return 'image'
@@ -22,9 +39,12 @@ export function fileKind(file: File): HandoffKind | null {
   return null
 }
 
-export function setHandoff(payload: HandoffPayload): void {
-  memory = payload
+function persistMeta(payload: HandoffPayload | null): void {
   try {
+    if (!payload) {
+      sessionStorage.removeItem(KEY)
+      return
+    }
     sessionStorage.setItem(
       KEY,
       JSON.stringify({ from: payload.from, text: payload.text, fileCount: payload.files?.length ?? 0 }),
@@ -34,15 +54,25 @@ export function setHandoff(payload: HandoffPayload): void {
   }
 }
 
+export function setHandoff(payload: HandoffPayload): void {
+  memory = payload
+  generation += 1
+  persistMeta(payload)
+  notify()
+}
+
 export function takeHandoff(): HandoffPayload | null {
   const payload = memory
   memory = null
-  try {
-    sessionStorage.removeItem(KEY)
-  } catch {
-    /* ignore */
-  }
+  persistMeta(null)
   return payload
+}
+
+/** Put a payload back only if nothing newer has been set (StrictMode remount). */
+export function restoreHandoff(payload: HandoffPayload, gen: number): void {
+  if (generation !== gen || memory) return
+  memory = payload
+  persistMeta(payload)
 }
 
 export function filesFromBlobs(items: { blob: Blob; name: string }[]): File[] {
@@ -51,7 +81,13 @@ export function filesFromBlobs(items: { blob: Blob; name: string }[]): File[] {
   )
 }
 
+/** Office formats have no HandoffKind of their own, but they have one home. */
+const OFFICE_EXT = /\.(docx|pptx|xlsx|rtf|odt)$/i
+
 export function suggestPath(files: File[], text?: string): string {
+  if (files.length && files.every((file) => OFFICE_EXT.test(file.name))) return '/office'
+  if (files.length && files.every((file) => /\.zip$/i.test(file.name))) return '/archive'
+
   if (!files.length && text) {
     const trimmed = text.trim()
     if (trimmed.split('.').length === 3 && trimmed.length > 40 && !trimmed.includes(' ')) return '/encode'
@@ -95,6 +131,10 @@ export const SEND_TARGETS: { id: string; path: string; title: string; accepts: H
   { id: 'pages', path: '/pages', title: 'PDF merge & split', accepts: ['pdf'] },
   { id: 'forms', path: '/forms', title: 'PDF form fill', accepts: ['pdf'] },
   { id: 'shrink', path: '/shrink', title: 'PDF shrink', accepts: ['pdf'] },
+  { id: 'office', path: '/office', title: 'Office to PDF', accepts: ['text'] },
+  { id: 'pdf-text', path: '/pdf-text', title: 'PDF to Word & text', accepts: ['pdf'] },
+  { id: 'stamp', path: '/stamp', title: 'Watermark & page numbers', accepts: ['pdf'] },
+  { id: 'archive', path: '/archive', title: 'ZIP archive', accepts: ['image', 'pdf', 'text'] },
   { id: 'table', path: '/table', title: 'Data table', accepts: ['text'] },
   { id: 'chart', path: '/chart', title: 'Chart maker', accepts: ['text'] },
   { id: 'config', path: '/config', title: 'JSON / YAML / TOML', accepts: ['text'] },

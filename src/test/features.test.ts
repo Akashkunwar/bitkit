@@ -195,3 +195,107 @@ describe('convert / encode / text / links / regex', () => {
     expect(result.replaced).toBe('f[oo] bar')
   })
 })
+
+describe('audit fixes', () => {
+  it('treats 11–12 digit instants as milliseconds', async () => {
+    const { parseInstant } = await import('../lib/time')
+    expect(parseInstant('1710000000')?.unixSec).toBe(1710000000)
+    expect(parseInstant('1710000000000')?.unixMs).toBe(1710000000000)
+    const twelve = parseInstant('171000000000')
+    expect(twelve?.unixMs).toBe(171000000000)
+    expect(twelve?.unixSec).not.toBe(171000000000)
+  })
+
+  it('extracts GST from an inclusive amount', async () => {
+    const { extractTax } = await import('../lib/units')
+    const result = extractTax(118, 18)
+    expect(result.base).toBeCloseTo(100)
+    expect(result.tax).toBeCloseTo(18)
+    expect(result.total).toBe(118)
+  })
+
+  it('rejects invalid annotation colours as black', async () => {
+    const { hexToRgb } = await import('../lib/pdfEdit')
+    expect(hexToRgb('#ffffff').red).toBe(1)
+    expect(hexToRgb('#fff').green).toBe(1)
+    expect(hexToRgb('nope').red).toBe(0)
+    expect(hexToRgb('#gggggg').blue).toBe(0)
+  })
+
+  it('warns honestly about HEIC and animated GIF', async () => {
+    const { imageFormatHint } = await import('../lib/image/formatHint')
+    expect(imageFormatHint(new File([], 'a.heic', { type: 'image/heic' }))).toMatch(/HEIC/)
+    expect(imageFormatHint(new File([], 'a.gif', { type: 'image/gif' }))).toMatch(/first frame/)
+    expect(imageFormatHint(new File([], 'a.png', { type: 'image/png' }))).toBeNull()
+  })
+
+  it('refuses to hash files above the memory cap', async () => {
+    const { HASH_MAX_BYTES, hashFile } = await import('../lib/checksum')
+    const huge = { size: HASH_MAX_BYTES + 1 } as Blob
+    await expect(hashFile(huge, 'SHA-256')).rejects.toThrow(/256/)
+  })
+
+  it('explains encrypted PDFs instead of pretending to decrypt them', async () => {
+    const { encryptionWarning } = await import('../lib/pdfLoad')
+    expect(encryptionWarning(false)).toBeNull()
+    expect(encryptionWarning(true)).toMatch(/cannot decrypt/i)
+    expect(encryptionWarning(true, 'pdfjs')).toMatch(/password/i)
+  })
+
+  it('maps pdf.js password failures to a typed error', async () => {
+    const { PdfPasswordError, openPdfJs } = await import('../lib/pdfJs')
+    await expect(
+      openPdfJs(
+        {
+          getDocument: () => ({
+            promise: Promise.reject(Object.assign(new Error('No password given'), { name: 'PasswordException', code: 1 })),
+          }),
+        },
+        new Uint8Array([1]),
+      ),
+    ).rejects.toBeInstanceOf(PdfPasswordError)
+    await expect(
+      openPdfJs(
+        {
+          getDocument: () => ({
+            promise: Promise.reject(Object.assign(new Error('Incorrect Password'), { name: 'PasswordException', code: 2 })),
+          }),
+        },
+        new Uint8Array([1]),
+        'wrong',
+      ),
+    ).rejects.toMatchObject({ kind: 'incorrect' })
+  })
+
+  it('advances a pipeline run to the next tool', async () => {
+    const {
+      advanceRun,
+      continueRun,
+      endRun,
+      newPipeline,
+      peekPipelineOutput,
+      reportPipelineOutput,
+      startRun,
+      upsertPipeline,
+    } = await import('../lib/pipelines')
+    const pipeline = { ...newPipeline('audit'), steps: [{ toolId: 'compress' }, { toolId: 'finish' }] }
+    await upsertPipeline(pipeline)
+    startRun(pipeline.id)
+    reportPipelineOutput({ text: 'ready' })
+    expect(peekPipelineOutput()?.text).toBe('ready')
+    const next = await continueRun()
+    expect(next).toEqual({ path: '/finish' })
+    expect(advanceRun({ pipelineId: pipeline.id, index: 0, startedAt: 1 }).index).toBe(1)
+    endRun()
+  })
+
+  it('restores a handoff only when the generation still matches', async () => {
+    const { handoffGeneration, restoreHandoff, setHandoff, takeHandoff } = await import('../lib/handoff')
+    setHandoff({ text: 'first', from: 'test' })
+    const gen = handoffGeneration()
+    const payload = takeHandoff()
+    setHandoff({ text: 'second', from: 'test' })
+    restoreHandoff(payload!, gen)
+    expect(takeHandoff()?.text).toBe('second')
+  })
+})

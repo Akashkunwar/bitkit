@@ -1,15 +1,20 @@
 import { PDFDocument } from 'pdf-lib'
+import { loadPdf } from './pdfLoad'
+
+export async function inspectPdf(bytes: Uint8Array): Promise<{ pages: number; encrypted: boolean }> {
+  const { doc, encrypted } = await loadPdf(bytes)
+  return { pages: doc.getPageCount(), encrypted }
+}
 
 export async function pdfPageCount(bytes: Uint8Array): Promise<number> {
-  const doc = await PDFDocument.load(bytes, { ignoreEncryption: true })
-  return doc.getPageCount()
+  return (await inspectPdf(bytes)).pages
 }
 
 export async function mergePdfs(files: Uint8Array[]): Promise<Uint8Array> {
   if (!files.length) throw new Error('Drop at least one PDF.')
   const out = await PDFDocument.create()
   for (const bytes of files) {
-    const src = await PDFDocument.load(bytes, { ignoreEncryption: true })
+    const { doc: src } = await loadPdf(bytes)
     const copied = await out.copyPages(src, src.getPageIndices())
     for (const page of copied) out.addPage(page)
   }
@@ -17,7 +22,7 @@ export async function mergePdfs(files: Uint8Array[]): Promise<Uint8Array> {
 }
 
 export async function extractPages(bytes: Uint8Array, indices: number[]): Promise<Uint8Array> {
-  const src = await PDFDocument.load(bytes, { ignoreEncryption: true })
+  const { doc: src } = await loadPdf(bytes)
   const count = src.getPageCount()
   const unique = [...new Set(indices.filter((i) => i >= 0 && i < count))]
   if (!unique.length) throw new Error('No pages in that range.')
@@ -28,7 +33,7 @@ export async function extractPages(bytes: Uint8Array, indices: number[]): Promis
 }
 
 export async function splitPdf(bytes: Uint8Array): Promise<{ index: number; bytes: Uint8Array }[]> {
-  const src = await PDFDocument.load(bytes, { ignoreEncryption: true })
+  const { doc: src } = await loadPdf(bytes)
   const out: { index: number; bytes: Uint8Array }[] = []
   for (const i of src.getPageIndices()) {
     const doc = await PDFDocument.create()

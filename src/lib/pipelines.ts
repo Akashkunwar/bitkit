@@ -98,6 +98,7 @@ export function writeRun(state: RunState | null): void {
   } catch {
     /* private mode */
   }
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('bitkit-pipeline'))
 }
 
 export function advanceRun(state: RunState): RunState {
@@ -108,6 +109,34 @@ export function advanceRun(state: RunState): RunState {
 
 export function endRun(): void {
   writeRun(null)
+}
+
+let lastOutput: { files?: File[]; text?: string } | null = null
+
+export function reportPipelineOutput(payload: { files?: File[]; text?: string }): void {
+  lastOutput = payload
+}
+
+export function peekPipelineOutput(): { files?: File[]; text?: string } | null {
+  return lastOutput
+}
+
+export async function continueRun(): Promise<{ path: string } | { done: true } | null> {
+  const run = readRun()
+  if (!run) return null
+  const list = await listPipelines()
+  const pipeline = list.find((p) => p.id === run.pipelineId)
+  if (!pipeline) {
+    endRun()
+    return null
+  }
+  const next = advanceRun(run)
+  if (next.index >= pipeline.steps.length) {
+    endRun()
+    return { done: true }
+  }
+  const path = pathForStep(pipeline.steps[next.index])
+  return path ? { path } : { done: true }
 }
 
 /** Suggests a pipeline from the tools you have just moved between. */

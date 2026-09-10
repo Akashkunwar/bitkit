@@ -4,10 +4,11 @@ import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
 import { triggerDownload } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
-import { extractPages, mergePdfs, parsePageRange, pdfPageCount, splitPdf } from '../../lib/pdfPages'
+import { extractPages, inspectPdf, mergePdfs, parsePageRange, splitPdf } from '../../lib/pdfPages'
+import { encryptionWarning } from '../../lib/pdfLoad'
 import { zipStore } from '../../lib/zip'
 
-type Item = { id: string; file: File; bytes: Uint8Array; pages: number }
+type Item = { id: string; file: File; bytes: Uint8Array; pages: number; encrypted: boolean }
 
 export default function PagesTool() {
   const [items, setItems] = useState<Item[]>([])
@@ -21,8 +22,8 @@ export default function PagesTool() {
     const next: Item[] = []
     for (const file of pdfs) {
       const bytes = new Uint8Array(await file.arrayBuffer())
-      const pages = await pdfPageCount(bytes)
-      next.push({ id: crypto.randomUUID(), file, bytes, pages })
+      const { pages, encrypted } = await inspectPdf(bytes)
+      next.push({ id: crypto.randomUUID(), file, bytes, pages, encrypted })
     }
     setItems((prev) => [...prev, ...next])
     setMerged(null)
@@ -33,6 +34,8 @@ export default function PagesTool() {
   })
 
   const totalPages = useMemo(() => items.reduce((n, item) => n + item.pages, 0), [items])
+  const anyEncrypted = items.some((item) => item.encrypted)
+  const encryptNote = encryptionWarning(anyEncrypted)
 
   const run = async (kind: 'merge' | 'extract' | 'split') => {
     if (!items.length) return
@@ -113,7 +116,7 @@ export default function PagesTool() {
             </button>
           </div>
           {error ? <p className="status-bad">{error}</p> : null}
-          <p className="hint">Encrypted PDFs open when the browser can ignore the flag; passwords are not cracked.</p>
+          {encryptNote ? <p className="banner warn">{encryptNote}</p> : <p className="hint">Encrypted PDFs are not decrypted here. Unlock them in a reader first if pages come out blank.</p>}
           <SendTo from="pages" files={merged ? [merged] : items.map((item) => item.file)} />
         </aside>
       </div>

@@ -1,18 +1,16 @@
-import { crc32 } from './zip'
+import { crc32, crc32Feed, crc32Final, crc32Init } from './zip'
 
 export type HashAlgo = 'SHA-1' | 'SHA-256' | 'SHA-384' | 'SHA-512' | 'CRC-32'
 
 export const HASH_ALGOS: HashAlgo[] = ['SHA-256', 'SHA-1', 'SHA-384', 'SHA-512', 'CRC-32']
 
+/** WebCrypto must buffer the whole file; refuse sizes that would crash the tab. */
+export const HASH_MAX_BYTES = 256 * 1024 * 1024
+
 export function toHex(buffer: ArrayBuffer): string {
   return [...new Uint8Array(buffer)].map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
-/**
- * WebCrypto has no streaming digest, so a whole-file hash needs the file in
- * memory. Reading in chunks at least keeps CRC-32 streaming and lets the UI
- * report progress instead of freezing on a multi-gigabyte file.
- */
 const CHUNK = 8 * 1024 * 1024
 
 export async function hashFile(
@@ -20,10 +18,24 @@ export async function hashFile(
   algo: HashAlgo,
   onProgress?: (fraction: number) => void,
 ): Promise<string> {
+  if (file.size > HASH_MAX_BYTES) {
+    throw new Error(
+      `This file is larger than ${Math.round(HASH_MAX_BYTES / 1024 / 1024)} MB. Hashing it would likely crash this tab.`,
+    )
+  }
+
   if (algo === 'CRC-32') {
-    const bytes = new Uint8Array(await file.arrayBuffer())
+    let crc = crc32Init()
+    const total = file.size || 1
+    let offset = 0
+    while (offset < file.size) {
+      const slice = file.slice(offset, Math.min(offset + CHUNK, file.size))
+      crc = crc32Feed(crc, new Uint8Array(await slice.arrayBuffer()))
+      offset += CHUNK
+      onProgress?.(Math.min(1, offset / total))
+    }
     onProgress?.(1)
-    return crc32(bytes).toString(16).padStart(8, '0')
+    return crc32Final(crc).toString(16).padStart(8, '0')
   }
 
   const total = file.size
@@ -33,8 +45,6 @@ export async function hashFile(
     return toHex(digest)
   }
 
-  // Larger inputs are concatenated in one pass with progress reporting, since
-  // subtle.digest cannot be fed incrementally.
   const buffer = new Uint8Array(total)
   let offset = 0
   while (offset < total) {

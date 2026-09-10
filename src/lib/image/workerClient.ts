@@ -11,6 +11,11 @@ let supported: boolean | null = null
 let seq = 1
 const pending = new Map<number, Pending>()
 
+function failAll(reason: Error): void {
+  for (const waiter of pending.values()) waiter.reject(reason)
+  pending.clear()
+}
+
 function getWorker(): Worker | null {
   if (supported === false) return null
   if (worker) return worker
@@ -27,6 +32,7 @@ function getWorker(): Worker | null {
     worker.onerror = () => {
       supported = false
       worker = null
+      failAll(new Error('Image worker crashed.'))
     }
     supported = true
     return worker
@@ -40,8 +46,12 @@ export async function compressInWorker(file: Blob, options: CompressOptions): Pr
   const w = typeof Worker !== 'undefined' ? getWorker() : null
   if (!w) return compressImage(file, options)
   const id = seq++
-  return new Promise((resolve, reject) => {
-    pending.set(id, { resolve, reject })
-    w.postMessage({ id, file, options })
-  })
+  try {
+    return await new Promise<CompressResult>((resolve, reject) => {
+      pending.set(id, { resolve, reject })
+      w.postMessage({ id, file, options })
+    })
+  } catch {
+    return compressImage(file, options)
+  }
 }

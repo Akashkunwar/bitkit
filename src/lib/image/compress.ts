@@ -3,6 +3,15 @@ import { stageDownscale, CANVAS_SAFE_MAX } from './limits'
 
 export type EncodeMime = 'image/jpeg' | 'image/webp' | 'image/png'
 
+/** How a byte cap is applied. PNG has no quality knob, so it must downscale. */
+export function compressPlan(
+  mime: EncodeMime,
+  maxBytes?: number,
+): { qualityBisect: boolean; downscale: boolean } {
+  if (!maxBytes) return { qualityBisect: false, downscale: false }
+  return { qualityBisect: mime !== 'image/png', downscale: true }
+}
+
 export type CompressOptions = SizeOptions & {
   mime?: EncodeMime
   quality?: number
@@ -23,12 +32,26 @@ type BitmapLike = ImageBitmap | HTMLImageElement | OffscreenCanvas | HTMLCanvasE
 export async function decodeImage(file: Blob): Promise<ImageBitmap | HTMLImageElement> {
   if (typeof createImageBitmap === 'function') {
     try {
-      return await createImageBitmap(file)
+      return await createImageBitmap(file, { imageOrientation: 'from-image' })
     } catch {
-      // fall through
+      try {
+        return await createImageBitmap(file)
+      } catch {
+        // fall through to <img>
+      }
     }
   }
-  return loadHtmlImage(file)
+  try {
+    return await loadHtmlImage(file)
+  } catch (err) {
+    const { isHeicLike } = await import('./formatHint')
+    if (isHeicLike(file)) {
+      throw new Error(
+        'This browser cannot decode HEIC/HEIF. Export a JPEG from Photos and drop that instead.',
+      )
+    }
+    throw err
+  }
 }
 
 function loadHtmlImage(file: Blob): Promise<HTMLImageElement> {
@@ -114,24 +137,28 @@ export async function compressImage(file: Blob, options: CompressOptions = {}): 
   const source = await decodeImage(file)
   const drawn = draw(source, options, mime === 'image/jpeg' ? options.background ?? '#ffffff' : options.background)
 
-  const encode = (quality: number) => canvasToBlob(drawn.canvas, mime, quality)
+  const encodeAt = (canvas: HTMLCanvasElement | OffscreenCanvas, quality: number) =>
+    canvasToBlob(canvas, mime, quality)
 
-  if (!options.maxBytes || mime === 'image/png') {
+  const plan = compressPlan(mime, options.maxBytes)
+
+  if (!options.maxBytes) {
     const quality = options.quality ?? 0.92
-    const blob = await encode(quality)
-    const withinLimit = !options.maxBytes || blob.size <= options.maxBytes
+    const blob = await encodeAt(drawn.canvas, quality)
     if ('close' in source) source.close()
-    return { blob, width: drawn.width, height: drawn.height, quality, withinLimit }
+    return { blob, width: drawn.width, height: drawn.height, quality, withinLimit: true }
   }
 
-  // Bisect for the *highest* quality that still fits. Descending-only search
-  // would stop at the first quality under the limit and throw away headroom.
-  const ceiling = options.quality ?? 0.95
-  let low = 0.32
-  let high = ceiling
-  let quality = ceiling
-  let blob = await encode(quality)
-  if (blob.size > options.maxBytes) {
+  let width = drawn.width
+  let height = drawn.height
+  let canvas = drawn.canvas
+  let quality = options.quality ?? (mime === 'image/png' ? 0.92 : 0.95)
+  let blob = await encodeAt(canvas, quality)
+
+  // PNG has no useful quality knob; JPEG/WebP bisect quality first.
+  if (plan.qualityBisect && blob.size > options.maxBytes) {
+    let low = 0.32
+    let high = quality
     let best: Blob | null = null
     let bestQuality = low
     for (let i = 0; i < 8; i += 1) {
@@ -139,7 +166,7 @@ export async function compressImage(file: Blob, options: CompressOptions = {}): 
       low = next.low
       high = next.high
       quality = next.quality
-      blob = await encode(quality)
+      blob = await encodeAt(canvas, quality)
       if (blob.size <= options.maxBytes && quality > bestQuality) {
         best = blob
         bestQuality = quality
@@ -151,11 +178,8 @@ export async function compressImage(file: Blob, options: CompressOptions = {}): 
     }
   }
 
-  let width = drawn.width
-  let height = drawn.height
-  let canvas = drawn.canvas
   let guard = 0
-  while (blob.size > options.maxBytes && guard < 8) {
+  while (plan.downscale && blob.size > options.maxBytes && guard < 8) {
     guard += 1
     width = Math.max(1, Math.round(width * 0.85))
     height = Math.max(1, Math.round(height * 0.85))
@@ -168,7 +192,7 @@ export async function compressImage(file: Blob, options: CompressOptions = {}): 
     ctx.drawImage(canvas, 0, 0, width, height)
     canvas = next
     quality = Math.max(0.45, quality)
-    blob = await canvasToBlob(canvas, mime, quality)
+    blob = await encodeAt(canvas, mime === 'image/png' ? 1 : quality)
   }
 
   if ('close' in source) source.close()

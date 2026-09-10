@@ -1,5 +1,6 @@
 import { PDFDocument } from 'pdf-lib'
 import type { PDFDocumentProxy } from 'pdfjs-dist'
+import { loadPdf } from './pdfLoad'
 
 export type ShrinkPreset = 'screen' | 'ebook' | 'print'
 
@@ -136,7 +137,7 @@ export async function shrinkPdf(
 
 /** Strips metadata that survives a normal save, without re-rastering anything. */
 export async function stripPdfMetadata(bytes: Uint8Array): Promise<Uint8Array> {
-  const doc = await PDFDocument.load(bytes, { ignoreEncryption: true })
+  const { doc } = await loadPdf(bytes)
   doc.setTitle('')
   doc.setAuthor('')
   doc.setSubject('')
@@ -148,6 +149,6 @@ export async function stripPdfMetadata(bytes: Uint8Array): Promise<Uint8Array> {
 
 /** Lossless-ish repack: pdf-lib rewrites the xref and drops orphaned objects. */
 export async function repackPdf(bytes: Uint8Array): Promise<Uint8Array> {
-  const doc = await PDFDocument.load(bytes, { ignoreEncryption: true })
+  const { doc } = await loadPdf(bytes)
   return doc.save({ useObjectStreams: true })
 }

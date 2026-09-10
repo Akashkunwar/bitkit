@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { Segmented } from '../../components/Segmented'
+import { useToolPreset } from '../../lib/actions'
+import { passwordStateFromPreset } from '../../lib/toolPresets'
 import {
   CHARSETS,
   buildAlphabet,
@@ -37,6 +39,14 @@ export default function PasswordTool() {
   const [results, setResults] = useState<string[]>([])
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  const applyPreset = useCallback((preset: Record<string, unknown>) => {
+    const next = passwordStateFromPreset(preset)
+    if (next.mode) setMode(next.mode)
+    if (next.length) setLength(next.length)
+    if (next.tokenFormat) setTokenFormat(next.tokenFormat)
+  }, [])
+  useToolPreset('password', applyPreset)
 
   const alphabetSize = useMemo(() => buildAlphabet(sets, excludeAmbiguous).length, [sets, excludeAmbiguous])
 

@@ -48,6 +48,14 @@ describe('xlsx', () => {
     expect(xml).toContain('<c r="B2"><v>12</v></c>')
   })
 
+  it('keeps leading zeros as text so IDs survive Excel', () => {
+    const xml = sheetXml([['01234', '0.5', '12']])
+    expect(xml).toContain('t="inlineStr"')
+    expect(xml).toContain('01234')
+    expect(xml).not.toContain('<v>01234</v>')
+    expect(xml).toContain('<c r="C1"><v>12</v></c>')
+  })
+
   it('round-trips a workbook through its own reader', async () => {
     const rows = [
       ['name', 'city', 'orders'],
@@ -191,6 +199,11 @@ describe('cron', () => {
     expect(() => expandField('99', CRON_FIELDS[0])).toThrow()
     expect(() => expandField('5-1', CRON_FIELDS[0])).toThrow()
     expect(() => parseCron('* * *')).toThrow()
+  })
+
+  it('treats weekday 7 as Sunday', () => {
+    expect(expandField('7', CRON_FIELDS[4])).toEqual([0])
+    expect(describeCron('0 0 * * 7')).toMatch(/SUN/)
   })
 
   it('describes common schedules', () => {
@@ -401,12 +414,9 @@ describe('registry after expansion', () => {
   })
 
   it('keeps keyboard chords unique', () => {
-    const chords = tools
-      .map((t) => t.shortcut?.split(' then ')[1]?.toLowerCase())
-      .filter((c): c is string => Boolean(c))
+    const chords = tools.map((t) => t.shortcut).filter((c): c is string => Boolean(c))
     expect(new Set(chords).size).toBe(chords.length)
-    // "h" is reserved for Home.
-    expect(chords).not.toContain('h')
+    expect(chords.some((c) => c.split(' ').includes('H') && c === 'G H')).toBe(false)
   })
 
   it('finds the new tools by natural search terms', () => {
