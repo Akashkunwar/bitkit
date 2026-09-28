@@ -3,6 +3,7 @@ import { lazy } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
   ArrowRightLeft,
+  Frame,
   AudioLines,
   Barcode,
   ImageDown,
@@ -348,6 +349,30 @@ export const tools: ToolMeta[] = [
     shortcut: 'G 2 J',
     accepts: ['image'],
     component: lazy(() => import('./tools/collage/CollageTool')),
+  },
+  {
+    id: 'frame',
+    path: '/screenshot-frame',
+    title: 'Screenshot frame',
+    blurb: 'Gradient backdrop, padding, rounded corners, shadow, window chrome.',
+    category: 'Image',
+    icon: Frame,
+    isNew: true,
+    keywords: [
+      'screenshot',
+      'beautify',
+      'mockup',
+      'frame',
+      'window',
+      'shadow',
+      'background',
+      'gradient',
+      'social',
+      'readme',
+    ],
+    shortcut: 'G 2 D',
+    accepts: ['image'],
+    component: lazy(() => import('./tools/frame/FrameTool')),
   },
   {
     id: 'exif',
@@ -1258,4 +1283,4 @@ export function toolForPath(pathname: string): ToolMeta | undefined {
 }
 
 /** Pinned count. Sitemap/OG are generated from `tools`; chrome copy and tests must match this. */
-export const TOOL_COUNT = 75
+export const TOOL_COUNT = 76

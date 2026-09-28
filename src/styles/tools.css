@@ -1872,3 +1872,45 @@ audio.media-preview {
   color: var(--accent-strong);
   font-weight: 650;
 }
+
+/* ---------- Screenshot frame ---------- */
+
+.frame-stage {
+  min-height: 24rem;
+  padding: 1rem;
+}
+
+.frame-stage canvas {
+  max-height: 36rem;
+  width: auto;
+  max-width: 100%;
+  box-shadow: none;
+}
+
+.swatch-picker {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.swatch-option {
+  aspect-ratio: 1;
+  min-width: 24px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  background: var(--swatch);
+  cursor: pointer;
+  transition:
+    transform 120ms,
+    box-shadow 120ms;
+}
+
+.swatch-option:hover {
+  transform: scale(1.06);
+}
+
+.swatch-option[aria-pressed='true'] {
+  box-shadow:
+    0 0 0 2px var(--bg-elev),
+    0 0 0 4px var(--accent);
+}

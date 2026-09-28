@@ -7,7 +7,7 @@ describe('tool registry', () => {
     const paths = tools.map((t) => t.path)
     const titles = tools.map((t) => t.title)
     expect(ids.length).toBe(TOOL_COUNT)
-    expect(TOOL_COUNT).toBe(75)
+    expect(TOOL_COUNT).toBe(76)
     expect(new Set(ids).size).toBe(ids.length)
     expect(new Set(paths).size).toBe(paths.length)
     expect(new Set(titles).size).toBe(titles.length)

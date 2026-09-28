@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { encodeBmp, formatForMime, inscribedSize, outputSize, renameFor, rotatedBounds } from '../lib/image/transform'
 import { autoColumns, layoutCollage, type CollageOptions } from '../lib/collage'
+import { chromeHeight, layoutFrame } from '../lib/frame'
 
 describe('rotation geometry', () => {
   it('grows the bounding box by the rotated corners', () => {
@@ -140,5 +141,32 @@ describe('collage layout', () => {
     )
     expect(placements[1].cell.y).toBeCloseTo(110)
     expect(height).toBe(100 + 10 + 200)
+  })
+})
+
+describe('screenshot frame layout', () => {
+  const base = { padding: 0.1, radius: 12, shadow: 0.5, chrome: 'none' as const, aspect: 'auto' as const, title: '' }
+
+  it('pads around the screenshot by a share of its longer side', () => {
+    const layout = layoutFrame(1000, 600, base)
+    expect(layout.width).toBe(1200)
+    expect(layout.height).toBe(800)
+    expect(layout.window).toEqual({ x: 100, y: 100, width: 1000, height: 600 })
+  })
+
+  it('adds a title bar for window chrome', () => {
+    const layout = layoutFrame(1000, 600, { ...base, chrome: 'mac-light' })
+    expect(layout.bar).toBe(chromeHeight('mac-light', 1000))
+    expect(layout.window.height).toBe(600 + layout.bar)
+    expect(chromeHeight('browser', 1000)).toBeGreaterThan(chromeHeight('mac-dark', 1000))
+  })
+
+  it('grows the canvas to hit an aspect ratio without cropping', () => {
+    const square = layoutFrame(1600, 900, { ...base, aspect: '1:1' })
+    expect(square.width).toBe(square.height)
+    expect(square.window.width).toBe(1600)
+    const wide = layoutFrame(400, 800, { ...base, aspect: '16:9' })
+    expect(wide.width / wide.height).toBeCloseTo(16 / 9, 2)
+    expect(wide.window.x).toBeGreaterThan(0)
   })
 })
