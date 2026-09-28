@@ -42,7 +42,10 @@ is what made room for the rest.
 - **A modern interface.** Category-coloured icons on every tool, a sidebar you can hide
   for wide tools, breadcrumbs, one-click pinning, related tools at the foot of each page,
   and a home page that routes any dropped file to the tools that can open it.
-- **Five themes.** Mist and Deep, plus Paper (warm, low-blue), Midnight (true black
+- **An identity of its own.** Warm paper neutrals, near-black ink, pine green for
+  actions, and a single lime highlighter for what should jump out — no gradients, no
+  glows. The logo is flat, so it holds up as a 16px favicon.
+- **Five themes.** Light and Dark, plus Paper (warm, low-blue), Midnight (true black
   for OLED), and Contrast (AAA body text, no shadows). *Match system* follows the OS
   and lets you pick which pair it switches between — Paper by day, Midnight by night is
   a valid answer. Text size, density, and a reduced-motion override sit beside them in
@@ -91,8 +94,8 @@ npm run build        # regenerates assets, typechecks, then builds
 ```
 
 CI runs typecheck, lint, formatting, unit tests, a bundle budget on the eager chunk, an
-assets-freshness check, and the Playwright suite including a WCAG contrast (every theme,
-gradient text included) and target-size audit. Barcode tests decode every symbology with
+assets-freshness check, and the Playwright suite including a WCAG contrast (every theme) and
+target-size audit. Barcode tests decode every symbology with
 ZXing, so a wrong pattern table cannot ship.
 
 Brand assets are generated, not hand-drawn — `npm run assets` rebuilds the PWA icons,

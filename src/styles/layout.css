@@ -10,9 +10,7 @@
   min-height: 100dvh;
   display: grid;
   grid-template-columns: var(--sidebar) minmax(0, 1fr);
-  background:
-    var(--hero-glow) 0 0 / 100% 40rem no-repeat,
-    var(--bg);
+  background: var(--bg);
 }
 
 .shell[data-sidebar='hidden'] {
@@ -67,8 +65,7 @@
 
 .brand svg {
   display: block;
-  border-radius: 8px;
-  box-shadow: var(--shadow-accent);
+  border-radius: 7px;
 }
 
 .brand-name {
@@ -78,10 +75,7 @@
 }
 
 .brand-name span {
-  background: var(--brand-text);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--brand-kit);
 }
 
 .rail {
@@ -227,14 +221,15 @@
 
 .rail-new {
   flex: none;
-  font-size: 0.62rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--accent-strong);
-  background: var(--accent-soft);
-  border-radius: 999px;
-  padding: 0.12rem 0.42rem;
+  color: var(--hl-ink);
+  background: var(--hl);
+  border-radius: 4px;
+  padding: 0.14rem 0.36rem;
 }
 
 .rail-foot {

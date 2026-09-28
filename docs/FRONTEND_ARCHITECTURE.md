@@ -110,7 +110,7 @@ Dexie database `kit-notes` with `id`, `title`, `body`, `pinned`, `updatedAt`. De
 
 ## Quality gates
 
-CI runs, in order: typecheck, ESLint (hook rules, type-only imports, no stray `any`), Prettier, unit tests, build, bundle budget, generated-assets freshness, and the Playwright suite — every route mounted, keyboard flows, and an accessibility audit of contrast (all five themes, including gradient text), names, target size, and heading order.
+CI runs, in order: typecheck, ESLint (hook rules, type-only imports, no stray `any`), Prettier, unit tests, build, bundle budget, generated-assets freshness, and the Playwright suite — every route mounted, keyboard flows, and an accessibility audit of contrast (all five themes), names, target size, and heading order.
 
 ## Lazy loading
 

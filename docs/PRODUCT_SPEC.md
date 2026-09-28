@@ -75,7 +75,7 @@ Legitimate visual edits only:
 ## Shared experience
 
 - Dashboard with a prominent command/search bar, keyboard navigation, favorites, recents, and categories.
-- Five themes (Mist, Deep, Paper, Midnight, Contrast) plus a system-following pair,
+- Five themes (Light, Dark, Paper, Midnight, Contrast) plus a system-following pair,
   text size, density, and a motion override; undo/reset, accessible controls, no
   hidden network activity.
 - Installable PWA with an offline shell. Heavy processors load only when a tool is opened.

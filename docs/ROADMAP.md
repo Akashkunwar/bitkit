@@ -40,7 +40,7 @@ Shipped: Office to PDF (`.docx`, `.pptx`, `.xlsx`, `.csv`, `.rtf`, `.html`, `.md
 
 A new interface, and the conversions people ask for by name.
 
-- **Interface.** A new design system across five themes (indigo-violet brand, category-tinted icons), a full-height sidebar that can be hidden, a ⌘K command palette, a home page with smart file drop, and tool pages with breadcrumbs, pinning, and related tools.
+- **Interface.** A new design system across five themes (ink-and-highlighter palette, category-tinted icons), a full-height sidebar that can be hidden, a ⌘K command palette, a home page with smart file drop, and tool pages with breadcrumbs, pinning, and related tools.
 - **Documents.** Images to PDF rebuilt around a sortable grid with page setup; PDF to images; Word to image with an exact-look PDF; Markdown to PDF rebuilt around themed, paginated output.
 - **Images.** Image converter, Rotate & flip, Image collage, Screenshot frame.
 - **Calculators.** Scientific calculator, Unit converter (16 quantities), Finance calculators (EMI, SIP, compound interest, CAGR, discounts).

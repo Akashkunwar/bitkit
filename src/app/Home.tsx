@@ -28,7 +28,7 @@ function ToolCard({ tool, showTag }: { tool: ToolMeta; showTag?: boolean }) {
         <span className="tool-card-text">
           <h3>
             {tool.title}
-            {tool.isNew ? <span className="badge">New</span> : null}
+            {tool.isNew ? <span className="badge badge-new">New</span> : null}
           </h3>
           <p>{tool.blurb}</p>
           {showTag ? <span className="tool-tag">{t(`category.${tool.category}`)}</span> : null}

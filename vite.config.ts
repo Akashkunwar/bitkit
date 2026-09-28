@@ -19,8 +19,8 @@ export default defineConfig({
         short_name: 'BitKit',
         description:
           'Images to PDF, PDF to images, Word to image, Markdown to PDF, calculators, converters, and more. Everything runs locally in your browser.',
-        theme_color: '#0b0c10',
-        background_color: '#0b0c10',
+        theme_color: '#0e0f0c',
+        background_color: '#0e0f0c',
         display: 'standalone',
         orientation: 'any',
         categories: ['utilities', 'productivity', 'developer'],

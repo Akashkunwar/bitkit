@@ -28,18 +28,18 @@ export const THEMES: ThemeMeta[] = [
   {
     id: 'light',
     label: 'Light',
-    hint: 'The default. Clean cool greys with an indigo accent.',
+    hint: 'The default. Warm paper-white, pine green, and a lime highlighter.',
     appearance: 'light',
-    themeColor: '#f6f7f9',
-    swatch: ['#f6f7f9', '#ffffff', '#5b53e8'],
+    themeColor: '#f4f3ee',
+    swatch: ['#f4f3ee', '#fdfcf9', '#1c5e41'],
   },
   {
     id: 'dark',
     label: 'Dark',
-    hint: 'Dark without going black. Keeps depth between panels.',
+    hint: 'Dark without going black, with lime actions. Keeps depth between panels.',
     appearance: 'dark',
-    themeColor: '#0b0c10',
-    swatch: ['#0b0c10', '#1a1d25', '#8b86ff'],
+    themeColor: '#0e0f0c',
+    swatch: ['#0e0f0c', '#1f211b', '#c9f150'],
   },
   {
     id: 'paper',
@@ -55,7 +55,7 @@ export const THEMES: ThemeMeta[] = [
     hint: 'True black. Saves power on an OLED phone.',
     appearance: 'dark',
     themeColor: '#000000',
-    swatch: ['#000000', '#15171c', '#918cff'],
+    swatch: ['#000000', '#16180f', '#c9f150'],
   },
   {
     id: 'contrast',
@@ -63,7 +63,7 @@ export const THEMES: ThemeMeta[] = [
     hint: 'Maximum separation, no shadows. Clears WCAG AAA on body text.',
     appearance: 'light',
     themeColor: '#ffffff',
-    swatch: ['#ffffff', '#eef0f3', '#3525b8'],
+    swatch: ['#ffffff', '#eef0ea', '#0d4a2e'],
   },
 ]
 

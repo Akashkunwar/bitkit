@@ -5,6 +5,13 @@
  * one is active. `light` and `dark` keep their original ids so themes stored
  * before this existed, and backups holding them, still resolve.
  *
+ * The identity is ink and highlighter: warm paper neutrals, near-black ink,
+ * deep pine for actions, and one lime "highlighter" (`--hl`) reserved for the
+ * few things that should jump out: the mark, the hero phrase, NEW labels.
+ * There are no gradients and no coloured glows; depth comes from borders and
+ * neutral shadows. The highlighter always carries `--hl-ink`, never body
+ * text, so it reads the same in every theme.
+ *
  * The three additions each answer a real complaint rather than being a colour
  * variation: `paper` drops blue light for the long-read tools, `midnight` is
  * true black for OLED phones running the installed PWA, and `contrast` clears
@@ -12,57 +19,54 @@
  * enforces. e2e/a11y.spec.ts audits all five.
  *
  * Category hues (`--cat-*`) tint tool icons only. They never carry text, so
- * they are tuned for recognisability rather than contrast, and each theme
- * lifts them to stay vivid on its own surfaces.
+ * they are tuned for recognisability rather than contrast; they are earthy
+ * rather than neon so a grid of them sits quietly on the warm surfaces.
  */
 
 :root {
   color-scheme: light;
-  --bg: #f6f7f9;
-  --bg-elev: #ffffff;
-  --bg-mute: #eef0f4;
-  --bg-sunken: #e9ecf1;
-  --ink: #0d1017;
-  --muted: #5a6272;
-  --line: #e4e7ed;
-  --line-strong: #d0d5de;
-  --accent: #5b53e8;
-  --accent-strong: #4338ca;
-  --accent-soft: #eeedfd;
+  --bg: #f4f3ee;
+  --bg-elev: #fdfcf9;
+  --bg-mute: #ecebe3;
+  --bg-sunken: #e4e2d8;
+  --ink: #161613;
+  --muted: #5b5a52;
+  --line: #e0ded4;
+  --line-strong: #c9c6ba;
+  --accent: #1c5e41;
+  --accent-strong: #134630;
+  --accent-soft: #e5f0d5;
   --accent-ink: #ffffff;
-  --danger: #c62f3a;
-  --ok: #15803d;
-  --warn: #b45309;
+  --danger: #b3261e;
+  --ok: #1f7a44;
+  --warn: #945600;
 
-  --brand-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 55%, #d946ef 100%);
-  /* Gradients painted onto text. Every stop clears 3:1 (hero, large) or 4.5:1
-     (brand, body size) against its theme's surfaces; the a11y audit measures
-     each stop rather than trusting the transparent text colour. */
-  --text-gradient: linear-gradient(120deg, #4f46e5 0%, #7c3aed 50%, #c026d3 100%);
-  --brand-text: linear-gradient(100deg, #4f46e5 0%, #9333ea 100%);
-  --hero-glow:
-    radial-gradient(60rem 28rem at 12% -10%, color-mix(in srgb, #6366f1 16%, transparent), transparent 60%),
-    radial-gradient(44rem 22rem at 92% -6%, color-mix(in srgb, #d946ef 11%, transparent), transparent 60%);
+  /* The highlighter, and the ink that sits on it. */
+  --hl: #c9f150;
+  --hl-ink: #161613;
+  /* The second half of the wordmark. */
+  --brand-kit: var(--accent);
 
-  --cat-daily: #d97706;
-  --cat-image: #db2777;
-  --cat-document: #dc2626;
-  --cat-data: #059669;
-  --cat-media: #7c3aed;
-  --cat-developer: #0284c7;
-  --cat-design: #c026d3;
-  --cat-writing: #0d9488;
-  --cat-notes: #475569;
+  --cat-daily: #b8741a;
+  --cat-image: #c23f6c;
+  --cat-document: #c2452d;
+  --cat-data: #2f7d55;
+  --cat-media: #7b4fb0;
+  --cat-developer: #2a65ad;
+  --cat-design: #a8458c;
+  --cat-writing: #19808a;
+  --cat-notes: #5d5b52;
 
-  --shadow-sm: 0 1px 2px rgba(15, 18, 30, 0.06);
-  --shadow: 0 1px 2px rgba(15, 18, 30, 0.04), 0 4px 16px -8px rgba(15, 18, 30, 0.1);
-  --shadow-pop: 0 18px 48px -16px rgba(15, 18, 30, 0.28), 0 2px 6px rgba(15, 18, 30, 0.06);
-  --shadow-accent: 0 6px 18px -8px color-mix(in srgb, var(--accent) 70%, transparent);
+  --shadow-sm: 0 1px 2px rgba(32, 30, 20, 0.06);
+  --shadow: 0 1px 2px rgba(32, 30, 20, 0.05), 0 4px 16px -8px rgba(32, 30, 20, 0.12);
+  --shadow-pop: 0 18px 48px -16px rgba(32, 30, 20, 0.26), 0 2px 6px rgba(32, 30, 20, 0.06);
+  /* Solid buttons get a pressed-in top edge rather than a coloured glow. */
+  --shadow-accent: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 1px 2px rgba(20, 20, 12, 0.2);
 
-  --radius-lg: 20px;
-  --radius: 14px;
-  --radius-sm: 10px;
-  --radius-xs: 7px;
+  --radius-lg: 18px;
+  --radius: 12px;
+  --radius-sm: 9px;
+  --radius-xs: 6px;
 
   --font-ui: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: var(--font-ui);
@@ -85,52 +89,49 @@
   --focus: 2px solid var(--accent);
   --ring: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --dot-grid: radial-gradient(color-mix(in srgb, var(--ink) 7%, transparent) 1px, transparent 1px);
   /* Set on <html> by the theme provider. */
   --text-scale: 1;
 }
 
+/* Warm near-black with a trace of olive, so the lime reads as part of the
+   palette rather than pasted on. Buttons flip to lime with dark text. */
 [data-theme='dark'] {
   color-scheme: dark;
-  --bg: #0b0c10;
-  --bg-elev: #12141a;
-  --bg-mute: #1a1d25;
-  --bg-sunken: #08090c;
-  --ink: #eceef4;
-  --muted: #9aa1b2;
-  --line: #22252e;
-  --line-strong: #30343f;
-  --accent: #8b86ff;
-  --accent-strong: #aaa6ff;
-  --accent-soft: #1f1d3d;
-  --accent-ink: #0b0b17;
-  --danger: #f47a7f;
-  --ok: #4ade80;
-  --warn: #fbbf24;
-  --text-gradient: linear-gradient(120deg, #a5b4fc 0%, #c4b5fd 45%, #f0abfc 100%);
-  --brand-text: linear-gradient(100deg, #a5b4fc 0%, #f0abfc 100%);
-  --hero-glow:
-    radial-gradient(60rem 28rem at 12% -10%, color-mix(in srgb, #6366f1 22%, transparent), transparent 60%),
-    radial-gradient(44rem 22rem at 92% -6%, color-mix(in srgb, #d946ef 13%, transparent), transparent 60%);
-  --cat-daily: #fbbf24;
-  --cat-image: #f472b6;
-  --cat-document: #f87171;
-  --cat-data: #34d399;
-  --cat-media: #a78bfa;
-  --cat-developer: #38bdf8;
-  --cat-design: #e879f9;
-  --cat-writing: #2dd4bf;
-  --cat-notes: #94a3b8;
+  --bg: #0e0f0c;
+  --bg-elev: #161713;
+  --bg-mute: #1f211b;
+  --bg-sunken: #090a07;
+  --ink: #ecede5;
+  --muted: #a2a495;
+  --line: #25271f;
+  --line-strong: #34372d;
+  --accent: #c9f150;
+  --accent-strong: #d7f67f;
+  --accent-soft: #232c13;
+  --accent-ink: #0e0f0c;
+  --danger: #ff8b7e;
+  --ok: #6ddc8b;
+  --warn: #f2c14e;
+  --hl-ink: #0e0f0c;
+  --cat-daily: #eab04a;
+  --cat-image: #f07ca2;
+  --cat-document: #f28b73;
+  --cat-data: #71cf98;
+  --cat-media: #b797ee;
+  --cat-developer: #74b0ee;
+  --cat-design: #e28ccb;
+  --cat-writing: #62c7cf;
+  --cat-notes: #a9a799;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 20px -10px rgba(0, 0, 0, 0.6);
   --shadow-pop: 0 24px 60px -18px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.04);
-  --dot-grid: radial-gradient(color-mix(in srgb, var(--ink) 6%, transparent) 1px, transparent 1px);
+  --shadow-accent: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 /* Warm, low-blue light. Readability, Notes, and Markdown are read for minutes
    at a time; this is the theme for that, not for scanning a tool grid. The
-   accent is burnt orange for the same reason: indigo is exactly the blue this
-   theme exists to avoid. */
+   accent is burnt orange and the highlighter amber for the same reason: lime
+   and pine both carry more blue-green than this theme wants. */
 [data-theme='paper'] {
   color-scheme: light;
   --bg: #f7f2ea;
@@ -148,16 +149,11 @@
   --danger: #a8322b;
   --ok: #1c6b47;
   --warn: #8a5a10;
-  --brand-gradient: linear-gradient(135deg, #c2410c 0%, #b45309 60%, #a16207 100%);
-  --text-gradient: linear-gradient(120deg, #9a3412 0%, #b45309 100%);
-  --brand-text: linear-gradient(100deg, #9a3412 0%, #b45309 100%);
-  --hero-glow:
-    radial-gradient(60rem 28rem at 12% -10%, color-mix(in srgb, #ea580c 10%, transparent), transparent 60%),
-    radial-gradient(44rem 22rem at 92% -6%, color-mix(in srgb, #ca8a04 9%, transparent), transparent 60%);
+  --hl: #f2d58a;
+  --hl-ink: #2a231b;
   --shadow-sm: 0 1px 2px rgba(60, 46, 28, 0.07);
   --shadow: 0 1px 2px rgba(60, 46, 28, 0.05), 0 4px 16px -8px rgba(60, 46, 28, 0.14);
   --shadow-pop: 0 18px 48px -16px rgba(60, 46, 28, 0.32);
-  --dot-grid: radial-gradient(color-mix(in srgb, var(--ink) 7%, transparent) 1px, transparent 1px);
 }
 
 /* True black. On an OLED phone the unlit pixels cost nothing to draw, which
@@ -165,67 +161,61 @@
 [data-theme='midnight'] {
   color-scheme: dark;
   --bg: #000000;
-  --bg-elev: #0b0c0f;
-  --bg-mute: #15171c;
+  --bg-elev: #0b0c09;
+  --bg-mute: #16180f;
   --bg-sunken: #000000;
-  --ink: #f1f2f6;
-  --muted: #9ca3b3;
-  --line: #1c1e24;
-  --line-strong: #2d3039;
-  --accent: #918cff;
-  --accent-strong: #b1adff;
-  --accent-soft: #17163a;
-  --accent-ink: #05050f;
-  --danger: #f58a8f;
-  --ok: #5ee39a;
-  --warn: #fcd34d;
-  --text-gradient: linear-gradient(120deg, #a5b4fc 0%, #c4b5fd 45%, #f0abfc 100%);
-  --brand-text: linear-gradient(100deg, #a5b4fc 0%, #f0abfc 100%);
-  --hero-glow: radial-gradient(60rem 28rem at 12% -10%, color-mix(in srgb, #6366f1 18%, transparent), transparent 60%);
-  --cat-daily: #fbbf24;
-  --cat-image: #f472b6;
-  --cat-document: #f87171;
-  --cat-data: #34d399;
-  --cat-media: #a78bfa;
-  --cat-developer: #38bdf8;
-  --cat-design: #e879f9;
-  --cat-writing: #2dd4bf;
-  --cat-notes: #94a3b8;
+  --ink: #f2f3ec;
+  --muted: #a3a597;
+  --line: #1c1e17;
+  --line-strong: #2d3026;
+  --accent: #c9f150;
+  --accent-strong: #d9f784;
+  --accent-soft: #1a2210;
+  --accent-ink: #050604;
+  --danger: #ff9a8f;
+  --ok: #72e394;
+  --warn: #f7cd5f;
+  --hl-ink: #050604;
+  --cat-daily: #eab04a;
+  --cat-image: #f07ca2;
+  --cat-document: #f28b73;
+  --cat-data: #71cf98;
+  --cat-media: #b797ee;
+  --cat-developer: #74b0ee;
+  --cat-design: #e28ccb;
+  --cat-writing: #62c7cf;
+  --cat-notes: #a9a799;
   --shadow-sm: none;
   --shadow: 0 0 0 1px rgba(255, 255, 255, 0.02);
   --shadow-pop: 0 24px 60px -18px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.06);
-  --dot-grid: radial-gradient(color-mix(in srgb, var(--ink) 5%, transparent) 1px, transparent 1px);
+  --shadow-accent: inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
-/* Everything carries its weight in the border, not in a tint: shadows, glows
-   and the dot grid are removed so shape is the only signal, and focus is 3px
-   of ink rather than 2px of accent. Body text clears 11:1. */
+/* Everything carries its weight in the border, not in a tint: shadows are
+   removed so shape is the only signal, and focus is 3px of ink rather than
+   2px of accent. Body text clears 11:1. */
 [data-theme='contrast'] {
   color-scheme: light;
   --bg: #ffffff;
   --bg-elev: #ffffff;
-  --bg-mute: #eef0f3;
-  --bg-sunken: #e6e9ee;
+  --bg-mute: #eef0ea;
+  --bg-sunken: #e5e8df;
   --ink: #000000;
-  --muted: #30343c;
-  --line: #6b7280;
+  --muted: #2f312a;
+  --line: #6b6e63;
   --line-strong: #000000;
-  --accent: #3525b8;
-  --accent-strong: #231a8a;
-  --accent-soft: #e6e4fb;
+  --accent: #0d4a2e;
+  --accent-strong: #083820;
+  --accent-soft: #e1efd2;
   --accent-ink: #ffffff;
   --danger: #99000a;
   --ok: #005c33;
   --warn: #7a4200;
-  --brand-gradient: linear-gradient(135deg, #3525b8, #3525b8);
-  --text-gradient: linear-gradient(90deg, #231a8a, #231a8a);
-  --brand-text: linear-gradient(90deg, #231a8a, #231a8a);
-  --hero-glow: none;
+  --hl-ink: #000000;
   --shadow-sm: none;
   --shadow: none;
   --shadow-pop: none;
   --shadow-accent: none;
-  --dot-grid: none;
   --focus: 3px solid var(--ink);
   --ring: 0 0 0 3px var(--ink);
 }

@@ -531,9 +531,7 @@ input[type='file']::file-selector-button {
   border-radius: var(--radius-lg);
   padding: clamp(1.5rem, 4vw, 2.5rem) var(--space-4);
   text-align: center;
-  background:
-    radial-gradient(28rem 10rem at 50% 0%, color-mix(in srgb, var(--accent) 6%, transparent), transparent),
-    color-mix(in srgb, var(--bg-elev) 70%, transparent);
+  background: color-mix(in srgb, var(--bg-elev) 70%, transparent);
   transition:
     border-color 160ms,
     background 160ms,
@@ -773,6 +771,17 @@ p.status-ok {
   color: var(--accent-strong);
   background: var(--accent-soft);
   white-space: nowrap;
+}
+
+/* NEW is a highlighter label, the same one the sidebar uses. */
+.badge.badge-new {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  border-radius: 4px;
+  padding: 0.14rem 0.36rem;
+  color: var(--hl-ink);
+  background: var(--hl);
 }
 
 .stat-pills,
@@ -2262,7 +2271,7 @@ button.thumb-media:focus-visible {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--brand-gradient);
+  background: var(--accent);
   transition: width 200ms linear;
 }
 

@@ -4,8 +4,8 @@
  * Browsers accept an SVG favicon, but Chrome's install flow still wants raster
  * 192/512 icons, and maskable icons need their own safe-zone padding. Rather
  * than add a headless-browser or native rasterizer dependency, the mark is
- * simple enough (rounded rects + a linear gradient) to draw directly into a
- * pixel buffer and encode with Node's built-in zlib.
+ * simple enough (flat rounded rects) to draw directly into a pixel buffer and
+ * encode with Node's built-in zlib.
  *
  * Run: npm run icons
  */
@@ -85,22 +85,9 @@ function mix(a, b, t) {
   ]
 }
 
-// Matches the three stops in public/favicon.svg and src/app/Brand.tsx.
-const GRADIENT_STOPS = [
-  [0, [0x63, 0x66, 0xf1]],
-  [0.55, [0x8b, 0x5c, 0xf6]],
-  [1, [0xd9, 0x46, 0xef]],
-]
-
-function gradientAt(t) {
-  for (let i = 1; i < GRADIENT_STOPS.length; i += 1) {
-    const [end, to] = GRADIENT_STOPS[i]
-    const [start, from] = GRADIENT_STOPS[i - 1]
-    if (t <= end) return mix(from, to, (t - start) / (end - start))
-  }
-  return GRADIENT_STOPS[GRADIENT_STOPS.length - 1][1]
-}
-const MARK = [0xff, 0xff, 0xff]
+// Matches public/favicon.svg and src/app/Brand.tsx: an ink grid on lime.
+const TILE = [0xc9, 0xf1, 0x50]
+const MARK = [0x16, 0x16, 0x13]
 
 /**
  * Draws the mark on a `size` px canvas. `inset` shrinks the artwork within the
@@ -117,10 +104,10 @@ function drawIcon(size, { inset = 0, bleed = false } = {}) {
   // The mark: a 2x2 module grid with two bits "on" and two dimmed,
   // matching public/favicon.svg.
   const bars = [
-    { x: 11, y: 11, w: 18, h: 18, r: 5, alpha: 1 },
-    { x: 35, y: 11, w: 18, h: 18, r: 5, alpha: 0.42 },
-    { x: 11, y: 35, w: 18, h: 18, r: 5, alpha: 0.42 },
-    { x: 35, y: 35, w: 18, h: 18, r: 5, alpha: 1 },
+    { x: 12, y: 12, w: 17, h: 17, r: 4, alpha: 1 },
+    { x: 35, y: 12, w: 17, h: 17, r: 4, alpha: 0.22 },
+    { x: 12, y: 35, w: 17, h: 17, r: 4, alpha: 0.22 },
+    { x: 35, y: 35, w: 17, h: 17, r: 4, alpha: 1 },
   ]
 
   for (let y = 0; y < size; y += 1) {
@@ -128,7 +115,6 @@ function drawIcon(size, { inset = 0, bleed = false } = {}) {
       let bgCoverage = 0
       // Weighted by each block's alpha so dimmed modules blend correctly.
       let markCoverage = 0
-      let gradientAccum = 0
 
       for (let sy = 0; sy < SS; sy += 1) {
         for (let sx = 0; sx < SS; sx += 1) {
@@ -139,11 +125,10 @@ function drawIcon(size, { inset = 0, bleed = false } = {}) {
           if (bleed) {
             inBackground = true
           } else {
-            inBackground = roundedRectDistance(px, py, origin, origin, art, art, unit * 15) <= 0
+            inBackground = roundedRectDistance(px, py, origin, origin, art, art, unit * 14) <= 0
           }
           if (!inBackground) continue
           bgCoverage += 1
-          gradientAccum += Math.min(1, Math.max(0, (px / size + py / size) / 2))
 
           for (const bar of bars) {
             const d = roundedRectDistance(
@@ -169,10 +154,8 @@ function drawIcon(size, { inset = 0, bleed = false } = {}) {
         rgba[i] = rgba[i + 1] = rgba[i + 2] = rgba[i + 3] = 0
         continue
       }
-      const t = gradientAccum / bgCoverage
-      const bg = gradientAt(t)
       const markRatio = markCoverage / bgCoverage
-      const colour = mix(bg, MARK, markRatio)
+      const colour = mix(TILE, MARK, markRatio)
       rgba[i] = colour[0]
       rgba[i + 1] = colour[1]
       rgba[i + 2] = colour[2]

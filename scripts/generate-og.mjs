@@ -72,12 +72,13 @@ function encodePng(width, height, rgb) {
 
 // --- Canvas ---------------------------------------------------------------
 
-// The Dark theme's tokens (src/styles/tokens.css).
-const BG = [0x0b, 0x0c, 0x10]
-const INK = [0xec, 0xee, 0xf4]
-const MUTED = [0x9a, 0xa1, 0xb2]
-const ACCENT = [0x8b, 0x86, 0xff]
-const ACCENT_DEEP = [0x63, 0x66, 0xf1]
+// The Dark theme's tokens (src/styles/tokens.css): ink, and the lime
+// highlighter with the near-black that sits on it.
+const BG = [0x0e, 0x0f, 0x0c]
+const INK = [0xec, 0xed, 0xe5]
+const MUTED = [0xa2, 0xa4, 0x95]
+const LIME = [0xc9, 0xf1, 0x50]
+const MARK_INK = [0x16, 0x16, 0x13]
 
 const buf = Buffer.alloc(W * H * 3)
 
@@ -191,17 +192,7 @@ function drawText(text, x, y, scale, colour) {
 
 fill(BG)
 
-// Soft accent wash in the upper right.
-for (let y = 0; y < H; y += 1) {
-  for (let x = 0; x < W; x += 1) {
-    const dx = (x - W * 0.86) / (W * 0.55)
-    const dy = (y - H * -0.1) / (H * 0.9)
-    const d = Math.hypot(dx, dy)
-    if (d < 1) put(x, y, ACCENT_DEEP, (1 - d) * 0.5)
-  }
-}
-
-// Module-grid texture, echoing the app's dot grid.
+// Module-grid texture: the bits the mark is made of.
 for (let y = 40; y < H; y += 26) {
   for (let x = 40; x < W; x += 26) put(x, y, INK, 0.07)
 }
@@ -211,25 +202,26 @@ const MARK = 132
 const mx = 96
 const my = 112
 const u = MARK / 64
-roundedRect(mx, my, MARK, MARK, 15 * u, ACCENT)
+roundedRect(mx, my, MARK, MARK, 14 * u, LIME)
 const cells = [
-  [11, 11, 1],
-  [35, 11, 0.42],
-  [11, 35, 0.42],
+  [12, 12, 1],
+  [35, 12, 0.22],
+  [12, 35, 0.22],
   [35, 35, 1],
 ]
 for (const [cx, cy, alpha] of cells) {
-  roundedRect(mx + cx * u, my + cy * u, 18 * u, 18 * u, 5 * u, [255, 255, 255], alpha)
+  roundedRect(mx + cx * u, my + cy * u, 17 * u, 17 * u, 4 * u, MARK_INK, alpha)
 }
 
-// Wordmark, accent rule, then the tagline.
+// Wordmark, then the tagline on a highlighter stroke, as in the app's hero.
 const wordY = my + MARK + 58
 drawText('BITKIT', mx, wordY, 15, INK)
-rect(mx, wordY + 15 * 7 + 34, 232, 6, ACCENT)
 
-const tagY = wordY + 15 * 7 + 72
-drawText(`${TOOL_TOTAL} PRIVATE BROWSER TOOLS`, mx, tagY, 5, INK)
-drawText('NOTHING LEAVES YOUR DEVICE', mx, tagY + 5 * 7 + 18, 5, MUTED)
+const tagY = wordY + 15 * 7 + 60
+const tag = `${TOOL_TOTAL} PRIVATE BROWSER TOOLS`
+rect(mx - 12, tagY - 12, tag.length * 5 * 6 + 18, 5 * 7 + 24, LIME)
+drawText(tag, mx, tagY, 5, MARK_INK)
+drawText('NOTHING LEAVES YOUR DEVICE', mx, tagY + 5 * 7 + 34, 5, MUTED)
 
 writeFileSync(resolve(PUBLIC, 'og.png'), encodePng(W, H, buf))
 console.log('wrote public/og.png (1200x630)')
