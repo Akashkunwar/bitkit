@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { findCutRow, parseHexColor } from '../lib/domRaster'
 import { detectDocKind, normalizeDocxCss } from '../lib/docRender'
 import { docThemeCss, DOC_THEMES, mmToPx } from '../lib/docThemes'
+import { buildDocument, printPageCss, standaloneHtml, tocFromHtml, wordStats } from '../lib/markdownDoc'
 
 /** A width×height white image with dark "text" rows. */
 function page(width: number, height: number, inkRows: number[]): Uint8ClampedArray {
@@ -69,5 +70,75 @@ describe('word rendering helpers', () => {
       for (const s of selectors) expect(s, theme.id).toMatch(/\.doc-page/)
     }
     expect(Math.round(mmToPx(25.4))).toBe(96)
+  })
+})
+
+describe('markdown documents', () => {
+  it('turns page-break markers into breaks', () => {
+    for (const marker of ['\\pagebreak', '\\newpage', '<!-- pagebreak -->']) {
+      const { html } = buildDocument(`one\n\n${marker}\n\ntwo`, { toc: false, titleBlock: false })
+      expect(html, marker).toContain('class="page-break"')
+    }
+  })
+
+  it('embeds dropped images by the name used in the markdown', () => {
+    const { html } = buildDocument('![logo](my-logo.png)', {
+      toc: false,
+      titleBlock: false,
+      images: { 'my-logo.png': 'data:image/png;base64,AAAA' },
+    })
+    expect(html).toContain('src="data:image/png;base64,AAAA"')
+  })
+
+  it('builds a linked table of contents from headings', () => {
+    const { html, toc } = buildDocument('# Title\n\n## One\n\n### Deep\n\n## Two', { toc: true, titleBlock: false })
+    expect(toc.map((t) => t.text)).toEqual(['Title', 'One', 'Deep', 'Two'])
+    expect(html).toContain('<nav class="doc-toc">')
+    expect(html).toContain('href="#h-one"')
+  })
+
+  it('replaces a matching leading H1 with the title block', () => {
+    const { html, title } = buildDocument('# Report\n\nBody', {
+      toc: false,
+      titleBlock: true,
+      subtitle: 'Q3 · Finance',
+    })
+    expect(title).toBe('Report')
+    expect(html.match(/<h1/g)).toHaveLength(1)
+    expect(html).toContain('doc-title-block')
+    expect(html).toContain('Q3 · Finance')
+  })
+
+  it('escapes user text placed into the title block and toc', () => {
+    const { html } = buildDocument('Body', { toc: false, titleBlock: true, title: '<img src=x onerror=1>' })
+    expect(html).not.toContain('<img src=x')
+    expect(html).toContain('&lt;img')
+  })
+
+  it('writes page rules with running header, footer, and numbers', () => {
+    const css = printPageCss({ paper: 'letter', marginMm: 20, header: 'Acme "Q3"', footer: 'Draft', pageNumbers: true })
+    expect(css).toContain('size: letter')
+    expect(css).toContain('margin: 20mm')
+    expect(css).toContain('counter(pages)')
+    expect(css).toContain('"Acme \\"Q3\\""')
+    expect(printPageCss({ paper: 'a4', marginMm: 18, pageNumbers: false })).not.toContain('counter(')
+  })
+
+  it('produces a self-contained HTML file', () => {
+    const html = standaloneHtml('A & B', '<p>Hi</p>', 'github', { paper: 'a4', marginMm: 18, pageNumbers: true })
+    expect(html).toMatch(/^<!doctype html>/)
+    expect(html).toContain('<title>A &amp; B</title>')
+    expect(html).toContain('.doc-page')
+    expect(html).not.toMatch(/<link|<script/)
+  })
+
+  it('reads headings back out of rendered html', () => {
+    expect(tocFromHtml('<h2 id="h-a">A <em>b</em></h2><h4 id="h-c">C</h4>')).toEqual([
+      { level: 2, id: 'h-a', text: 'A b' },
+    ])
+  })
+
+  it('counts words, ignoring code blocks and markup', () => {
+    expect(wordStats('# Hello world\n\n```\nconst a = 1\n```\n\n**bold** text').words).toBe(4)
   })
 })

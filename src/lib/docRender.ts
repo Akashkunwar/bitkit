@@ -269,3 +269,49 @@ export async function pagesToPdf(
   }
   return pdf.save()
 }
+
+export type Decoration = {
+  header?: string
+  footer?: string
+  pageNumbers?: boolean
+  /** Render scale the pages were drawn at. */
+  scale: number
+  /** Page margin in CSS pixels; text is centred in it. */
+  marginPx: number
+}
+
+/**
+ * Draws a running header, footer, and "Page n of N" into each page's
+ * margins. Done on the canvas rather than as PDF text so any script and any
+ * emoji the browser can draw comes out right.
+ */
+export function decoratePages(pages: HTMLCanvasElement[], options: Decoration): void {
+  const { header, footer, pageNumbers, scale, marginPx } = options
+  if (!header && !footer && !pageNumbers) return
+  const size = 9.5 * (96 / 72) * scale
+  const inset = marginPx * scale
+  pages.forEach((page, index) => {
+    const ctx = page.getContext('2d')
+    if (!ctx) return
+    ctx.save()
+    ctx.font = `${size}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif`
+    ctx.fillStyle = '#6b7280'
+    ctx.textBaseline = 'middle'
+    const top = Math.max(size, inset / 2)
+    const bottom = page.height - Math.max(size, inset / 2)
+    const maxWidth = page.width - inset * 2
+    if (header) {
+      ctx.textAlign = 'left'
+      ctx.fillText(header, inset, top, maxWidth)
+    }
+    if (footer) {
+      ctx.textAlign = 'left'
+      ctx.fillText(footer, inset, bottom, pageNumbers ? maxWidth * 0.7 : maxWidth)
+    }
+    if (pageNumbers) {
+      ctx.textAlign = 'right'
+      ctx.fillText(`Page ${index + 1} of ${pages.length}`, page.width - inset, bottom)
+    }
+    ctx.restore()
+  })
+}

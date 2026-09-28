@@ -1622,3 +1622,180 @@ audio.media-preview {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ---------- Markdown to PDF ---------- */
+
+.md-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
+}
+
+.md-toolbar > .field {
+  margin: 0;
+}
+
+.md-inline-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.md-toolbar-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.md-more {
+  flex-basis: 100%;
+  border-top: 1px solid var(--line);
+  padding-top: 0.75rem;
+}
+
+.md-more summary {
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--accent-strong);
+  min-height: 24px;
+}
+
+.md-more-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.25rem 1.25rem;
+  align-items: end;
+  margin-top: 0.9rem;
+}
+
+.md-more-grid .switch {
+  min-height: var(--control-h);
+  margin-bottom: var(--space-4);
+}
+
+.md-toolbar .banner,
+.md-toolbar .status-bad {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.md-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+.md-workbench[data-view='write'],
+.md-workbench[data-view='preview'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.md-workbench[data-view='write'] .md-preview-pane,
+.md-workbench[data-view='preview'] .md-editor {
+  display: none;
+}
+
+.md-editor,
+.md-preview-pane {
+  display: flex;
+  flex-direction: column;
+  height: clamp(28rem, calc(100dvh - 15rem), 60rem);
+  padding: 0;
+  overflow: hidden;
+}
+
+.md-pane-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 0.6rem 0.5rem 1rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.82rem;
+}
+
+.md-textarea {
+  flex: 1;
+  border: 0;
+  border-radius: 0;
+  resize: none;
+  padding: 1rem 1.1rem;
+  white-space: pre-wrap;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  background: var(--bg-elev);
+}
+
+.md-textarea:focus {
+  box-shadow: none;
+}
+
+.md-textarea[data-dragging='true'] {
+  background: var(--accent-soft);
+  outline: 2px dashed var(--accent);
+  outline-offset: -8px;
+}
+
+.md-preview-pane {
+  overflow-y: auto;
+  background: var(--bg-sunken);
+  align-items: center;
+}
+
+.md-paper-wrap {
+  padding: 16px;
+}
+
+.md-paper {
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 12px 32px -14px rgba(0, 0, 0, 0.35);
+  border-radius: 2px;
+}
+
+/* Page breaks are invisible on paper; on screen they show where a page ends. */
+.md-paper .page-break {
+  position: relative;
+  height: 0;
+  margin: 2.2em 0;
+  border-top: 2px dashed #c7c9d1;
+}
+
+.md-paper .page-break::after {
+  content: 'Page break';
+  position: absolute;
+  top: -0.75em;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 0.6em;
+  background: #fff;
+  color: #6b7280;
+  font:
+    600 0.72em system-ui,
+    sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.md-export {
+  display: grid;
+  gap: 0.25rem;
+}
+
+@media (max-width: 960px) {
+  .md-workbench {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .md-toolbar-actions {
+    margin-left: 0;
+  }
+}

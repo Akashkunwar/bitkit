@@ -23,7 +23,8 @@ const MONO = `ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberat
 /** Rules every theme shares: sizing, tables, code, images, page breaks. */
 const BASE = `
 .doc-page { box-sizing: border-box; color: #1f2328; background: #fff; font-size: 11pt; line-height: 1.6;
-  -webkit-font-smoothing: antialiased; overflow-wrap: break-word; word-wrap: break-word; }
+  -webkit-font-smoothing: antialiased; overflow-wrap: break-word; word-wrap: break-word;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .doc-page *, .doc-page *::before, .doc-page *::after { box-sizing: border-box; }
 .doc-page > :first-child { margin-top: 0 !important; }
 .doc-page p, .doc-page ul, .doc-page ol, .doc-page blockquote, .doc-page pre, .doc-page table, .doc-page dl, .doc-page figure { margin: 0 0 0.9em; }
@@ -63,7 +64,8 @@ const BASE = `
 .doc-page .page-break, .doc-page hr.page-break { break-after: page; page-break-after: always; height: 0; margin: 0; border: 0; background: none; }
 .doc-page .doc-toc { margin: 0 0 1.6em; padding: 1em 1.2em; border: 1px solid #e6e8eb; border-radius: 8px; background: #fafbfc; }
 .doc-page .doc-toc h2 { margin: 0 0 0.5em; font-size: 1em; text-transform: uppercase; letter-spacing: 0.06em; color: #59636e; }
-.doc-page .doc-toc ol { margin: 0; padding-left: 1.2em; }
+.doc-page .doc-toc ol { margin: 0; padding: 0; list-style: none; }
+.doc-page .doc-toc h2::before { display: none; }
 .doc-page .doc-toc li { margin: 0.15em 0; }
 .doc-page .doc-toc a { color: inherit; text-decoration: none; }
 .doc-page .doc-title-block { margin: 0 0 2em; padding-bottom: 1.2em; border-bottom: 2px solid var(--doc-accent); }
