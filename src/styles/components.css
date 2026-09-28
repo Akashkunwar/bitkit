@@ -285,7 +285,8 @@
   margin: 0 0 0.4rem;
 }
 
-.field input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+/* :where() keeps this at one class of specificity so components can restyle their own inputs. */
+.field input:where(:not([type='checkbox'], [type='radio'], [type='range'], [type='color'])),
 .field select,
 .field textarea,
 .text-input,
@@ -320,7 +321,7 @@ select.text-input,
   cursor: pointer;
 }
 
-.field input:hover:not(:focus):not([type='checkbox']):not([type='radio']):not([type='range']),
+.field input:where(:hover:not(:focus, [type='checkbox'], [type='radio'], [type='range'])),
 .field select:hover:not(:focus),
 .field textarea:hover:not(:focus),
 .text-input:hover:not(:focus) {

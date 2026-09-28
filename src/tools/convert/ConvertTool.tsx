@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ToolLayout } from '../../components/ToolLayout'
 import { Segmented } from '../../components/Segmented'
 import { SendTo } from '../../components/SendTo'
@@ -210,6 +211,10 @@ export default function ConvertTool() {
       {mode === 'units' ? (
         <div className="split">
           <section className="panel">
+            <p className="banner" style={{ marginBottom: '1rem' }}>
+              This tab covers CSS type (px, rem, clamp) and quick basics. For 16 quantities — area, volume, speed, data,
+              pressure, fuel economy and more — open the <Link to="/unit-converter">Unit converter</Link>.
+            </p>
             <Segmented
               label="Family"
               value={familyId}
