@@ -3,6 +3,8 @@ import { lazy } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
   ArrowRightLeft,
+  AudioLines,
+  Barcode,
   ImageDown,
   PiggyBank,
   Ruler,
@@ -661,6 +663,19 @@ export const tools: ToolMeta[] = [
     component: lazy(() => import('./tools/qr/QrTool')),
   },
   {
+    id: 'barcode',
+    path: '/barcode',
+    title: 'Barcode generator',
+    blurb: 'Code 128, EAN-13, UPC-A, EAN-8, and Code 39 as SVG or PNG.',
+    category: 'Developer',
+    icon: Barcode,
+    isNew: true,
+    keywords: ['barcode', 'code 128', 'ean', 'ean-13', 'upc', 'code 39', 'sku', 'label', 'inventory', 'retail', 'isbn'],
+    shortcut: 'G 6 A',
+    accepts: ['text'],
+    component: lazy(() => import('./tools/barcode/BarcodeTool')),
+  },
+  {
     id: 'encode',
     path: '/encode',
     title: 'Encode',
@@ -1108,6 +1123,19 @@ export const tools: ToolMeta[] = [
     component: lazy(() => import('./tools/counter/CounterTool')),
   },
   {
+    id: 'speech',
+    path: '/text-to-speech',
+    title: 'Text to speech',
+    blurb: 'Hear text read aloud with on-device voices, word by word.',
+    category: 'Writing',
+    icon: AudioLines,
+    isNew: true,
+    keywords: ['text to speech', 'tts', 'read aloud', 'voice', 'speak', 'narrate', 'listen', 'accessibility'],
+    shortcut: 'G 8 S',
+    accepts: ['text'],
+    component: lazy(() => import('./tools/speech/SpeechTool')),
+  },
+  {
     id: 'readability',
     path: '/readability',
     title: 'Readability',
@@ -1230,4 +1258,4 @@ export function toolForPath(pathname: string): ToolMeta | undefined {
 }
 
 /** Pinned count. Sitemap/OG are generated from `tools`; chrome copy and tests must match this. */
-export const TOOL_COUNT = 73
+export const TOOL_COUNT = 75
