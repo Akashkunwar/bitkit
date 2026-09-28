@@ -169,6 +169,11 @@
 .split > aside.panel {
   position: sticky;
   top: calc(var(--header-h) + 1rem);
+  /* A settings column taller than the window scrolls on its own rather than
+     hiding its last controls behind the sticky offset. */
+  max-height: calc(100dvh - var(--header-h) - 2rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .grid-2 {
@@ -190,6 +195,8 @@
 
   .split > aside.panel {
     position: static;
+    max-height: none;
+    overflow: visible;
   }
 }
 
@@ -2087,21 +2094,73 @@ button.stat-pill:hover {
   position: absolute;
   top: 0.45rem;
   left: 0.45rem;
-  min-width: 1.6rem;
-  height: 1.6rem;
-  display: grid;
-  place-items: center;
-  padding: 0 0.4rem;
+  z-index: 1;
+  display: inline-flex;
+  box-shadow: var(--shadow-sm);
+  border-radius: 999px;
+}
+
+/* A number badge that is also a menu: pick a position to move the card there. */
+.thumb-index select,
+span.thumb-index {
+  appearance: none;
+  min-width: 1.75rem;
+  min-height: 1.6rem;
+  padding: 0 0.55rem;
+  border: 0;
   border-radius: 999px;
   background: var(--ink);
   color: var(--bg);
-  font-size: 0.74rem;
+  font-size: 0.76rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  box-shadow: var(--shadow-sm);
+  text-align: center;
+  cursor: pointer;
+}
+
+span.thumb-index {
+  display: grid;
+  place-items: center;
+  cursor: default;
+}
+
+.thumb-index select:hover {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.thumb-index select:focus-visible {
+  outline: var(--focus);
+  outline-offset: 2px;
+}
+
+button.thumb-media {
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+button.thumb-media:focus-visible {
+  outline: var(--focus);
+  outline-offset: -3px;
+}
+
+.thumb-card[data-selected='true'] .thumb-check {
+  color: var(--accent);
 }
 
 .thumb-check {
+  pointer-events: none;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg-elev) 85%, transparent);
   position: absolute;
   top: 0.3rem;
   right: 0.3rem;
@@ -2216,4 +2275,118 @@ button.stat-pill:hover {
   min-height: 2.35rem;
   font-size: 0.84rem;
   padding: 0 2rem 0 0.7rem;
+}
+
+/* ---------- Inline select, result card, page preview, feature strip ---------- */
+
+.select-inline {
+  appearance: none;
+  min-height: 2rem;
+  padding: 0 1.9rem 0 0.7rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23808799' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 0.6rem center;
+  font-size: 0.82rem;
+  font-weight: 550;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.select-inline:focus-visible {
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+  outline: none;
+}
+
+.result-card {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--ok) 35%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--ok) 7%, var(--bg-elev));
+}
+
+.result-card > div:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.result-card strong {
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result-card span {
+  font-size: 0.82rem;
+  color: var(--muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.page-preview {
+  margin: 0 0 var(--space-4);
+  display: grid;
+  justify-items: center;
+  gap: 0.45rem;
+  padding: 1rem;
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+  border: 1px solid var(--line);
+}
+
+.page-preview-sheet {
+  position: relative;
+  width: min(100%, 11rem);
+  max-height: 15rem;
+  border-radius: 3px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.12),
+    0 8px 22px -10px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  outline: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.page-preview-sheet img {
+  position: absolute;
+  display: block;
+  max-width: none;
+}
+
+.page-preview figcaption {
+  font-size: 0.76rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.feature-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.75rem;
+}
+
+.feature-strip > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.feature-strip svg {
+  flex: none;
+  margin-top: 0.1rem;
+  color: var(--accent-strong);
 }

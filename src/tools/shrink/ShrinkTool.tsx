@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react'
-import * as pdfjs from 'pdfjs-dist'
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+import { pdfjs } from '../../lib/pdfjsRuntime'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
@@ -14,8 +13,6 @@ import { PdfPassword } from '../../components/PdfPassword'
 import { repackPdf, shrinkPdf, stripPdfMetadata, type ShrinkPreset } from '../../lib/pdfShrink'
 import { shrinkStateFromPreset } from '../../lib/toolPresets'
 import { useHandoff } from '../../lib/useHandoff'
-
-pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
 
 const PRESETS: { value: ShrinkPreset; label: string }[] = [
   { value: 'screen', label: 'Screen · 100 dpi' },

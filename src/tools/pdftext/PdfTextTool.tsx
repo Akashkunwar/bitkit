@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import * as pdfjs from 'pdfjs-dist'
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+import { pdfjs } from '../../lib/pdfjsRuntime'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
@@ -12,8 +11,6 @@ import { destroyPdfJs, isPdfPasswordError, openPdfJs } from '../../lib/pdfJs'
 import { extractPdfText, NO_TEXT_LAYER, type ExtractOptions } from '../../lib/pdfText'
 import { buildDocx } from '../../lib/docx'
 import { blocksToMarkdown, blocksToText, countWords, type DocBlock } from '../../lib/docBlocks'
-
-pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
 
 type Result = { name: string; blocks: DocBlock[]; pages: string[] }
 

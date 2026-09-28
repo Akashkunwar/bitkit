@@ -37,7 +37,7 @@ function ToolLink({ tool }: { tool: ToolMeta }) {
   return (
     <NavLink className="rail-link" to={tool.path} title={tool.blurb}>
       <Icon size={16} aria-hidden="true" />
-      <span>{tool.title}</span>
+      <span className="rail-label">{tool.title}</span>
       {tool.isNew ? <span className="rail-new">New</span> : null}
       {tool.shortcut && !tool.isNew ? <kbd>{tool.shortcut}</kbd> : null}
     </NavLink>
@@ -94,7 +94,7 @@ export function Sidebar({ open, activeTool, onHide }: Props) {
       <nav className="rail" aria-label={t('nav.tools')}>
         <NavLink className="rail-link" to="/" end>
           <House size={16} aria-hidden="true" />
-          <span>{t('nav.home')}</span>
+          <span className="rail-label">{t('nav.home')}</span>
           <kbd>G H</kbd>
         </NavLink>
 

@@ -3,6 +3,7 @@ import { lazy } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
   ArrowRightLeft,
+  FileImage,
   Calculator,
   Image as ImageIcon,
   Palette,
@@ -298,15 +299,50 @@ export const tools: ToolMeta[] = [
   {
     id: 'image-pdf',
     path: '/image-pdf',
-    title: 'Image ↔ PDF',
-    blurb: 'Screenshots into a packet, or PDF pages out as JPEGs.',
+    title: 'Images to PDF',
+    blurb: 'Combine photos and scans into one PDF. Reorder, rotate, set margins.',
     category: 'Document',
     icon: Images,
-    keywords: ['image', 'pdf', 'scan', 'jpeg', 'convert', 'packet'],
+    keywords: [
+      'image to pdf',
+      'jpg to pdf',
+      'jpeg to pdf',
+      'png to pdf',
+      'photo to pdf',
+      'images',
+      'combine',
+      'scan',
+      'packet',
+      'reorder',
+      'convert',
+    ],
     shortcut: 'G I',
     aliases: ['G 3 I'],
-    accepts: ['image', 'pdf'],
+    accepts: ['image'],
     component: lazy(() => import('./tools/imagePdf/ImagePdfTool')),
+  },
+  {
+    id: 'pdf-images',
+    path: '/pdf-to-images',
+    title: 'PDF to images',
+    blurb: 'Every page, or just the ones you pick, as PNG, JPEG, or WebP.',
+    category: 'Document',
+    icon: FileImage,
+    isNew: true,
+    keywords: [
+      'pdf to jpg',
+      'pdf to png',
+      'pdf to image',
+      'pdf to jpeg',
+      'webp',
+      'extract pages',
+      'rasterize',
+      'dpi',
+      'convert',
+    ],
+    shortcut: 'G 3 J',
+    accepts: ['pdf'],
+    component: lazy(() => import('./tools/pdfImages/PdfImagesTool')),
   },
   {
     id: 'ocr',
@@ -602,6 +638,7 @@ export const tools: ToolMeta[] = [
     icon: FileArchive,
     shortcut: 'G 4 Z',
     keywords: ['zip', 'archive', 'bundle', 'extract', 'unzip', 'attach', 'package', 'folder'],
+    accepts: ['image', 'pdf', 'text'],
     component: lazy(() => import('./tools/archive/ArchiveTool')),
   },
   {
@@ -1015,4 +1052,4 @@ export function toolForPath(pathname: string): ToolMeta | undefined {
 }
 
 /** Pinned count. Sitemap/OG are generated from `tools`; chrome copy and tests must match this. */
-export const TOOL_COUNT = 65
+export const TOOL_COUNT = 66

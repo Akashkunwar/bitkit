@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import * as pdfjs from 'pdfjs-dist'
+import { pdfjs } from '../../lib/pdfjsRuntime'
 import type { PDFDocumentProxy } from 'pdfjs-dist'
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
@@ -12,8 +11,6 @@ import { destroyPdfJs, isPdfPasswordError, openPdfJs } from '../../lib/pdfJs'
 import { PdfPassword } from '../../components/PdfPassword'
 import { useHandoff } from '../../lib/useHandoff'
 import { SendTo } from '../../components/SendTo'
-
-pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
 
 type ToolMode = 'select' | 'pen' | 'text' | 'whiteout' | 'highlight' | 'sign'
 
