@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
@@ -120,6 +121,12 @@ export default function OfficeTool() {
               <p className="hint">
                 <code>{doc.name}</code> · {SOURCE_LABEL[doc.kind]} · {doc.blocks.length} blocks · {words} words
               </p>
+              {doc.kind === 'docx' ? (
+                <p className="banner">
+                  This PDF keeps the text, headings, lists, and tables — selectable and searchable. For a PDF or images
+                  that look exactly like the Word layout, use <Link to="/word-to-image">Word to image</Link>.
+                </p>
+              ) : null}
               {doc.kind === 'pptx' ? (
                 <p className="banner">
                   A .pptx comes across as a text outline, one heading and bullet list per slide. Shapes, images, and

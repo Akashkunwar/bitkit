@@ -3,6 +3,7 @@ import { lazy } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
   ArrowRightLeft,
+  ImageDown,
   PiggyBank,
   Ruler,
   FlipHorizontal2,
@@ -547,6 +548,31 @@ export const tools: ToolMeta[] = [
     ],
     accepts: ['text'],
     component: lazy(() => import('./tools/office/OfficeTool')),
+  },
+  {
+    id: 'doc-image',
+    path: '/word-to-image',
+    title: 'Word to image',
+    blurb: 'Word pages as PNG or JPEG, one long image, or an exact-look PDF.',
+    category: 'Document',
+    icon: ImageDown,
+    isNew: true,
+    keywords: [
+      'word to image',
+      'docx to jpg',
+      'docx to png',
+      'doc to image',
+      'word to jpg',
+      'word to png',
+      'markdown to image',
+      'html to image',
+      'document to image',
+      'screenshot',
+      'word to pdf',
+    ],
+    shortcut: 'G 3 G',
+    accepts: ['text'],
+    component: lazy(() => import('./tools/docImage/DocImageTool')),
   },
   {
     id: 'pdf-text',
@@ -1204,4 +1230,4 @@ export function toolForPath(pathname: string): ToolMeta | undefined {
 }
 
 /** Pinned count. Sitemap/OG are generated from `tools`; chrome copy and tests must match this. */
-export const TOOL_COUNT = 72
+export const TOOL_COUNT = 73

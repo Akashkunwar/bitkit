@@ -14,9 +14,45 @@ const purifyConfig: Config = {
   ALLOW_DATA_ATTR: false,
 }
 
+/**
+ * GFM task items arrive as <input type="checkbox">, which the sanitiser
+ * rightly forbids. They are drawn as glyphs instead, so "- [x] done" keeps
+ * its tick in the preview, in print, and in exported pages.
+ */
+function taskBoxes(html: string): string {
+  return html.replace(/<input\b[^>]*type="checkbox"[^>]*>/gi, (tag) =>
+    /\bchecked\b/i.test(tag)
+      ? '<span class="task-box is-done" role="img" aria-label="Done">☑</span>'
+      : '<span class="task-box" role="img" aria-label="Not done">☐</span>',
+  )
+}
+
+export function slugify(text: string): string {
+  return (
+    text
+      .toLowerCase()
+      .replace(/<[^>]+>/g, '')
+      .replace(/&[a-z]+;|&#\d+;/g, '')
+      .replace(/[^\p{L}\p{N}\s-]/gu, '')
+      .trim()
+      .replace(/\s+/g, '-') || 'section'
+  )
+}
+
+/** Stable, unique ids on headings so a table of contents can link to them. */
+function headingIds(html: string): string {
+  const seen = new Map<string, number>()
+  return html.replace(/<h([1-6])>([\s\S]*?)<\/h\1>/g, (_m, level: string, inner: string) => {
+    const base = `h-${slugify(inner)}`
+    const count = seen.get(base) ?? 0
+    seen.set(base, count + 1)
+    return `<h${level} id="${count ? `${base}-${count}` : base}">${inner}</h${level}>`
+  })
+}
+
 export function renderMarkdown(source: string): string {
   const html = marked.parse(source, { async: false }) as string
-  return DOMPurify.sanitize(html, purifyConfig)
+  return DOMPurify.sanitize(headingIds(taskBoxes(html)), purifyConfig)
 }
 
 /** Sanitises HTML that came from a file on disk before it touches the DOM. */
