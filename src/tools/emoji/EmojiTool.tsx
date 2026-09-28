@@ -19,10 +19,7 @@ export default function EmojiTool() {
   }
 
   return (
-    <ToolLayout
-      title="Emoji search"
-      lede="Find an emoji by what it means, not by its official name. Click to copy."
-    >
+    <ToolLayout title="Emoji search" lede="Find an emoji by what it means, not by its official name. Click to copy.">
       <div className="finder-input">
         <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true">
           <circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" strokeWidth="1.4" />
@@ -59,7 +56,9 @@ export default function EmojiTool() {
       {basket.length ? (
         <div className="panel" style={{ marginTop: '1rem' }}>
           <div className="row" style={{ justifyContent: 'space-between' }}>
-            <p className="field-label" style={{ margin: 0 }}>Picked</p>
+            <p className="field-label" style={{ margin: 0 }}>
+              Picked
+            </p>
             <div className="row">
               <button type="button" className="btn-ghost" onClick={() => setBasket([])}>
                 Clear
@@ -103,7 +102,9 @@ export default function EmojiTool() {
           <div className="result-list">
             {kaomoji.map((k) => (
               <div key={k.text} className="result-row">
-                <span className="mono-val" style={{ flex: 1 }}>{k.text}</span>
+                <span className="mono-val" style={{ flex: 1 }}>
+                  {k.text}
+                </span>
                 <span className="hint">{k.name}</span>
                 <button type="button" className="btn-ghost" onClick={() => void copy(k.text, k.text)}>
                   {copied === k.text ? 'Copied' : 'Copy'}

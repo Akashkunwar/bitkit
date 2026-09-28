@@ -85,11 +85,12 @@ export default function ConvertTool() {
         of: Number.isFinite(p) && Number.isFinite(o) ? percentOf(p, o) : null,
         what: Number.isFinite(pa) && Number.isFinite(w) ? whatPercent(pa, w) : null,
         change: Number.isFinite(fa) && Number.isFinite(ta) ? percentChange(fa, ta) : null,
-        tax: Number.isFinite(o) && Number.isFinite(p)
-          ? taxInclusive
-            ? extractTax(o, p)
-            : { ...addTax(o, p), base: o }
-          : null,
+        tax:
+          Number.isFinite(o) && Number.isFinite(p)
+            ? taxInclusive
+              ? extractTax(o, p)
+              : { ...addTax(o, p), base: o }
+            : null,
         split: Number.isFinite(b) && Number.isFinite(n) && Number.isFinite(t) ? splitBill(b, n, t) : null,
       }
     } catch {
@@ -222,15 +223,17 @@ export default function ConvertTool() {
             />
             <label className="field">
               <span>Value</span>
-              <input className="text-input" inputMode="decimal" value={unitValue} onChange={(e) => setUnitValue(e.target.value)} />
+              <input
+                className="text-input"
+                inputMode="decimal"
+                value={unitValue}
+                onChange={(e) => setUnitValue(e.target.value)}
+              />
             </label>
             <div className="row" style={{ marginBottom: '1rem' }}>
               <label className="field" style={{ flex: 1, marginBottom: 0 }}>
                 <span>From</span>
-                <select
-                  value={fromId}
-                  onChange={(e) => setFromId(e.target.value)}
-                >
+                <select value={fromId} onChange={(e) => setFromId(e.target.value)}>
                   {family.units.map((u) => (
                     <option key={u.id} value={u.id}>
                       {u.label}
@@ -262,7 +265,12 @@ export default function ConvertTool() {
             {familyId === 'type' ? (
               <label className="field">
                 <span>Root font size (px)</span>
-                <input className="text-input" inputMode="decimal" value={remRoot} onChange={(e) => setRemRoot(e.target.value)} />
+                <input
+                  className="text-input"
+                  inputMode="decimal"
+                  value={remRoot}
+                  onChange={(e) => setRemRoot(e.target.value)}
+                />
               </label>
             ) : null}
             <p className="status-ok" style={{ fontSize: '1.5rem', fontWeight: 650 }}>

@@ -53,10 +53,7 @@ export default function BaseTool() {
     setText(toBase(toggleBit(wrapped, bitIndex, width), base, false))
   }
 
-  const rows =
-    wrapped == null
-      ? []
-      : BASES.map((b) => ({ ...b, text: toBase(wrapped, b.value) }))
+  const rows = wrapped == null ? [] : BASES.map((b) => ({ ...b, text: toBase(wrapped, b.value) }))
 
   return (
     <ToolLayout
@@ -86,7 +83,9 @@ export default function BaseTool() {
       </div>
 
       {value == null && text.trim() ? (
-        <p className="status-bad">That is not a valid {BASES.find((b) => b.value === base)?.label.toLowerCase()} value.</p>
+        <p className="status-bad">
+          That is not a valid {BASES.find((b) => b.value === base)?.label.toLowerCase()} value.
+        </p>
       ) : null}
 
       <label className="field">
@@ -119,7 +118,9 @@ export default function BaseTool() {
                 <button
                   type="button"
                   className="btn-ghost"
-                  onClick={() => void copy(`${row.prefix}${row.text.replaceAll(' ', '').replaceAll(',', '')}`, row.label)}
+                  onClick={() =>
+                    void copy(`${row.prefix}${row.text.replaceAll(' ', '').replaceAll(',', '')}`, row.label)
+                  }
                 >
                   {copied === row.label ? 'Copied' : 'Copy'}
                 </button>

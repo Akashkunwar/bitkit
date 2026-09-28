@@ -67,10 +67,7 @@ export function Cheatsheet({ open, onClose }: Props) {
 
   if (!open) return null
 
-  const keycaps = (chord: string) =>
-    chord.split(' ').map((key, i) => (
-      <kbd key={`${key}-${i}`}>{key}</kbd>
-    ))
+  const keycaps = (chord: string) => chord.split(' ').map((key, i) => <kbd key={`${key}-${i}`}>{key}</kbd>)
 
   return (
     <div className="sheet-backdrop" onClick={onClose}>

@@ -54,7 +54,9 @@ export default function OcrTool() {
       title="OCR"
       lede="Read printed text from a photo. The image never leaves this tab. The recognition engine and English language pack may load once from a CDN."
     >
-      <p className="banner">Your photo stays local. Tesseract WASM and the English traineddata can download the first time you run this.</p>
+      <p className="banner">
+        Your photo stays local. Tesseract WASM and the English traineddata can download the first time you run this.
+      </p>
       {!allowed ? (
         <div className="panel" style={{ marginBottom: '1rem' }}>
           <p>

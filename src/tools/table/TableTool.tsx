@@ -88,10 +88,7 @@ export default function TableTool() {
     return next
   }, [table, query, scope, sort])
 
-  const stats = useMemo(
-    () => (selected == null ? null : columnStats(view, selected)),
-    [view, selected],
-  )
+  const stats = useMemo(() => (selected == null ? null : columnStats(view, selected)), [view, selected])
 
   const pageCount = Math.max(1, Math.ceil(view.rows.length / PAGE_SIZE))
   const safePage = Math.min(page, pageCount - 1)
@@ -114,11 +111,7 @@ export default function TableTool() {
 
   const toggleSort = (index: number) => {
     setSort((current) =>
-      current?.index === index
-        ? current.dir === 'asc'
-          ? { index, dir: 'desc' }
-          : null
-        : { index, dir: 'asc' },
+      current?.index === index ? (current.dir === 'asc' ? { index, dir: 'desc' } : null) : { index, dir: 'asc' },
     )
     setPage(0)
   }
@@ -205,16 +198,24 @@ export default function TableTool() {
       </div>
 
       <div className="row" style={{ flexWrap: 'wrap', marginBottom: '0.75rem' }}>
-        <button type="button" className="btn" onClick={() => {
+        <button
+          type="button"
+          className="btn"
+          onClick={() => {
             const next = dedupeRows(table)
             apply(next, `Removed ${table.rows.length - next.rows.length} duplicate rows`)
-          }}>
+          }}
+        >
           Remove duplicates
         </button>
-        <button type="button" className="btn" onClick={() => {
+        <button
+          type="button"
+          className="btn"
+          onClick={() => {
             const next = dropEmptyRows(table)
             apply(next, `Dropped ${table.rows.length - next.rows.length} empty rows`)
-          }}>
+          }}
+        >
           Drop empty rows
         </button>
         <button type="button" className="btn" onClick={() => apply(trimCells(table), 'Trimmed whitespace')}>
@@ -264,7 +265,11 @@ export default function TableTool() {
                     >
                       ✎
                     </button>
-                    <button type="button" title="Delete column" onClick={() => apply(removeColumn(table, i), `Deleted column “${header}”`)}>
+                    <button
+                      type="button"
+                      title="Delete column"
+                      onClick={() => apply(removeColumn(table, i), `Deleted column “${header}”`)}
+                    >
                       ✕
                     </button>
                   </div>

@@ -150,11 +150,7 @@ export default function PdfTextTool() {
             Keep a break between pages
           </label>
           <label className="row">
-            <input
-              type="checkbox"
-              checked={dropRunningHeads}
-              onChange={(e) => setDropRunningHeads(e.target.checked)}
-            />
+            <input type="checkbox" checked={dropRunningHeads} onChange={(e) => setDropRunningHeads(e.target.checked)} />
             Drop repeated headers and footers
           </label>
           <div className="row" style={{ marginTop: '0.9rem' }}>

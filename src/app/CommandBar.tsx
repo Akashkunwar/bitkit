@@ -10,9 +10,7 @@ type Props = {
   onOpenCheatsheet?: () => void
 }
 
-type Row =
-  | { kind: 'tool'; tool: ToolMeta }
-  | { kind: 'action'; action: Action }
+type Row = { kind: 'tool'; tool: ToolMeta } | { kind: 'action'; action: Action }
 
 export function CommandBar({ onPick, onOpenCheatsheet }: Props) {
   const [query, setQuery] = useState('')
@@ -26,7 +24,9 @@ export function CommandBar({ onPick, onOpenCheatsheet }: Props) {
 
   const rows = useMemo<Row[]>(() => {
     // Actions first: if you typed a verb you meant to do something, not browse.
-    const actions = searchActions(query).slice(0, 4).map((action) => ({ kind: 'action' as const, action }))
+    const actions = searchActions(query)
+      .slice(0, 4)
+      .map((action) => ({ kind: 'action' as const, action }))
     const tools = searchTools(query)
       .slice(0, actions.length ? 6 : 8)
       .map((tool) => ({ kind: 'tool' as const, tool }))
@@ -113,7 +113,11 @@ export function CommandBar({ onPick, onOpenCheatsheet }: Props) {
         }}
       />
 
-      {message ? <p className="command-message" role="status">{message}</p> : null}
+      {message ? (
+        <p className="command-message" role="status">
+          {message}
+        </p>
+      ) : null}
 
       {open && rows.length > 0 ? (
         <div className="command-list" id="command-results" role="listbox">

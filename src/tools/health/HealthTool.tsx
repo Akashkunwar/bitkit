@@ -73,11 +73,21 @@ export default function HealthTool() {
         <div className="split">
           <label className="field">
             <span>Height — cm</span>
-            <input className="text-input" type="number" value={Math.round(cm)} onChange={(e) => setCm(Number(e.target.value) || 0)} />
+            <input
+              className="text-input"
+              type="number"
+              value={Math.round(cm)}
+              onChange={(e) => setCm(Number(e.target.value) || 0)}
+            />
           </label>
           <label className="field">
             <span>Weight — kg</span>
-            <input className="text-input" type="number" value={Math.round(kg)} onChange={(e) => setKg(Number(e.target.value) || 0)} />
+            <input
+              className="text-input"
+              type="number"
+              value={Math.round(kg)}
+              onChange={(e) => setKg(Number(e.target.value) || 0)}
+            />
           </label>
         </div>
       ) : (
@@ -114,7 +124,12 @@ export default function HealthTool() {
       <div className="split">
         <label className="field">
           <span>Age</span>
-          <input className="text-input" type="number" value={age} onChange={(e) => setAge(Number(e.target.value) || 0)} />
+          <input
+            className="text-input"
+            type="number"
+            value={age}
+            onChange={(e) => setAge(Number(e.target.value) || 0)}
+          />
         </label>
         <Segmented label="Sex — for the energy formula" value={sex} options={SEXES} onChange={setSex} />
       </div>
@@ -148,7 +163,10 @@ export default function HealthTool() {
 
           <div className="pill-row">
             <span className="pill">
-              Healthy weight for your height: <strong>{numbers.range.min.toFixed(0)}–{numbers.range.max.toFixed(0)} kg</strong>
+              Healthy weight for your height:{' '}
+              <strong>
+                {numbers.range.min.toFixed(0)}–{numbers.range.max.toFixed(0)} kg
+              </strong>
             </span>
           </div>
 
@@ -161,8 +179,12 @@ export default function HealthTool() {
             <div className="panel">
               <p className="field-label">Energy</p>
               <div className="pill-row">
-                <span className="pill">Resting <strong>{Math.round(numbers.basal)}</strong> kcal</span>
-                <span className="pill">Maintenance <strong>{Math.round(numbers.daily)}</strong> kcal</span>
+                <span className="pill">
+                  Resting <strong>{Math.round(numbers.basal)}</strong> kcal
+                </span>
+                <span className="pill">
+                  Maintenance <strong>{Math.round(numbers.daily)}</strong> kcal
+                </span>
               </div>
               <p className="hint">Mifflin–St Jeor, then multiplied by your activity level.</p>
             </div>
@@ -170,7 +192,9 @@ export default function HealthTool() {
             <div className="panel">
               <p className="field-label">Water</p>
               <div className="pill-row">
-                <span className="pill"><strong>{numbers.water.toFixed(1)}</strong> litres a day</span>
+                <span className="pill">
+                  <strong>{numbers.water.toFixed(1)}</strong> litres a day
+                </span>
               </div>
               <p className="hint">A rough 35 ml per kilo. Heat and exercise push it higher.</p>
             </div>
@@ -200,15 +224,21 @@ export default function HealthTool() {
           </div>
           <div className="pill-row">
             <span className="pill">{numbers.macros.calories} kcal target</span>
-            <span className="pill">Protein <strong>{numbers.macros.protein} g</strong></span>
-            <span className="pill">Carbs <strong>{numbers.macros.carbs} g</strong></span>
-            <span className="pill">Fat <strong>{numbers.macros.fat} g</strong></span>
+            <span className="pill">
+              Protein <strong>{numbers.macros.protein} g</strong>
+            </span>
+            <span className="pill">
+              Carbs <strong>{numbers.macros.carbs} g</strong>
+            </span>
+            <span className="pill">
+              Fat <strong>{numbers.macros.fat} g</strong>
+            </span>
           </div>
 
           <p className="hint" style={{ marginTop: '1rem' }}>
-            BMI does not distinguish muscle from fat and says nothing about where weight sits, so it reads badly
-            for athletes and for very short or tall people. These are planning estimates — talk to a doctor or
-            dietitian before acting on them.
+            BMI does not distinguish muscle from fat and says nothing about where weight sits, so it reads badly for
+            athletes and for very short or tall people. These are planning estimates — talk to a doctor or dietitian
+            before acting on them.
           </p>
         </>
       )}

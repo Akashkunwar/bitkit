@@ -85,7 +85,10 @@ export default function PassportTool() {
       title="Passport photo sheet"
       lede="Cover-crop to 600 × 600, then tile onto a 4×6 or A4 print sheet. Check the destination country’s rules before you print."
     >
-      <DropZone onFiles={(files) => files[0] && load(files[0])} hint="Center the face. Cover crop matches the compress passport preset." />
+      <DropZone
+        onFiles={(files) => files[0] && load(files[0])}
+        hint="Center the face. Cover crop matches the compress passport preset."
+      />
       <div className="split">
         <section className="panel">
           {url ? (
@@ -108,7 +111,9 @@ export default function PassportTool() {
             onChange={setKind}
           />
           <label className="field">
-            <span>Copies — {copies} / {layout.cells.length || copies}</span>
+            <span>
+              Copies — {copies} / {layout.cells.length || copies}
+            </span>
             <input
               type="range"
               min={1}

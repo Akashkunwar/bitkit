@@ -44,7 +44,10 @@ export default function MeetTool() {
   const summary = best
     ? `Best overlap on ${day}: ${formatHour(best.startHour)}–${formatHour(best.endHour)} ${zoneLabel(reference)} time (${best.count}h).\n` +
       rows
-        .map((row) => `${row.label}: ${formatHour(row.hours[best.startHour].hour)}–${formatHour(row.hours[best.endHour - 1].hour + 1)}`)
+        .map(
+          (row) =>
+            `${row.label}: ${formatHour(row.hours[best.startHour].hour)}–${formatHour(row.hours[best.endHour - 1].hour + 1)}`,
+        )
         .join('\n')
     : 'No window where every location is inside working hours.'
 

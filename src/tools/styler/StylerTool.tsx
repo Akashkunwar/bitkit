@@ -13,10 +13,7 @@ export default function StylerTool() {
     if (payload.text) setText(payload.text)
   })
 
-  const styled = useMemo(
-    () => STYLES.map((style) => ({ ...style, output: applyStyle(text, style.id) })),
-    [text],
-  )
+  const styled = useMemo(() => STYLES.map((style) => ({ ...style, output: applyStyle(text, style.id) })), [text])
 
   return (
     <ToolLayout
@@ -43,7 +40,9 @@ export default function StylerTool() {
       <div className="result-list" style={{ marginTop: '1rem' }}>
         {styled.map((style) => (
           <div key={style.id} className="result-row" style={{ alignItems: 'flex-start' }}>
-            <span className="pill" style={{ minWidth: '7.5rem' }}>{style.label}</span>
+            <span className="pill" style={{ minWidth: '7.5rem' }}>
+              {style.label}
+            </span>
             <span className="styled-out" style={{ flex: 1 }}>
               {style.output || <span className="muted">—</span>}
             </span>
@@ -63,8 +62,8 @@ export default function StylerTool() {
         <p className="field-label">Before you use these</p>
         <ul className="plain-list">
           <li>
-            These are substitute characters, not real formatting. Screen readers announce them character by
-            character or skip them entirely — an entire bio in script is unreadable to someone using one.
+            These are substitute characters, not real formatting. Screen readers announce them character by character or
+            skip them entirely — an entire bio in script is unreadable to someone using one.
           </li>
           <li>Search will not match them. A styled name is effectively unsearchable.</li>
           <li>Some platforms reject them in display names, and older devices show empty boxes.</li>

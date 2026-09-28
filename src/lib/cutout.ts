@@ -27,7 +27,15 @@ async function getSegmenter(): Promise<ImageSegmenter> {
   return segmenterPromise
 }
 
-function sampleMask(conf: Float32Array, mw: number, mh: number, x: number, y: number, width: number, height: number): number {
+function sampleMask(
+  conf: Float32Array,
+  mw: number,
+  mh: number,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+): number {
   const mx = Math.min(mw - 1, Math.max(0, Math.floor((x / width) * mw)))
   const my = Math.min(mh - 1, Math.max(0, Math.floor((y / height) * mh)))
   return conf[my * mw + mx] ?? 0

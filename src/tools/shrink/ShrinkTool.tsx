@@ -138,7 +138,9 @@ export default function ShrinkTool() {
           <p className="hint">
             {file.name} · {formatBytes(file.size)}
           </p>
-          {encryptionWarning(encrypted, 'pdfjs') ? <p className="banner warn">{encryptionWarning(encrypted, 'pdfjs')}</p> : null}
+          {encryptionWarning(encrypted, 'pdfjs') ? (
+            <p className="banner warn">{encryptionWarning(encrypted, 'pdfjs')}</p>
+          ) : null}
           {needsPassword ? (
             <PdfPassword
               value={password}
@@ -159,7 +161,12 @@ export default function ShrinkTool() {
               <Segmented label="Quality preset" value={preset} options={PRESETS} onChange={setPreset} />
               <label className="field">
                 <span>Target size — blank for no ceiling</span>
-                <input className="text-input" value={limit} placeholder="2mb" onChange={(e) => setLimit(e.target.value)} />
+                <input
+                  className="text-input"
+                  value={limit}
+                  placeholder="2mb"
+                  onChange={(e) => setLimit(e.target.value)}
+                />
               </label>
               <label className="row">
                 <input type="checkbox" checked={grayscale} onChange={(e) => setGrayscale(e.target.checked)} />

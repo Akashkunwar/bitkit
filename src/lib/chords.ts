@@ -24,9 +24,7 @@ export const LEADER = 'g'
 export const CHORD_TIMEOUT_MS = 1400
 
 export type MatchResult =
-  | { kind: 'none' }
-  | { kind: 'pending'; keys: string[]; options: Chord[] }
-  | { kind: 'match'; chord: Chord }
+  { kind: 'none' } | { kind: 'pending'; keys: string[]; options: Chord[] } | { kind: 'match'; chord: Chord }
 
 function parseShortcut(shortcut: string): string[] {
   // Accepts "G then W" and "G W" and "G T A".
@@ -82,9 +80,7 @@ export const CHORDS: Chord[] = buildChords()
  */
 export function matchChord(pressed: string[], chords: Chord[] = CHORDS): MatchResult {
   if (!pressed.length) return { kind: 'none' }
-  const candidates = chords.filter((chord) =>
-    pressed.every((key, i) => chord.keys[i] === key),
-  )
+  const candidates = chords.filter((chord) => pressed.every((key, i) => chord.keys[i] === key))
   if (!candidates.length) return { kind: 'none' }
 
   const exact = candidates.find((chord) => chord.keys.length === pressed.length)

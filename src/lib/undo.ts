@@ -46,14 +46,11 @@ export function useUndoState(): UndoApi {
     setPending(null)
   }, [])
 
-  const push = useCallback(
-    (entry: UndoEntry) => {
-      window.clearTimeout(timer.current)
-      setPending(entry)
-      timer.current = window.setTimeout(() => setPending(null), UNDO_WINDOW_MS)
-    },
-    [],
-  )
+  const push = useCallback((entry: UndoEntry) => {
+    window.clearTimeout(timer.current)
+    setPending(entry)
+    timer.current = window.setTimeout(() => setPending(null), UNDO_WINDOW_MS)
+  }, [])
 
   const undo = useCallback(() => {
     setPending((current) => {

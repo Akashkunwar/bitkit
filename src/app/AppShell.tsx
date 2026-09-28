@@ -44,9 +44,7 @@ export function AppShell() {
 
   const toggleSection = useCallback((category: string) => {
     setOpen((current) => {
-      const next = current.includes(category)
-        ? current.filter((c) => c !== category)
-        : [...current, category]
+      const next = current.includes(category) ? current.filter((c) => c !== category) : [...current, category]
       try {
         localStorage.setItem(OPEN_SECTIONS_KEY, JSON.stringify(next))
       } catch {
@@ -59,9 +57,7 @@ export function AppShell() {
   // Track recents, and keep the current tool's section expanded.
   useEffect(() => {
     if (!activeTool) return
-    setOpen((current) =>
-      current.includes(activeTool.category) ? current : [...current, activeTool.category],
-    )
+    setOpen((current) => (current.includes(activeTool.category) ? current : [...current, activeTool.category]))
     void (async () => {
       const recents = await getPref<string[]>('recents', [])
       const next = [activeTool.id, ...recents.filter((id) => id !== activeTool.id)].slice(0, 6)

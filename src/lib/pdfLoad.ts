@@ -5,10 +5,7 @@ export async function loadPdf(bytes: Uint8Array): Promise<{ doc: PDFDocument; en
   return { doc, encrypted: Boolean(doc.isEncrypted) }
 }
 
-export function encryptionWarning(
-  encrypted: boolean,
-  mode: 'pdf-lib' | 'pdfjs' = 'pdf-lib',
-): string | null {
+export function encryptionWarning(encrypted: boolean, mode: 'pdf-lib' | 'pdfjs' = 'pdf-lib'): string | null {
   if (!encrypted) return null
   if (mode === 'pdfjs') {
     return 'This PDF is encrypted. Enter the password to open it in this tab. BitKit cannot crack passwords, and the password is not sent anywhere.'

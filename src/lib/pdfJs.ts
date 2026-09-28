@@ -30,11 +30,7 @@ function passwordKind(err: unknown, hadPassword: boolean): 'needed' | 'incorrect
 }
 
 /** Open a PDF with pdf.js. Copies the buffer because pdf.js transfers (detaches) it. */
-export async function openPdfJs(
-  pdfjs: PdfJsModule,
-  data: Uint8Array,
-  password?: string,
-): Promise<PDFDocumentProxy> {
+export async function openPdfJs(pdfjs: PdfJsModule, data: Uint8Array, password?: string): Promise<PDFDocumentProxy> {
   try {
     return await pdfjs.getDocument({
       data: data.slice(),

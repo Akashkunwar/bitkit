@@ -45,11 +45,7 @@ export async function saveAs(blob: Blob, filename: string): Promise<boolean> {
   return true
 }
 
-export async function writeToDirectory(
-  dir: FileSystemDirectoryHandle,
-  blob: Blob,
-  filename: string,
-): Promise<void> {
+export async function writeToDirectory(dir: FileSystemDirectoryHandle, blob: Blob, filename: string): Promise<void> {
   const file = await dir.getFileHandle(filename, { create: true })
   const writable = await file.createWritable()
   await writable.write(blob)

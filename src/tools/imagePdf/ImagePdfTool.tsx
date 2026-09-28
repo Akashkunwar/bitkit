@@ -90,7 +90,10 @@ export default function ImagePdfTool() {
           outFiles.push(new File([blob], name, { type: 'image/jpeg' }))
         }
         if (entries.length === 1) {
-          triggerDownload(new Blob([entries[0].data.slice().buffer as ArrayBuffer], { type: 'image/jpeg' }), entries[0].name)
+          triggerDownload(
+            new Blob([entries[0].data.slice().buffer as ArrayBuffer], { type: 'image/jpeg' }),
+            entries[0].name,
+          )
         } else {
           const zip = zipStore(entries)
           triggerDownload(new Blob([zip.slice().buffer as ArrayBuffer], { type: 'application/zip' }), 'pdf-pages.zip')
@@ -158,7 +161,9 @@ export default function ImagePdfTool() {
           ) : (
             <>
               <p className="hint">Pages render at 2× for a sharper JPEG. Multi-page PDFs download as a ZIP.</p>
-              {encryptionWarning(encrypted, 'pdfjs') ? <p className="banner warn">{encryptionWarning(encrypted, 'pdfjs')}</p> : null}
+              {encryptionWarning(encrypted, 'pdfjs') ? (
+                <p className="banner warn">{encryptionWarning(encrypted, 'pdfjs')}</p>
+              ) : null}
               {needsPassword ? (
                 <PdfPassword
                   value={password}
@@ -173,7 +178,17 @@ export default function ImagePdfTool() {
           <button type="button" className="btn btn-primary" disabled={!files.length || busy} onClick={() => void run()}>
             {busy ? 'Working…' : 'Convert'}
           </button>
-          <button type="button" className="btn-ghost" onClick={() => { setFiles([]); setOutFile(null); setEncrypted(false); setNeedsPassword(false); setPassword('') }}>
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={() => {
+              setFiles([])
+              setOutFile(null)
+              setEncrypted(false)
+              setNeedsPassword(false)
+              setPassword('')
+            }}
+          >
             Clear
           </button>
           {error ? <p className="status-bad">{error}</p> : null}

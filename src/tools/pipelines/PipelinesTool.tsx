@@ -197,9 +197,7 @@ export default function PipelinesTool() {
                     <li key={i}>{titleForStep(step)}</li>
                   ))}
                 </ol>
-                {missing.length ? (
-                  <p className="status-bad">Missing tools: {missing.join(', ')}</p>
-                ) : null}
+                {missing.length ? <p className="status-bad">Missing tools: {missing.join(', ')}</p> : null}
                 <div className="pill-row">
                   <span className="pill">{pipeline.steps.length} steps</span>
                   <span className="pill">{pipeline.runs} runs</span>
@@ -234,8 +232,8 @@ export default function PipelinesTool() {
       {status ? <p className="status-ok">{status}</p> : null}
 
       <p className="hint" style={{ marginTop: '1.2rem' }}>
-        A pipeline stores the route, not your files. Running one takes you through each tool in turn with the
-        previous result handed forward, so nothing is processed out of sight.
+        A pipeline stores the route, not your files. Running one takes you through each tool in turn with the previous
+        result handed forward, so nothing is processed out of sight.
       </p>
 
       {list.length ? (

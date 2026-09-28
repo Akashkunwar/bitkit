@@ -1,14 +1,5 @@
 export type CaseMode =
-  | 'lower'
-  | 'upper'
-  | 'title'
-  | 'sentence'
-  | 'camel'
-  | 'pascal'
-  | 'snake'
-  | 'kebab'
-  | 'slug'
-  | 'squeeze'
+  'lower' | 'upper' | 'title' | 'sentence' | 'camel' | 'pascal' | 'snake' | 'kebab' | 'slug' | 'squeeze'
 
 const WORD = /[A-Za-z0-9]+/g
 
@@ -25,9 +16,7 @@ export function applyCase(input: string, mode: CaseMode): string {
     case 'title':
       return input.replace(WORD, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     case 'sentence':
-      return input
-        .toLowerCase()
-        .replace(/(^\s*[a-z])|([.!?]\s+[a-z])/g, (m) => m.toUpperCase())
+      return input.toLowerCase().replace(/(^\s*[a-z])|([.!?]\s+[a-z])/g, (m) => m.toUpperCase())
     case 'camel': {
       const w = wordsOf(input).map((p) => p.toLowerCase())
       return w.map((p, i) => (i === 0 ? p : p.charAt(0).toUpperCase() + p.slice(1))).join('')
@@ -37,13 +26,22 @@ export function applyCase(input: string, mode: CaseMode): string {
         .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
         .join('')
     case 'snake':
-      return wordsOf(input).map((p) => p.toLowerCase()).join('_')
+      return wordsOf(input)
+        .map((p) => p.toLowerCase())
+        .join('_')
     case 'kebab':
-      return wordsOf(input).map((p) => p.toLowerCase()).join('-')
+      return wordsOf(input)
+        .map((p) => p.toLowerCase())
+        .join('-')
     case 'slug':
-      return wordsOf(input).map((p) => p.toLowerCase()).join('-')
+      return wordsOf(input)
+        .map((p) => p.toLowerCase())
+        .join('-')
     case 'squeeze':
-      return input.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim()
+      return input
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
   }
 }
 
@@ -136,14 +134,49 @@ export function jsonToCsv(input: string): string {
     const s = v == null ? '' : String(v)
     return /[",\n]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s
   }
-  return [keys.join(','), ...rows.map((row) => keys.map((k) => esc((row as Record<string, unknown>)[k])).join(','))].join('\n')
+  return [
+    keys.join(','),
+    ...rows.map((row) => keys.map((k) => esc((row as Record<string, unknown>)[k])).join(',')),
+  ].join('\n')
 }
 
 const LOREM = [
-  'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit', 'sed', 'do',
-  'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore', 'magna', 'aliqua', 'ut',
-  'enim', 'ad', 'minim', 'veniam', 'quis', 'nostrud', 'exercitation', 'ullamco', 'laboris',
-  'nisi', 'ut', 'aliquip', 'ex', 'ea', 'commodo', 'consequat',
+  'lorem',
+  'ipsum',
+  'dolor',
+  'sit',
+  'amet',
+  'consectetur',
+  'adipiscing',
+  'elit',
+  'sed',
+  'do',
+  'eiusmod',
+  'tempor',
+  'incididunt',
+  'ut',
+  'labore',
+  'et',
+  'dolore',
+  'magna',
+  'aliqua',
+  'ut',
+  'enim',
+  'ad',
+  'minim',
+  'veniam',
+  'quis',
+  'nostrud',
+  'exercitation',
+  'ullamco',
+  'laboris',
+  'nisi',
+  'ut',
+  'aliquip',
+  'ex',
+  'ea',
+  'commodo',
+  'consequat',
 ]
 
 export function loremParagraphs(count: number, seed = 1): string {

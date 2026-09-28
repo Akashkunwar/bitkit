@@ -3,15 +3,7 @@ import { lazy } from 'react'
 import type { HandoffKind } from './lib/handoff'
 
 export type ToolCategory =
-  | 'Daily'
-  | 'Image'
-  | 'Document'
-  | 'Data'
-  | 'Media'
-  | 'Developer'
-  | 'Design'
-  | 'Writing'
-  | 'Notes'
+  'Daily' | 'Image' | 'Document' | 'Data' | 'Media' | 'Developer' | 'Design' | 'Writing' | 'Notes'
 
 /** Display order for navigation and the home page. */
 export const CATEGORIES: ToolCategory[] = [
@@ -806,9 +798,7 @@ export function searchTools(query: string): ToolMeta[] {
   const q = query.trim().toLowerCase()
   if (!q) return tools
   return tools.filter((tool) => {
-    const hay = [tool.title, tool.blurb, tool.category, ...tool.keywords]
-      .join(' ')
-      .toLowerCase()
+    const hay = [tool.title, tool.blurb, tool.category, ...tool.keywords].join(' ').toLowerCase()
     return hay.includes(q)
   })
 }

@@ -45,11 +45,7 @@ export type VCard = {
  * Backslash goes first so the escapes we add below are not re-escaped.
  */
 function esc(value: string): string {
-  return value
-    .replaceAll('\\', '\\\\')
-    .replaceAll(';', '\\;')
-    .replaceAll(',', '\\,')
-    .replaceAll(/\r?\n/g, '\\n')
+  return value.replaceAll('\\', '\\\\').replaceAll(';', '\\;').replaceAll(',', '\\,').replaceAll(/\r?\n/g, '\\n')
 }
 
 /** Folds content lines to 75 octets per RFC 5545 3.1, continuing with a leading space. */
@@ -81,7 +77,11 @@ function nameParts(name: string): string {
   const comma = trimmed.indexOf(',')
   if (comma > 0) {
     const family = trimmed.slice(0, comma).trim()
-    const rest = trimmed.slice(comma + 1).trim().split(/\s+/).filter(Boolean)
+    const rest = trimmed
+      .slice(comma + 1)
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
     return `${esc(family)};${esc(rest[0] ?? '')};${esc(rest.slice(1).join(' '))};;`
   }
   const words = trimmed.split(/\s+/)
@@ -118,13 +118,18 @@ export type EventCard = {
 function icsStamp(input: string): string {
   const d = new Date(input)
   if (Number.isNaN(d.getTime())) throw new Error('Use a valid start date and time.')
-  return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')
+  return d
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d{3}Z$/, 'Z')
 }
 
 export function icsEvent(event: EventCard): string {
   if (!event.title.trim()) throw new Error('An event title is required.')
   const dtStart = icsStamp(event.start)
-  const dtEnd = event.end ? icsStamp(event.end) : icsStamp(new Date(new Date(event.start).getTime() + 60 * 60 * 1000).toISOString())
+  const dtEnd = event.end
+    ? icsStamp(event.end)
+    : icsStamp(new Date(new Date(event.start).getTime() + 60 * 60 * 1000).toISOString())
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',

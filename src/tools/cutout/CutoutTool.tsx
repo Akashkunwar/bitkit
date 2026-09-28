@@ -63,7 +63,10 @@ export default function CutoutTool() {
       title="Background cutout"
       lede="On-device person/subject cutout. Your photo stays in this tab. The MediaPipe model and WASM may load once from a CDN."
     >
-      <p className="banner">Best on a single person or a clear subject. This is not a studio-grade remover and it does not send the image anywhere.</p>
+      <p className="banner">
+        Best on a single person or a clear subject. This is not a studio-grade remover and it does not send the image
+        anywhere.
+      </p>
       {!allowed ? (
         <div className="panel" style={{ marginBottom: '1rem' }}>
           <p>

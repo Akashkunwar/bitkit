@@ -43,7 +43,10 @@ describe('xlsx', () => {
   })
 
   it('writes numbers as numeric cells and text as inline strings', () => {
-    const xml = sheetXml([['name', 'qty'], ['Asha', '12']])
+    const xml = sheetXml([
+      ['name', 'qty'],
+      ['Asha', '12'],
+    ])
     expect(xml).toContain('t="inlineStr"')
     expect(xml).toContain('<c r="B2"><v>12</v></c>')
   })
@@ -297,9 +300,7 @@ describe('config formats', () => {
 
 describe('checksum', () => {
   it('hashes text with known digests', async () => {
-    expect(await hashText('abc', 'SHA-256')).toBe(
-      'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
-    )
+    expect(await hashText('abc', 'SHA-256')).toBe('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad')
     expect(await hashText('', 'SHA-1')).toBe('da39a3ee5e6b4b0d3255bfef95601890afd80709')
   })
 

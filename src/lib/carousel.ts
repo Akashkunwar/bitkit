@@ -55,10 +55,7 @@ function drawNumber(ctx: CanvasRenderingContext2D, index: number, total: number,
   ctx.fillText(label, x + padX, y + padY + size * 0.82)
 }
 
-export async function sliceCarousel(
-  file: Blob,
-  options: SliceOptions,
-): Promise<{ panels: Panel[]; capped: boolean }> {
+export async function sliceCarousel(file: Blob, options: SliceOptions): Promise<{ panels: Panel[]; capped: boolean }> {
   const source = await decodeImage(file)
   const srcW = 'naturalWidth' in source && source.naturalWidth ? source.naturalWidth : source.width
   const srcH = 'naturalHeight' in source && source.naturalHeight ? source.naturalHeight : source.height

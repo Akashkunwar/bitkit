@@ -2,7 +2,13 @@ export type Rgb = { r: number; g: number; b: number }
 
 export function parseHex(hex: string): Rgb | null {
   const m = hex.trim().replace('#', '')
-  const full = m.length === 3 ? m.split('').map((ch) => ch + ch).join('') : m
+  const full =
+    m.length === 3
+      ? m
+          .split('')
+          .map((ch) => ch + ch)
+          .join('')
+      : m
   if (!/^[0-9a-fA-F]{6}$/.test(full)) return null
   return {
     r: parseInt(full.slice(0, 2), 16),

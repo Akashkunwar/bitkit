@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
-import { deleteNote, exportNotes, importNotes, listNotes, newNote, replaceNotes, upsertNote, type Note } from '../../lib/db'
+import {
+  deleteNote,
+  exportNotes,
+  importNotes,
+  listNotes,
+  newNote,
+  replaceNotes,
+  upsertNote,
+  type Note,
+} from '../../lib/db'
 import { useUndo } from '../../lib/undo'
 import { renderMarkdown } from '../../lib/markdown'
 import { markdownHtmlToPdf } from '../../lib/pdf'
@@ -126,10 +135,7 @@ export default function NotesTool() {
               type="button"
               className="btn"
               onClick={() =>
-                triggerDownload(
-                  new Blob([exportNotes(notes)], { type: 'application/json' }),
-                  'kit-notes.json',
-                )
+                triggerDownload(new Blob([exportNotes(notes)], { type: 'application/json' }), 'kit-notes.json')
               }
             >
               Export

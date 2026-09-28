@@ -21,9 +21,12 @@ export default function PickerTool() {
     }
   })
 
-  useEffect(() => () => {
-    if (url) URL.revokeObjectURL(url)
-  }, [url])
+  useEffect(
+    () => () => {
+      if (url) URL.revokeObjectURL(url)
+    },
+    [url],
+  )
 
   const formats = rgb ? formatColor(rgb) : null
 
@@ -62,7 +65,16 @@ export default function PickerTool() {
                 onClick={pick}
                 style={{ maxWidth: '100%', cursor: 'crosshair', borderRadius: 'var(--radius-sm)' }}
               />
-              <button type="button" className="btn-ghost" style={{ marginTop: '0.8rem' }} onClick={() => { if (url) URL.revokeObjectURL(url); setUrl(null); setRgb(null) }}>
+              <button
+                type="button"
+                className="btn-ghost"
+                style={{ marginTop: '0.8rem' }}
+                onClick={() => {
+                  if (url) URL.revokeObjectURL(url)
+                  setUrl(null)
+                  setRgb(null)
+                }}
+              >
                 Clear image
               </button>
             </>

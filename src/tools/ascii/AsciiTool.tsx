@@ -6,14 +6,7 @@ import { triggerDownload } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { useCopied } from '../../lib/useCopied'
 import { decodeImage } from '../../lib/image/compress'
-import {
-  asciiToPng,
-  DEFAULT_ASCII,
-  gridFor,
-  imageDataToAscii,
-  RAMPS,
-  type AsciiOptions,
-} from '../../lib/asciiArt'
+import { asciiToPng, DEFAULT_ASCII, gridFor, imageDataToAscii, RAMPS, type AsciiOptions } from '../../lib/asciiArt'
 
 export default function AsciiTool() {
   const [file, setFile] = useState<File | null>(null)
@@ -135,7 +128,10 @@ export default function AsciiTool() {
               />
             </label>
             <label className="field">
-              <span>Brightness — {options.brightness > 0 ? '+' : ''}{options.brightness}</span>
+              <span>
+                Brightness — {options.brightness > 0 ? '+' : ''}
+                {options.brightness}
+              </span>
               <input
                 type="range"
                 min={-80}

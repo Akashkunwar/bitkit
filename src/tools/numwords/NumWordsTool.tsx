@@ -3,14 +3,7 @@ import { ToolLayout } from '../../components/ToolLayout'
 import { SendTo } from '../../components/SendTo'
 import { useHandoff } from '../../lib/useHandoff'
 import { useCopied } from '../../lib/useCopied'
-import {
-  amountToWords,
-  CURRENCIES,
-  groupDigits,
-  integerToWords,
-  titleCase,
-  type WordScale,
-} from '../../lib/numwords'
+import { amountToWords, CURRENCIES, groupDigits, integerToWords, titleCase, type WordScale } from '../../lib/numwords'
 
 export default function NumWordsTool() {
   const [raw, setRaw] = useState('125000.50')

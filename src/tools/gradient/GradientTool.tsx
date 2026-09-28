@@ -12,7 +12,17 @@ import {
   type GradientType,
 } from '../../lib/gradient'
 
-const RADIAL_POSITIONS = ['center', 'top left', 'top', 'top right', 'left', 'right', 'bottom left', 'bottom', 'bottom right']
+const RADIAL_POSITIONS = [
+  'center',
+  'top left',
+  'top',
+  'top right',
+  'left',
+  'right',
+  'bottom left',
+  'bottom',
+  'bottom right',
+]
 
 function randomHex(): string {
   const buf = crypto.getRandomValues(new Uint8Array(3))
@@ -218,7 +228,9 @@ export default function GradientTool() {
                     </button>
                   </div>
                   <label className="field">
-                    <span>X {blob.x}% · Y {blob.y}% · spread {blob.radius}%</span>
+                    <span>
+                      X {blob.x}% · Y {blob.y}% · spread {blob.radius}%
+                    </span>
                     <div className="row">
                       <input
                         type="range"
@@ -254,10 +266,7 @@ export default function GradientTool() {
                 disabled={state.meshBlobs.length >= 6}
                 onClick={() =>
                   patch({
-                    meshBlobs: [
-                      ...state.meshBlobs,
-                      { id: uid(), color: randomHex(), x: 50, y: 50, radius: 50 },
-                    ],
+                    meshBlobs: [...state.meshBlobs, { id: uid(), color: randomHex(), x: 50, y: 50, radius: 50 }],
                   })
                 }
               >

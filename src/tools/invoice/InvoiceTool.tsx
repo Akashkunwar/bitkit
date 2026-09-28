@@ -53,7 +53,12 @@ export default function InvoiceTool() {
       <div className="split">
         <label className="field">
           <span>Date</span>
-          <input className="text-input" type="date" value={invoice.date} onChange={(e) => set('date', e.target.value)} />
+          <input
+            className="text-input"
+            type="date"
+            value={invoice.date}
+            onChange={(e) => set('date', e.target.value)}
+          />
         </label>
         <label className="field">
           <span>Due date</span>
@@ -69,7 +74,12 @@ export default function InvoiceTool() {
       <div className="split">
         <label className="field">
           <span>From</span>
-          <textarea className="text-input" rows={4} value={invoice.from} onChange={(e) => set('from', e.target.value)} />
+          <textarea
+            className="text-input"
+            rows={4}
+            value={invoice.from}
+            onChange={(e) => set('from', e.target.value)}
+          />
         </label>
         <label className="field">
           <span>Bill to</span>
@@ -133,7 +143,10 @@ export default function InvoiceTool() {
                     className="btn-ghost"
                     onClick={() => {
                       const before = invoice.items
-                      set('items', invoice.items.filter((i) => i.id !== item.id))
+                      set(
+                        'items',
+                        invoice.items.filter((i) => i.id !== item.id),
+                      )
                       undo.push({
                         label: `Removed “${item.description || 'line item'}”`,
                         undo: () => set('items', before),
@@ -198,13 +211,22 @@ export default function InvoiceTool() {
 
       <label className="field">
         <span>Notes</span>
-        <textarea className="text-input" rows={3} value={invoice.notes} onChange={(e) => set('notes', e.target.value)} />
+        <textarea
+          className="text-input"
+          rows={3}
+          value={invoice.notes}
+          onChange={(e) => set('notes', e.target.value)}
+        />
       </label>
 
       <div className="pill-row">
         <span className="pill">Subtotal {money(totals.subtotal, invoice.currency)}</span>
         {totals.discount ? <span className="pill">Discount −{money(totals.discount, invoice.currency)}</span> : null}
-        {totals.tax ? <span className="pill">{invoice.taxLabel} {money(totals.tax, invoice.currency)}</span> : null}
+        {totals.tax ? (
+          <span className="pill">
+            {invoice.taxLabel} {money(totals.tax, invoice.currency)}
+          </span>
+        ) : null}
         <span className="pill">Total {money(totals.total, invoice.currency)}</span>
       </div>
 

@@ -43,12 +43,15 @@ function readOptions(field: PDFField): string[] | undefined {
 
 export async function listFormFields(bytes: Uint8Array): Promise<FormFieldView[]> {
   const { doc: pdf } = await loadPdf(bytes)
-  return pdf.getForm().getFields().map((field) => ({
-    name: field.getName(),
-    type: fieldType(field),
-    value: readValue(field),
-    options: readOptions(field),
-  }))
+  return pdf
+    .getForm()
+    .getFields()
+    .map((field) => ({
+      name: field.getName(),
+      type: fieldType(field),
+      value: readValue(field),
+      options: readOptions(field),
+    }))
 }
 
 export async function fillForm(

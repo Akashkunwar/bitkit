@@ -57,8 +57,5 @@ const body = routes
 const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`
 
 writeFileSync(resolve(ROOT, 'public/sitemap.xml'), xml)
-writeFileSync(
-  resolve(ROOT, 'public/robots.txt'),
-  `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`,
-)
+writeFileSync(resolve(ROOT, 'public/robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`)
 console.log(`wrote public/sitemap.xml (${routes.length} routes) and robots.txt for ${SITE}`)

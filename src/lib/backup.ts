@@ -20,13 +20,7 @@ export type Backup = {
   local: Record<string, string>
 }
 
-const LOCAL_KEYS = [
-  'bitkit-theme',
-  'bitkit-theme-pair',
-  'bitkit-appearance',
-  'bitkit-open-sections',
-  'bitkit-language',
-]
+const LOCAL_KEYS = ['bitkit-theme', 'bitkit-theme-pair', 'bitkit-appearance', 'bitkit-open-sections', 'bitkit-language']
 
 export async function createBackup(): Promise<Backup> {
   const [notes, prefs] = await Promise.all([db.notes.toArray(), db.prefs.toArray()])
@@ -102,9 +96,7 @@ export function parseBackup(json: string): Backup {
     : []
 
   const prefs = Array.isArray(value.prefs)
-    ? value.prefs
-        .filter((row) => row && typeof row.key === 'string')
-        .map((row) => ({ key: row.key, value: row.value }))
+    ? value.prefs.filter((row) => row && typeof row.key === 'string').map((row) => ({ key: row.key, value: row.value }))
     : []
 
   const local: Record<string, string> = {}

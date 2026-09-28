@@ -32,7 +32,10 @@ export function Home() {
   const matches = useMemo(() => searchTools(query), [query])
   // Within a category, the tools you actually reach for float up.
   const mostUsed = useMemo(
-    () => sortByUsage(tools, usage).filter((tool) => usage[tool.id]?.count).slice(0, 4),
+    () =>
+      sortByUsage(tools, usage)
+        .filter((tool) => usage[tool.id]?.count)
+        .slice(0, 4),
     [usage],
   )
   const visible = useMemo(
@@ -152,9 +155,7 @@ export function Home() {
           {visible.length ? (
             <div className="grid-tools">{visible.map((tool) => card(tool, true))}</div>
           ) : (
-            <p className="muted">
-              {t('home.noMatch', { query })}
-            </p>
+            <p className="muted">{t('home.noMatch', { query })}</p>
           )}
         </section>
       ) : (

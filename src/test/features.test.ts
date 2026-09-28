@@ -165,9 +165,7 @@ describe('convert / encode / text / links / regex', () => {
   it('encodes base64 and inspects a JWT', async () => {
     const { encodeTextBase64, decodeTextBase64, decodeJwt } = await import('../lib/encode')
     expect(decodeTextBase64(encodeTextBase64('kit'))).toBe('kit')
-    const jwt = decodeJwt(
-      'eyJhbGciOiJub25lIn0.eyJzdWIiOiJraXQiLCJpYXQiOjE3MTAwMDAwMDB9.x',
-    )
+    const jwt = decodeJwt('eyJhbGciOiJub25lIn0.eyJzdWIiOiJraXQiLCJpYXQiOjE3MTAwMDAwMDB9.x')
     expect((jwt.payload as { sub: string }).sub).toBe('kit')
   })
 
@@ -248,7 +246,9 @@ describe('audit fixes', () => {
       openPdfJs(
         {
           getDocument: () => ({
-            promise: Promise.reject(Object.assign(new Error('No password given'), { name: 'PasswordException', code: 1 })),
+            promise: Promise.reject(
+              Object.assign(new Error('No password given'), { name: 'PasswordException', code: 1 }),
+            ),
           }),
         },
         new Uint8Array([1]),
@@ -258,7 +258,9 @@ describe('audit fixes', () => {
       openPdfJs(
         {
           getDocument: () => ({
-            promise: Promise.reject(Object.assign(new Error('Incorrect Password'), { name: 'PasswordException', code: 2 })),
+            promise: Promise.reject(
+              Object.assign(new Error('Incorrect Password'), { name: 'PasswordException', code: 2 }),
+            ),
           }),
         },
         new Uint8Array([1]),

@@ -62,9 +62,7 @@ export default function PasswordTool() {
       setError(null)
       if (mode === 'password') {
         setResults(
-          Array.from({ length: batch }, () =>
-            generatePassword({ length, sets, excludeAmbiguous, requireEachSet }),
-          ),
+          Array.from({ length: batch }, () => generatePassword({ length, sets, excludeAmbiguous, requireEachSet })),
         )
       } else if (mode === 'pin') {
         setResults(Array.from({ length: batch }, () => generatePin(pinLength)))
@@ -126,10 +124,16 @@ export default function PasswordTool() {
               Strength — {strength.label} ({Math.round(strength.bits)} bits of entropy)
             </span>
             <div className="meter" role="meter" aria-valuemin={0} aria-valuemax={4} aria-valuenow={strength.score}>
-              <div className="meter-fill" data-score={strength.score} style={{ width: `${((strength.score + 1) / 5) * 100}%` }} />
+              <div
+                className="meter-fill"
+                data-score={strength.score}
+                style={{ width: `${((strength.score + 1) / 5) * 100}%` }}
+              />
             </div>
             <p className="hint">
-              Entropy assumes a uniformly random pick from {mode === 'password' ? `${alphabetSize} characters` : mode === 'pin' ? '10 digits' : 'random bytes'} per position. 80+ bits is strong for most uses.
+              Entropy assumes a uniformly random pick from{' '}
+              {mode === 'password' ? `${alphabetSize} characters` : mode === 'pin' ? '10 digits' : 'random bytes'} per
+              position. 80+ bits is strong for most uses.
             </p>
           </div>
         </section>
@@ -148,7 +152,13 @@ export default function PasswordTool() {
             <>
               <label className="field">
                 <span>Length — {length}</span>
-                <input type="range" min={8} max={128} value={length} onChange={(e) => setLength(Number(e.target.value))} />
+                <input
+                  type="range"
+                  min={8}
+                  max={128}
+                  value={length}
+                  onChange={(e) => setLength(Number(e.target.value))}
+                />
               </label>
               {(Object.keys(CHARSETS) as CharsetKey[]).map((key) => (
                 <label key={key} className="row" style={{ marginBottom: '0.4rem' }}>
@@ -207,7 +217,13 @@ export default function PasswordTool() {
           {mode === 'pin' ? (
             <label className="field">
               <span>Digits — {pinLength}</span>
-              <input type="range" min={4} max={12} value={pinLength} onChange={(e) => setPinLength(Number(e.target.value))} />
+              <input
+                type="range"
+                min={4}
+                max={12}
+                value={pinLength}
+                onChange={(e) => setPinLength(Number(e.target.value))}
+              />
             </label>
           ) : null}
           <label className="field">

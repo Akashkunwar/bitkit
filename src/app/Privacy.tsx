@@ -4,8 +4,8 @@ export function Privacy() {
       <p className="kicker">Privacy</p>
       <h1>Files stay on this device.</h1>
       <p>
-        BitKit has no backend for your content. Images, Markdown, and notes are processed in the browser. After the
-        app shell loads, using a tool should not send the file anywhere.
+        BitKit has no backend for your content. Images, Markdown, and notes are processed in the browser. After the app
+        shell loads, using a tool should not send the file anywhere.
       </p>
       <ul className="lede">
         <li>No accounts, analytics, or content uploads in the default build.</li>

@@ -26,9 +26,12 @@ export default function ContrastTool() {
     }
   })
 
-  useEffect(() => () => {
-    if (url) URL.revokeObjectURL(url)
-  }, [url])
+  useEffect(
+    () => () => {
+      if (url) URL.revokeObjectURL(url)
+    },
+    [url],
+  )
 
   const fgRgb = parseHex(fg) ?? WHITE
   const bgRgb = parseHex(bg) ?? INK
@@ -84,7 +87,11 @@ export default function ContrastTool() {
           </div>
           {url ? (
             <div style={{ marginTop: '1rem' }}>
-              <p className="hint">{picking ? `Click the image to set ${picking === 'fg' ? 'foreground' : 'background'}.` : 'Load a screenshot, then pick a pixel.'}</p>
+              <p className="hint">
+                {picking
+                  ? `Click the image to set ${picking === 'fg' ? 'foreground' : 'background'}.`
+                  : 'Load a screenshot, then pick a pixel.'}
+              </p>
               <img
                 ref={imgRef}
                 src={url}
@@ -156,19 +163,21 @@ export default function ContrastTool() {
               Use AAA foreground {suggest.aaa}
             </button>
           ) : null}
-          <button type="button" className="btn-ghost" onClick={() => { setFg(bg); setBg(fg) }}>
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={() => {
+              setFg(bg)
+              setBg(fg)
+            }}
+          >
             Swap
           </button>
           <div className="color-formats" style={{ marginTop: '1rem' }}>
             {(['fg', 'bg'] as const).map((slot) => {
               const formats = formatColor(slot === 'fg' ? fgRgb : bgRgb)
               return (
-                <button
-                  key={slot}
-                  type="button"
-                  className="stat-pill"
-                  onClick={() => void copy(formats.hex, slot)}
-                >
+                <button key={slot} type="button" className="stat-pill" onClick={() => void copy(formats.hex, slot)}>
                   <span>{slot === 'fg' ? 'Foreground' : 'Background'}</span>
                   <strong>{formats.hex}</strong>
                   <em>{copied === slot ? 'Copied' : formats.oklch}</em>

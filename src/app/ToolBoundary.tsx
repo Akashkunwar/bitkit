@@ -70,8 +70,8 @@ export class ToolBoundary extends Component<Props, State> {
       <div className="crash" role="alert">
         <h2>{this.props.toolTitle} hit an error</h2>
         <p>
-          The rest of BitKit is still working — pick another tool from the sidebar, or try this one again.
-          Nothing you dropped in was uploaded, and nothing was saved.
+          The rest of BitKit is still working — pick another tool from the sidebar, or try this one again. Nothing you
+          dropped in was uploaded, and nothing was saved.
         </p>
         <pre className="crash-detail">
           {error.name}: {error.message}
@@ -85,8 +85,8 @@ export class ToolBoundary extends Component<Props, State> {
           </a>
         </div>
         <p className="hint">
-          The report link opens a pre-filled GitHub issue. Check it before submitting — it includes the error
-          message and your browser version.
+          The report link opens a pre-filled GitHub issue. Check it before submitting — it includes the error message
+          and your browser version.
         </p>
       </div>
     )

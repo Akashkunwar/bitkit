@@ -53,17 +53,7 @@ export async function renderFinished(options: {
   ctx.rotate((options.rotate * Math.PI) / 180)
   ctx.scale(options.flipX ? -1 : 1, options.flipY ? -1 : 1)
   ctx.filter = cssFilter(options.adjust)
-  ctx.drawImage(
-    options.source,
-    crop.x,
-    crop.y,
-    crop.w,
-    crop.h,
-    -crop.w / 2,
-    -crop.h / 2,
-    crop.w,
-    crop.h,
-  )
+  ctx.drawImage(options.source, crop.x, crop.y, crop.w, crop.h, -crop.w / 2, -crop.h / 2, crop.w, crop.h)
   ctx.restore()
 
   if (options.overlayText) {
@@ -77,11 +67,7 @@ export async function renderFinished(options: {
   const mime = options.mime
   const quality = options.quality ?? 0.92
   return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error('Encoding failed.'))),
-      mime,
-      quality,
-    )
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Encoding failed.'))), mime, quality)
   })
 }
 

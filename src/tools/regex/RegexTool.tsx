@@ -65,20 +65,41 @@ export default function RegexTool() {
           <div className="row">
             <label className="field" style={{ flex: 1 }}>
               <span>Pattern</span>
-              <input className="text-input" value={pattern} onChange={(e) => setPattern(e.target.value)} spellCheck={false} />
+              <input
+                className="text-input"
+                value={pattern}
+                onChange={(e) => setPattern(e.target.value)}
+                spellCheck={false}
+              />
             </label>
             <label className="field" style={{ width: '6rem' }}>
               <span>Flags</span>
-              <input className="text-input" value={flags} onChange={(e) => setFlags(e.target.value)} spellCheck={false} />
+              <input
+                className="text-input"
+                value={flags}
+                onChange={(e) => setFlags(e.target.value)}
+                spellCheck={false}
+              />
             </label>
           </div>
           <label className="field">
             <span>Haystack</span>
-            <textarea className="code-area editor" rows={10} value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} />
+            <textarea
+              className="code-area editor"
+              rows={10}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              spellCheck={false}
+            />
           </label>
           <label className="field">
             <span>Replace with</span>
-            <input className="text-input" value={replace} onChange={(e) => setReplace(e.target.value)} spellCheck={false} />
+            <input
+              className="text-input"
+              value={replace}
+              onChange={(e) => setReplace(e.target.value)}
+              spellCheck={false}
+            />
           </label>
           {running ? (
             <p className="hint">Matching…</p>
@@ -130,7 +151,12 @@ export default function RegexTool() {
             <textarea className="code-area" rows={8} readOnly value={result.replaced} />
           </label>
           <div className="row">
-            <button type="button" className="btn" disabled={!result.replaced} onClick={() => void copy(result.replaced, 'rep')}>
+            <button
+              type="button"
+              className="btn"
+              disabled={!result.replaced}
+              onClick={() => void copy(result.replaced, 'rep')}
+            >
               {copied === 'rep' ? 'Copied ✓' : 'Copy replaced'}
             </button>
             <button

@@ -73,7 +73,9 @@ export type ClashPair = { a: string; b: string; before: number; after: number }
 
 /** Finds palette pairs that stay distinct normally but collapse under simulation. */
 export function findClashes(hexes: string[], type: VisionType, parse: (hex: string) => Rgb | null): ClashPair[] {
-  const parsed = hexes.map((hex) => ({ hex, rgb: parse(hex) })).filter((c): c is { hex: string; rgb: Rgb } => Boolean(c.rgb))
+  const parsed = hexes
+    .map((hex) => ({ hex, rgb: parse(hex) }))
+    .filter((c): c is { hex: string; rgb: Rgb } => Boolean(c.rgb))
   const out: ClashPair[] = []
   for (let i = 0; i < parsed.length; i += 1) {
     for (let j = i + 1; j < parsed.length; j += 1) {

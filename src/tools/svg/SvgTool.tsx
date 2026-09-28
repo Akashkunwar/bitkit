@@ -96,7 +96,14 @@ export default function SvgTool() {
           {mode === 'svg2png' ? (
             <label className="field">
               <span>Scale · {scale}×</span>
-              <input type="range" min={1} max={4} step={1} value={scale} onChange={(e) => setScale(Number(e.target.value))} />
+              <input
+                type="range"
+                min={1}
+                max={4}
+                step={1}
+                value={scale}
+                onChange={(e) => setScale(Number(e.target.value))}
+              />
             </label>
           ) : (
             <p className="banner warn">This embeds the raster as a data URL. Paths are not traced.</p>

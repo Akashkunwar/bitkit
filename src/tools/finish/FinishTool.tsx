@@ -79,10 +79,7 @@ export default function FinishTool() {
         })
         blob = sized.blob
       }
-      triggerDownload(
-        blob,
-        applyFilenamePattern('{original}-edit', { original: file.name, ext: mimeToExt(mime) }),
-      )
+      triggerDownload(blob, applyFilenamePattern('{original}-edit', { original: file.name, ext: mimeToExt(mime) }))
     } finally {
       setBusy(false)
     }
@@ -120,8 +117,8 @@ export default function FinishTool() {
       lede="Crop, color, rotate, overlay, and export. This does not remove AI watermarks or provenance signals, and it will not make a generated image “undetectable.”"
     >
       <p className="banner">
-        SynthID and similar marks live in the pixels. Ordinary edits are not a removal tool. Label AI-assisted
-        marketing assets when that is the honest description.
+        SynthID and similar marks live in the pixels. Ordinary edits are not a removal tool. Label AI-assisted marketing
+        assets when that is the honest description.
       </p>
       <DropZone onFiles={(files) => files[0] && void load(files[0])} />
       <div className="split">
@@ -166,7 +163,11 @@ export default function FinishTool() {
         </section>
         <aside className="panel">
           <div className="row">
-            <button type="button" className="btn" onClick={() => setRotate((r) => ((r + 90) % 360) as 0 | 90 | 180 | 270)}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => setRotate((r) => ((r + 90) % 360) as 0 | 90 | 180 | 270)}
+            >
               Rotate 90°{rotate ? ` · ${rotate}°` : ''}
             </button>
             <button type="button" className="btn" onClick={() => setFlipX((v) => !v)}>
@@ -244,14 +245,14 @@ export default function FinishTool() {
             ]}
             onChange={setMime}
           />
-          <DownloadButton label={busy ? 'Exporting…' : 'Download'} disabled={!file || busy} onClick={() => void exportImage()} />
+          <DownloadButton
+            label={busy ? 'Exporting…' : 'Download'}
+            disabled={!file || busy}
+            onClick={() => void exportImage()}
+          />
           <SendTo from="finish" files={file ? [file] : undefined} />
-          <p className="hint">
-            Crop on the unrotated image. Rotate and flip apply when you export.
-          </p>
-          <p className="hint">
-            Re-encoding strips most EXIF. That is a side effect, not a way to hide origin.
-          </p>
+          <p className="hint">Crop on the unrotated image. Rotate and flip apply when you export.</p>
+          <p className="hint">Re-encoding strips most EXIF. That is a side effect, not a way to hide origin.</p>
         </aside>
       </div>
     </ToolLayout>

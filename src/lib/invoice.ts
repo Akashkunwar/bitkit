@@ -84,7 +84,8 @@ export function invoicePdf(invoice: Invoice): Blob {
   const pageHeight = doc.internal.pageSize.getHeight()
   const margin = 18
   const right = pageWidth - margin
-  const amount = (n: number) => `${currency}${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const amount = (n: number) =>
+    `${currency}${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(22)

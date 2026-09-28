@@ -173,10 +173,20 @@ export default function EncodeTool() {
                 URL-safe (no +, /, or =)
               </label>
               <div className="row" style={{ marginBottom: '1rem' }}>
-                <button type="button" className="btn btn-primary" disabled={!input} onClick={() => run(() => encodeTextBase64(input, urlSafe))}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={!input}
+                  onClick={() => run(() => encodeTextBase64(input, urlSafe))}
+                >
                   Encode
                 </button>
-                <button type="button" className="btn" disabled={!input} onClick={() => run(() => decodeTextBase64(input))}>
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={!input}
+                  onClick={() => run(() => decodeTextBase64(input))}
+                >
                   Decode
                 </button>
               </div>
@@ -187,7 +197,10 @@ export default function EncodeTool() {
                 onClick={() => {
                   try {
                     const bytes = base64ToBytes(output || input)
-                    triggerDownload(new Blob([bytes.buffer as ArrayBuffer], { type: 'application/octet-stream' }), 'decoded.bin')
+                    triggerDownload(
+                      new Blob([bytes.buffer as ArrayBuffer], { type: 'application/octet-stream' }),
+                      'decoded.bin',
+                    )
                   } catch (err) {
                     setError(err instanceof Error ? err.message : 'Decode failed.')
                   }
@@ -199,10 +212,20 @@ export default function EncodeTool() {
           ) : null}
           {mode === 'url' ? (
             <div className="row" style={{ marginBottom: '1rem' }}>
-              <button type="button" className="btn btn-primary" disabled={!input} onClick={() => run(() => encodeUriComponentSafe(input))}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={!input}
+                onClick={() => run(() => encodeUriComponentSafe(input))}
+              >
                 Encode
               </button>
-              <button type="button" className="btn" disabled={!input} onClick={() => run(() => decodeUriComponentSafe(input))}>
+              <button
+                type="button"
+                className="btn"
+                disabled={!input}
+                onClick={() => run(() => decodeUriComponentSafe(input))}
+              >
                 Decode
               </button>
             </div>
@@ -218,11 +241,21 @@ export default function EncodeTool() {
                   <p className="status-ok">{jwt.view.parts} parts decoded.</p>
                   <label className="field">
                     <span>Header</span>
-                    <textarea className="code-area" rows={6} readOnly value={JSON.stringify(jwt.view.header, null, 2)} />
+                    <textarea
+                      className="code-area"
+                      rows={6}
+                      readOnly
+                      value={JSON.stringify(jwt.view.header, null, 2)}
+                    />
                   </label>
                   <label className="field">
                     <span>Payload</span>
-                    <textarea className="code-area" rows={8} readOnly value={JSON.stringify(jwt.view.payload, null, 2)} />
+                    <textarea
+                      className="code-area"
+                      rows={8}
+                      readOnly
+                      value={JSON.stringify(jwt.view.payload, null, 2)}
+                    />
                   </label>
                   {claims.length ? (
                     <ul className="hint">
@@ -250,7 +283,12 @@ export default function EncodeTool() {
                 ]}
                 onChange={setAlgo}
               />
-              <button type="button" className="btn btn-primary" disabled={!input.trim() || busy} onClick={() => void hashText()}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={!input.trim() || busy}
+                onClick={() => void hashText()}
+              >
                 {busy ? 'Hashing…' : `Hash with ${algo}`}
               </button>
             </>
@@ -262,7 +300,8 @@ export default function EncodeTool() {
               disabled={!output && !jwt?.view}
               onClick={() =>
                 void copy(
-                  output || (jwt?.view ? JSON.stringify({ header: jwt.view.header, payload: jwt.view.payload }, null, 2) : ''),
+                  output ||
+                    (jwt?.view ? JSON.stringify({ header: jwt.view.header, payload: jwt.view.payload }, null, 2) : ''),
                   'out',
                 )
               }

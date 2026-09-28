@@ -1,4 +1,4 @@
-@import "./tokens.css";
+@import './tokens.css';
 
 *,
 *::before,
@@ -357,7 +357,10 @@ kbd {
   background: var(--bg-elev);
   border-radius: var(--radius-sm);
   padding: 0.45rem 0.9rem;
-  transition: border-color 120ms, background 120ms, transform 120ms;
+  transition:
+    border-color 120ms,
+    background 120ms,
+    transform 120ms;
 }
 
 .btn:hover:not(:disabled),
@@ -413,7 +416,9 @@ kbd {
   background: var(--bg-elev);
   border-radius: var(--radius-sm);
   padding: 0.6rem 1rem 0.6rem 2.5rem;
-  transition: border-color 120ms, box-shadow 120ms;
+  transition:
+    border-color 120ms,
+    box-shadow 120ms;
 }
 
 .command-input:focus {
@@ -459,10 +464,10 @@ kbd {
   text-decoration: none;
 }
 
-.command-item[data-active="true"],
+.command-item[data-active='true'],
 .command-item:hover,
 .note-item:hover,
-.note-item[data-active="true"] {
+.note-item[data-active='true'] {
   background: var(--bg-mute);
 }
 
@@ -506,7 +511,7 @@ kbd {
 }
 
 .kicker::before {
-  content: "// ";
+  content: '// ';
   opacity: 0.5;
 }
 
@@ -530,7 +535,9 @@ kbd {
   border-radius: var(--radius);
   padding: 0.15rem 0.6rem 0.15rem 0.9rem;
   box-shadow: var(--shadow);
-  transition: border-color 120ms, box-shadow 120ms;
+  transition:
+    border-color 120ms,
+    box-shadow 120ms;
 }
 
 .finder-input:focus-within {
@@ -571,7 +578,10 @@ kbd {
   padding: 0.28rem 0.8rem;
   font-size: 0.85rem;
   color: var(--muted);
-  transition: border-color 120ms, color 120ms, background 120ms;
+  transition:
+    border-color 120ms,
+    color 120ms,
+    background 120ms;
 }
 
 .filter-pill:hover {
@@ -627,7 +637,10 @@ kbd {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: var(--space-4) var(--space-4) 0.7rem;
-  transition: border-color 140ms, transform 140ms, box-shadow 140ms;
+  transition:
+    border-color 140ms,
+    transform 140ms,
+    box-shadow 140ms;
 }
 
 .tool-card:hover,
@@ -684,7 +697,9 @@ kbd {
   line-height: 1;
   font-size: 0.95rem;
   opacity: 0;
-  transition: opacity 120ms, color 120ms;
+  transition:
+    opacity 120ms,
+    color 120ms;
 }
 
 .tool-card:hover .pin-btn,
@@ -730,7 +745,7 @@ kbd {
   border-color: var(--accent);
 }
 
-.chip[aria-current="page"] {
+.chip[aria-current='page'] {
   background: var(--accent);
   color: var(--accent-ink);
   border-color: transparent;
@@ -782,14 +797,16 @@ kbd {
   padding: var(--space-6) var(--space-4);
   text-align: center;
   background: color-mix(in srgb, var(--bg-elev) 60%, transparent);
-  transition: border-color 140ms, background 140ms;
+  transition:
+    border-color 140ms,
+    background 140ms;
 }
 
 .dropzone:hover {
   border-color: var(--accent);
 }
 
-.dropzone[data-active="true"] {
+.dropzone[data-active='true'] {
   border-style: solid;
   border-color: var(--accent);
   background: var(--accent-soft);
@@ -827,7 +844,9 @@ kbd {
   border-radius: var(--radius-sm);
   padding: 0.55rem 0.7rem;
   width: 100%;
-  transition: border-color 120ms, box-shadow 120ms;
+  transition:
+    border-color 120ms,
+    box-shadow 120ms;
 }
 
 .field input:focus,
@@ -1030,14 +1049,26 @@ kbd {
 .meter-fill {
   height: 100%;
   border-radius: 999px;
-  transition: width 200ms, background 200ms;
+  transition:
+    width 200ms,
+    background 200ms;
 }
 
-.meter-fill[data-score="0"] { background: var(--danger); }
-.meter-fill[data-score="1"] { background: color-mix(in srgb, var(--danger) 60%, orange); }
-.meter-fill[data-score="2"] { background: orange; }
-.meter-fill[data-score="3"] { background: color-mix(in srgb, var(--ok) 70%, yellow); }
-.meter-fill[data-score="4"] { background: var(--ok); }
+.meter-fill[data-score='0'] {
+  background: var(--danger);
+}
+.meter-fill[data-score='1'] {
+  background: color-mix(in srgb, var(--danger) 60%, orange);
+}
+.meter-fill[data-score='2'] {
+  background: orange;
+}
+.meter-fill[data-score='3'] {
+  background: color-mix(in srgb, var(--ok) 70%, yellow);
+}
+.meter-fill[data-score='4'] {
+  background: var(--ok);
+}
 
 .qr-preview {
   max-width: 18rem;
@@ -1451,9 +1482,8 @@ input[type='color'] {
 }
 
 .checker {
-  background:
-    repeating-conic-gradient(color-mix(in srgb, var(--ink) 8%, transparent) 0% 25%, transparent 0% 50%)
-    50% / 16px 16px;
+  background: repeating-conic-gradient(color-mix(in srgb, var(--ink) 8%, transparent) 0% 25%, transparent 0% 50%) 50% /
+    16px 16px;
 }
 
 .regex-preview {
@@ -1498,7 +1528,7 @@ input[type='color'] {
   .no-print,
   .sidebar,
   .topbar,
-  nav[aria-label="Tools"] {
+  nav[aria-label='Tools'] {
     display: none !important;
   }
 
@@ -1633,8 +1663,6 @@ audio.media-preview {
   height: auto;
   margin: 0 auto;
 }
-
-
 
 /* --- cron, bits, zone grid, inline grid inputs --- */
 .cron-grid {
@@ -1914,9 +1942,15 @@ audio.media-preview {
   margin: 0.7rem 0;
   background: var(--bg-mute);
 }
-.macro-p { background: var(--accent); }
-.macro-c { background: #7c8ff0; }
-.macro-f { background: #e0a35a; }
+.macro-p {
+  background: var(--accent);
+}
+.macro-c {
+  background: #7c8ff0;
+}
+.macro-f {
+  background: #e0a35a;
+}
 
 /* ---------- Noise & sound meter ---------- */
 
@@ -1969,8 +2003,12 @@ audio.media-preview {
   line-height: 1;
   color: var(--accent-strong);
 }
-.meter-face[data-tone='warn'] .meter-number { color: #b8791f; }
-.meter-face[data-tone='high'] .meter-number { color: var(--danger); }
+.meter-face[data-tone='warn'] .meter-number {
+  color: #b8791f;
+}
+.meter-face[data-tone='high'] .meter-number {
+  color: var(--danger);
+}
 .meter-unit {
   display: block;
   font-size: 0.78rem;
@@ -1989,8 +2027,12 @@ audio.media-preview {
   background: var(--accent);
   transition: width 80ms linear;
 }
-.meter-bar[data-tone='warn'] { background: #d2932f; }
-.meter-bar[data-tone='high'] { background: var(--danger); }
+.meter-bar[data-tone='warn'] {
+  background: #d2932f;
+}
+.meter-bar[data-tone='high'] {
+  background: var(--danger);
+}
 
 .level-history {
   display: block;
@@ -2137,8 +2179,12 @@ audio.media-preview {
   background: var(--accent);
   transition: width 120ms linear;
 }
-.limit-bar[data-status='near'] { background: #d2932f; }
-.limit-bar[data-status='over'] { background: var(--danger); }
+.limit-bar[data-status='near'] {
+  background: #d2932f;
+}
+.limit-bar[data-status='over'] {
+  background: var(--danger);
+}
 .limit-note {
   margin: 0.4rem 0 0;
   font-size: 0.8rem;
@@ -2161,7 +2207,9 @@ audio.media-preview {
   border-radius: var(--radius);
   background: var(--bg-elev);
 }
-.score-card[data-tone='high'] { border-color: var(--danger); }
+.score-card[data-tone='high'] {
+  border-color: var(--danger);
+}
 .score-value {
   display: block;
   font-family: var(--font-display);
@@ -2170,8 +2218,12 @@ audio.media-preview {
   line-height: 1;
   color: var(--accent-strong);
 }
-.score-card[data-tone='warn'] .score-value { color: #b8791f; }
-.score-card[data-tone='high'] .score-value { color: var(--danger); }
+.score-card[data-tone='warn'] .score-value {
+  color: #b8791f;
+}
+.score-card[data-tone='high'] .score-value {
+  color: var(--danger);
+}
 .score-label {
   display: block;
   font-family: var(--font-mono);
@@ -2201,8 +2253,12 @@ audio.media-preview {
   height: 100%;
   background: var(--accent);
 }
-.score-bar[data-tone='warn'] { background: #d2932f; }
-.score-bar[data-tone='high'] { background: var(--danger); }
+.score-bar[data-tone='warn'] {
+  background: #d2932f;
+}
+.score-bar[data-tone='high'] {
+  background: var(--danger);
+}
 
 .pill[data-tone='warn'] {
   border-color: #d2932f;
@@ -2217,8 +2273,14 @@ audio.media-preview {
 }
 
 @media (max-width: 560px) {
-  .score-card { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
-  .panel-card { width: 8.5rem; }
+  .score-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+  .panel-card {
+    width: 8.5rem;
+  }
 }
 
 /* ---------- Platform: cheatsheet, status, undo, chords ---------- */
@@ -2479,8 +2541,12 @@ audio.media-preview {
 }
 
 @media (max-width: 560px) {
-  .sheet-keys { min-width: 6.5rem; }
-  .lang-select { display: none; }
+  .sheet-keys {
+    min-width: 6.5rem;
+  }
+  .lang-select {
+    display: none;
+  }
 }
 
 /* ---------- Accessibility: hit areas ---------- */
@@ -2522,7 +2588,6 @@ audio.media-preview {
     min-height: 44px;
   }
 }
-
 
 /* Native checkboxes are 13x13; WCAG 2.2 asks for a 24px target. */
 input[type='checkbox'],
@@ -2594,7 +2659,9 @@ input[type='color'] {
   background: transparent;
   text-align: left;
   font-size: 0.9rem;
-  transition: background 120ms, border-color 120ms;
+  transition:
+    background 120ms,
+    border-color 120ms;
 }
 
 .theme-option:hover {

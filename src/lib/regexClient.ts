@@ -23,12 +23,7 @@ export function disposeRegexWorker(): void {
   worker = null
 }
 
-export async function runRegexSafely(
-  pattern: string,
-  flags: string,
-  text: string,
-  replace = '',
-): Promise<RegexResult> {
+export async function runRegexSafely(pattern: string, flags: string, text: string, replace = ''): Promise<RegexResult> {
   if (!pattern) return runRegex(pattern, flags, text, replace)
   worker ??= spawn()
   const active = worker

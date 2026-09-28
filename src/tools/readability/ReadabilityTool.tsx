@@ -114,8 +114,8 @@ export default function ReadabilityTool() {
           ) : null}
 
           <p className="hint" style={{ marginTop: '1.2rem' }}>
-            Flesch scores are tuned to English prose. They read code, lists, and technical vocabulary as harder
-            than they are, so treat a low score on a reference document as expected rather than a problem.
+            Flesch scores are tuned to English prose. They read code, lists, and technical vocabulary as harder than
+            they are, so treat a low score on a reference document as expected rather than a problem.
           </p>
         </>
       )}

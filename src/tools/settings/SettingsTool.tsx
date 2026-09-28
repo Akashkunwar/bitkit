@@ -38,9 +38,7 @@ function AppearancePanel() {
   return (
     <div className="panel">
       <p className="field-label">Appearance</p>
-      <p className="hint">
-        Five themes. Stored on this device, and included in the backup below.
-      </p>
+      <p className="hint">Five themes. Stored on this device, and included in the backup below.</p>
 
       <div className="theme-grid" role="radiogroup" aria-label="Theme">
         {THEMES.map((entry) => (
@@ -70,8 +68,7 @@ function AppearancePanel() {
           <span className="theme-option-text">
             <span className="theme-name">Match system</span>
             <span className="theme-option-hint">
-              Follows the operating system and switches with it. Right now that is{' '}
-              {themeMeta(systemTheme).label}.
+              Follows the operating system and switches with it. Right now that is {themeMeta(systemTheme).label}.
             </span>
           </span>
         </button>
@@ -85,10 +82,7 @@ function AppearancePanel() {
           <div className="row">
             <label className="field" style={{ flex: 1, minWidth: '10rem' }}>
               <span>When the system is light</span>
-              <select
-                value={pair.light}
-                onChange={(e) => setPair({ ...pair, light: e.target.value as ThemeId })}
-              >
+              <select value={pair.light} onChange={(e) => setPair({ ...pair, light: e.target.value as ThemeId })}>
                 {lights.map((entry) => (
                   <option key={entry.id} value={entry.id}>
                     {entry.label}
@@ -98,10 +92,7 @@ function AppearancePanel() {
             </label>
             <label className="field" style={{ flex: 1, minWidth: '10rem' }}>
               <span>When the system is dark</span>
-              <select
-                value={pair.dark}
-                onChange={(e) => setPair({ ...pair, dark: e.target.value as ThemeId })}
-              >
+              <select value={pair.dark} onChange={(e) => setPair({ ...pair, dark: e.target.value as ThemeId })}>
                 {darks.map((entry) => (
                   <option key={entry.id} value={entry.id}>
                     {entry.label}
@@ -142,8 +133,7 @@ function AppearancePanel() {
 
       <div className="appearance-sample">
         <p>
-          The quick brown fox jumps over the lazy dog — this block renders at the current size,
-          spacing, and palette.
+          The quick brown fox jumps over the lazy dog — this block renders at the current size, spacing, and palette.
         </p>
         <div className="row">
           <button type="button" className="btn btn-primary">
@@ -249,8 +239,8 @@ export default function SettingsTool() {
         {!persisted ? (
           <>
             <p className="hint">
-              Browsers clear IndexedDB when disk runs low, and “clear site data” wipes it with no warning. Asking
-              for persistent storage makes that much less likely.
+              Browsers clear IndexedDB when disk runs low, and “clear site data” wipes it with no warning. Asking for
+              persistent storage makes that much less likely.
             </p>
             <div className="row">
               <button
@@ -277,8 +267,8 @@ export default function SettingsTool() {
       <div className="panel" style={{ marginTop: '1rem' }}>
         <p className="field-label">Back up</p>
         <p className="hint">
-          One JSON file with your notes, pinned tools, per-tool settings, and saved pipelines. Keep it somewhere
-          you would keep a document.
+          One JSON file with your notes, pinned tools, per-tool settings, and saved pipelines. Keep it somewhere you
+          would keep a document.
         </p>
         <div className="row">
           <button type="button" className="btn btn-primary" onClick={() => void exportNow()}>
@@ -330,8 +320,8 @@ export default function SettingsTool() {
             </div>
             {mode === 'replace' ? (
               <p className="status-bad">
-                Replace deletes every note and setting on this device first. Export the current state before you
-                do this if you are unsure.
+                Replace deletes every note and setting on this device first. Export the current state before you do this
+                if you are unsure.
               </p>
             ) : null}
             <div className="row">

@@ -11,8 +11,7 @@ export function parseByteLimit(input: string): number | undefined {
   if (!match) return undefined
   const value = Number(match[1])
   const unit = match[2] ?? 'b'
-  const factor =
-    unit === 'gb' ? 1024 ** 3 : unit === 'mb' ? 1024 ** 2 : unit === 'kb' ? 1024 : 1
+  const factor = unit === 'gb' ? 1024 ** 3 : unit === 'mb' ? 1024 ** 2 : unit === 'kb' ? 1024 : 1
   return Math.round(value * factor)
 }
 

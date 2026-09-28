@@ -1,18 +1,18 @@
 export type Emoji = { char: string; name: string; keywords: string; group: EmojiGroup }
 
 export type EmojiGroup =
-  | 'Smileys'
-  | 'People'
-  | 'Nature'
-  | 'Food'
-  | 'Travel'
-  | 'Activity'
-  | 'Objects'
-  | 'Symbols'
-  | 'Flags'
+  'Smileys' | 'People' | 'Nature' | 'Food' | 'Travel' | 'Activity' | 'Objects' | 'Symbols' | 'Flags'
 
 export const EMOJI_GROUPS: EmojiGroup[] = [
-  'Smileys', 'People', 'Nature', 'Food', 'Travel', 'Activity', 'Objects', 'Symbols', 'Flags',
+  'Smileys',
+  'People',
+  'Nature',
+  'Food',
+  'Travel',
+  'Activity',
+  'Objects',
+  'Symbols',
+  'Flags',
 ]
 
 /**

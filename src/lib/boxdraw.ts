@@ -16,11 +16,11 @@ type Glyphs = {
 }
 
 const STYLES: Record<Exclude<BoxStyle, 'markdown'>, Glyphs> = {
-  light:   { h: '─', v: '│', tl: '┌', tr: '┐', bl: '└', br: '┘', tj: '┬', bj: '┴', lj: '├', rj: '┤', x: '┼' },
-  heavy:   { h: '━', v: '┃', tl: '┏', tr: '┓', bl: '┗', br: '┛', tj: '┳', bj: '┻', lj: '┣', rj: '┫', x: '╋' },
-  double:  { h: '═', v: '║', tl: '╔', tr: '╗', bl: '╚', br: '╝', tj: '╦', bj: '╩', lj: '╠', rj: '╣', x: '╬' },
+  light: { h: '─', v: '│', tl: '┌', tr: '┐', bl: '└', br: '┘', tj: '┬', bj: '┴', lj: '├', rj: '┤', x: '┼' },
+  heavy: { h: '━', v: '┃', tl: '┏', tr: '┓', bl: '┗', br: '┛', tj: '┳', bj: '┻', lj: '┣', rj: '┫', x: '╋' },
+  double: { h: '═', v: '║', tl: '╔', tr: '╗', bl: '╚', br: '╝', tj: '╦', bj: '╩', lj: '╠', rj: '╣', x: '╬' },
   rounded: { h: '─', v: '│', tl: '╭', tr: '╮', bl: '╰', br: '╯', tj: '┬', bj: '┴', lj: '├', rj: '┤', x: '┼' },
-  ascii:   { h: '-', v: '|', tl: '+', tr: '+', bl: '+', br: '+', tj: '+', bj: '+', lj: '+', rj: '+', x: '+' },
+  ascii: { h: '-', v: '|', tl: '+', tr: '+', bl: '+', br: '+', tj: '+', bj: '+', lj: '+', rj: '+', x: '+' },
 }
 
 export const BOX_STYLES: { value: BoxStyle; label: string }[] = [
@@ -42,16 +42,17 @@ export function displayWidth(text: string): number {
   let width = 0
   for (const ch of text) {
     const code = ch.codePointAt(0) ?? 0
-    if (code >= 0x1100 && (
-      code <= 0x115f ||
-      (code >= 0x2e80 && code <= 0xa4cf) ||
-      (code >= 0xac00 && code <= 0xd7a3) ||
-      (code >= 0xf900 && code <= 0xfaff) ||
-      (code >= 0xfe30 && code <= 0xfe6f) ||
-      (code >= 0xff00 && code <= 0xff60) ||
-      (code >= 0xffe0 && code <= 0xffe6) ||
-      (code >= 0x1f300 && code <= 0x1f9ff)
-    )) {
+    if (
+      code >= 0x1100 &&
+      (code <= 0x115f ||
+        (code >= 0x2e80 && code <= 0xa4cf) ||
+        (code >= 0xac00 && code <= 0xd7a3) ||
+        (code >= 0xf900 && code <= 0xfaff) ||
+        (code >= 0xfe30 && code <= 0xfe6f) ||
+        (code >= 0xff00 && code <= 0xff60) ||
+        (code >= 0xffe0 && code <= 0xffe6) ||
+        (code >= 0x1f300 && code <= 0x1f9ff))
+    ) {
       width += 2
     } else {
       width += 1
@@ -93,8 +94,7 @@ export function drawTable(rows: string[][], options: TableOptions): string {
 
   if (options.style === 'markdown') {
     const rule = widths.map((w) => '-'.repeat(Math.max(3, w)))
-    const line = (cells: string[]) =>
-      `| ${cells.map((cell, i) => pad(cell, widths[i], options.align)).join(' | ')} |`
+    const line = (cells: string[]) => `| ${cells.map((cell, i) => pad(cell, widths[i], options.align)).join(' | ')} |`
     const body = normalised.map(line)
     if (options.header && body.length) body.splice(1, 0, `| ${rule.join(' | ')} |`)
     return body.join('\n')
@@ -103,8 +103,7 @@ export function drawTable(rows: string[][], options: TableOptions): string {
   const g = STYLES[options.style]
   const p = ' '.repeat(options.padding)
   const segment = (w: number) => g.h.repeat(w + options.padding * 2)
-  const border = (left: string, join: string, right: string) =>
-    left + widths.map(segment).join(join) + right
+  const border = (left: string, join: string, right: string) => left + widths.map(segment).join(join) + right
 
   const line = (cells: string[]) =>
     g.v + cells.map((cell, i) => p + pad(cell, widths[i], options.align) + p).join(g.v) + g.v

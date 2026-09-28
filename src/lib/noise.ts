@@ -62,7 +62,7 @@ export function fillNoise(channel: Float32Array, colour: NoiseColour): void {
     b5 = -0.7616 * b5 - white * 0.016898
     const pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362
     b6 = white * 0.115926
-    channel[i] = (pink * 0.11 * tilt + white * (1 - tilt) * 0.3)
+    channel[i] = pink * 0.11 * tilt + white * (1 - tilt) * 0.3
   }
 }
 
@@ -165,10 +165,13 @@ export function createNoiseEngine(): NoiseEngine {
       gain.gain.cancelScheduledValues(now)
       gain.gain.setValueAtTime(Math.max(0.0001, gain.gain.value), now)
       gain.gain.exponentialRampToValueAtTime(0.0001, now + Math.max(0.1, seconds))
-      window.setTimeout(() => {
-        stopSource()
-        running = false
-      }, seconds * 1000 + 120)
+      window.setTimeout(
+        () => {
+          stopSource()
+          running = false
+        },
+        seconds * 1000 + 120,
+      )
     },
     isRunning: () => running,
     close: () => {

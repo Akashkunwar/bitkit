@@ -119,13 +119,7 @@ export default function BoxDrawTool() {
         ) : (
           <label className="field">
             <span>Padding — {padding}</span>
-            <input
-              type="range"
-              min={0}
-              max={4}
-              value={padding}
-              onChange={(e) => setPadding(Number(e.target.value))}
-            />
+            <input type="range" min={0} max={4} value={padding} onChange={(e) => setPadding(Number(e.target.value))} />
           </label>
         )}
       </div>
@@ -181,8 +175,8 @@ export default function BoxDrawTool() {
       </div>
 
       <p className="hint" style={{ marginTop: '1rem' }}>
-        Columns are measured by display width, so CJK characters and emoji — which take two terminal cells —
-        still line up.
+        Columns are measured by display width, so CJK characters and emoji — which take two terminal cells — still line
+        up.
       </p>
 
       <SendTo from="boxdraw" text={output} />

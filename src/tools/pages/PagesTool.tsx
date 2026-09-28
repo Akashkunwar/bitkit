@@ -92,12 +92,20 @@ export default function PagesTool() {
               <code>
                 {index + 1}. {item.file.name} · {item.pages} page{item.pages === 1 ? '' : 's'}
               </code>
-              <button type="button" className="btn-ghost" onClick={() => setItems((prev) => prev.filter((p) => p.id !== item.id))}>
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={() => setItems((prev) => prev.filter((p) => p.id !== item.id))}
+              >
                 Remove
               </button>
             </div>
           ))}
-          {items.length ? <p className="hint">{items.length} file{items.length === 1 ? '' : 's'} · {totalPages} pages</p> : null}
+          {items.length ? (
+            <p className="hint">
+              {items.length} file{items.length === 1 ? '' : 's'} · {totalPages} pages
+            </p>
+          ) : null}
         </section>
         <aside className="panel">
           <label className="field">
@@ -105,18 +113,39 @@ export default function PagesTool() {
             <input value={range} onChange={(e) => setRange(e.target.value)} placeholder="1-3,5" />
           </label>
           <div className="row" style={{ marginBottom: '0.75rem' }}>
-            <button type="button" className="btn btn-primary" disabled={!items.length || busy} onClick={() => void run('merge')}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={!items.length || busy}
+              onClick={() => void run('merge')}
+            >
               Merge
             </button>
-            <button type="button" className="btn" disabled={items.length !== 1 || busy} onClick={() => void run('extract')}>
+            <button
+              type="button"
+              className="btn"
+              disabled={items.length !== 1 || busy}
+              onClick={() => void run('extract')}
+            >
               Extract
             </button>
-            <button type="button" className="btn" disabled={items.length !== 1 || busy} onClick={() => void run('split')}>
+            <button
+              type="button"
+              className="btn"
+              disabled={items.length !== 1 || busy}
+              onClick={() => void run('split')}
+            >
               Split to ZIP
             </button>
           </div>
           {error ? <p className="status-bad">{error}</p> : null}
-          {encryptNote ? <p className="banner warn">{encryptNote}</p> : <p className="hint">Encrypted PDFs are not decrypted here. Unlock them in a reader first if pages come out blank.</p>}
+          {encryptNote ? (
+            <p className="banner warn">{encryptNote}</p>
+          ) : (
+            <p className="hint">
+              Encrypted PDFs are not decrypted here. Unlock them in a reader first if pages come out blank.
+            </p>
+          )}
           <SendTo from="pages" files={merged ? [merged] : items.map((item) => item.file)} />
         </aside>
       </div>

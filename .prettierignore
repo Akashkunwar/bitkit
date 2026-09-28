@@ -6,3 +6,5 @@ test-results
 public
 package-lock.json
 .shots
+*.md
+wrangler.jsonc

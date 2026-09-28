@@ -31,9 +31,9 @@
   --shadow-pop: 0 12px 32px -12px rgba(16, 32, 31, 0.28);
   --radius: 14px;
   --radius-sm: 9px;
-  --font-ui: "Figtree Variable", "Figtree", system-ui, sans-serif;
-  --font-display: "Space Grotesk Variable", "Space Grotesk", var(--font-ui);
-  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --font-ui: 'Figtree Variable', 'Figtree', system-ui, sans-serif;
+  --font-display: 'Space Grotesk Variable', 'Space Grotesk', var(--font-ui);
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -48,7 +48,7 @@
   --text-scale: 1;
 }
 
-[data-theme="dark"] {
+[data-theme='dark'] {
   color-scheme: dark;
   --bg: #0d1413;
   --bg-elev: #131c1b;
@@ -70,7 +70,7 @@
 
 /* Warm, low-blue light. Readability, Notes, and Markdown are read for minutes
    at a time; this is the theme for that, not for scanning a tool grid. */
-[data-theme="paper"] {
+[data-theme='paper'] {
   color-scheme: light;
   --bg: #f6f1e7;
   --bg-elev: #fffdf8;
@@ -92,7 +92,7 @@
 
 /* True black. On an OLED phone the unlit pixels cost nothing to draw, which
    is worth more than the slight loss of depth from a near-black surface. */
-[data-theme="midnight"] {
+[data-theme='midnight'] {
   color-scheme: dark;
   --bg: #000000;
   --bg-elev: #0b0f0f;
@@ -115,7 +115,7 @@
 /* Everything carries its weight in the border, not in a tint: shadows and the
    dot grid are removed so shape is the only signal, and focus is 3px of ink
    rather than 2px of accent. Body text clears 11:1. */
-[data-theme="contrast"] {
+[data-theme='contrast'] {
   color-scheme: light;
   --bg: #ffffff;
   --bg-elev: #ffffff;
@@ -138,7 +138,7 @@
 
 /* Compact trims the vertical rhythm only. Shrinking type as well is how
    density controls end up unreadable, and text size is its own setting. */
-[data-density="compact"] {
+[data-density='compact'] {
   --space-3: 0.5rem;
   --space-4: 0.7rem;
   --space-5: 1rem;
@@ -156,13 +156,13 @@
 
 /* The OS preference is honoured above; this is the in-app override for people
    whose system setting does not match what they want from one site. */
-[data-motion="off"] {
+[data-motion='off'] {
   --motion: 0;
 }
 
-[data-motion="off"] *,
-[data-motion="off"] *::before,
-[data-motion="off"] *::after {
+[data-motion='off'] *,
+[data-motion='off'] *::before,
+[data-motion='off'] *::after {
   animation-duration: 0.001ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.001ms !important;

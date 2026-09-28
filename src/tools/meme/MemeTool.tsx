@@ -10,7 +10,11 @@ import { CAPPED_HINT } from '../../lib/image/safeCanvas'
 
 export default function MemeTool() {
   const [file, setFile] = useState<File | null>(null)
-  const [options, setOptions] = useState<MemeOptions>({ ...DEFAULT_MEME, top: 'When the build passes', bottom: 'on the first try' })
+  const [options, setOptions] = useState<MemeOptions>({
+    ...DEFAULT_MEME,
+    top: 'When the build passes',
+    bottom: 'on the first try',
+  })
   const [url, setUrl] = useState<string | null>(null)
   const [blob, setBlob] = useState<Blob | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -133,11 +137,7 @@ export default function MemeTool() {
 
           <div className="row" style={{ flexWrap: 'wrap' }}>
             <label className="row">
-              <input
-                type="checkbox"
-                checked={options.uppercase}
-                onChange={(e) => set('uppercase', e.target.checked)}
-              />
+              <input type="checkbox" checked={options.uppercase} onChange={(e) => set('uppercase', e.target.checked)} />
               Uppercase
             </label>
             <label className="field" style={{ minWidth: '8rem' }}>

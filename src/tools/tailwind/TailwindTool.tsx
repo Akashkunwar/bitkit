@@ -131,20 +131,36 @@ export default function TailwindTool() {
         <aside className="panel">
           <label className="field">
             <span>--font-sans</span>
-            <input className="text-input" value={extras.fontSans} onChange={(e) => setExtras({ ...extras, fontSans: e.target.value })} />
+            <input
+              className="text-input"
+              value={extras.fontSans}
+              onChange={(e) => setExtras({ ...extras, fontSans: e.target.value })}
+            />
           </label>
           <label className="field">
             <span>--font-mono</span>
-            <input className="text-input" value={extras.fontMono} onChange={(e) => setExtras({ ...extras, fontMono: e.target.value })} />
+            <input
+              className="text-input"
+              value={extras.fontMono}
+              onChange={(e) => setExtras({ ...extras, fontMono: e.target.value })}
+            />
           </label>
           <div className="row">
             <label className="field" style={{ flex: 1 }}>
               <span>--radius-lg</span>
-              <input className="text-input" value={extras.radius} onChange={(e) => setExtras({ ...extras, radius: e.target.value })} />
+              <input
+                className="text-input"
+                value={extras.radius}
+                onChange={(e) => setExtras({ ...extras, radius: e.target.value })}
+              />
             </label>
             <label className="field" style={{ flex: 1 }}>
               <span>--spacing</span>
-              <input className="text-input" value={extras.spacingUnit} onChange={(e) => setExtras({ ...extras, spacingUnit: e.target.value })} />
+              <input
+                className="text-input"
+                value={extras.spacingUnit}
+                onChange={(e) => setExtras({ ...extras, spacingUnit: e.target.value })}
+              />
             </label>
           </div>
           <label className="field">
@@ -164,8 +180,8 @@ export default function TailwindTool() {
             </button>
           </div>
           <p className="hint" style={{ marginTop: '1rem' }}>
-            Scales follow Tailwind&apos;s 50–950 convention: lightness ramps down each step while chroma peaks mid-scale, all
-            expressed in OKLCH for perceptually even steps.
+            Scales follow Tailwind&apos;s 50–950 convention: lightness ramps down each step while chroma peaks
+            mid-scale, all expressed in OKLCH for perceptually even steps.
           </p>
         </aside>
       </div>

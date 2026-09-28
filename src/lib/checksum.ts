@@ -13,11 +13,7 @@ export function toHex(buffer: ArrayBuffer): string {
 
 const CHUNK = 8 * 1024 * 1024
 
-export async function hashFile(
-  file: Blob,
-  algo: HashAlgo,
-  onProgress?: (fraction: number) => void,
-): Promise<string> {
+export async function hashFile(file: Blob, algo: HashAlgo, onProgress?: (fraction: number) => void): Promise<string> {
   if (file.size > HASH_MAX_BYTES) {
     throw new Error(
       `This file is larger than ${Math.round(HASH_MAX_BYTES / 1024 / 1024)} MB. Hashing it would likely crash this tab.`,
@@ -77,7 +73,10 @@ export function hashesMatch(actual: string, expected: string): boolean {
 
 /** Guesses which algorithm a pasted hex digest came from, by length. */
 export function algoForDigest(value: string): HashAlgo | null {
-  const hex = value.trim().replace(/^[a-z0-9-]+[:=]\s*/i, '').replace(/\s+/g, '')
+  const hex = value
+    .trim()
+    .replace(/^[a-z0-9-]+[:=]\s*/i, '')
+    .replace(/\s+/g, '')
   if (!/^[0-9a-fA-F]+$/.test(hex)) return null
   switch (hex.length) {
     case 8:

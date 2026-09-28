@@ -76,7 +76,12 @@ export default function RandomTool() {
       : mode === 'wheel' && winner
         ? winner
         : mode === 'dice'
-          ? [dice.length ? `Dice: ${dice.join(', ')} (total ${dice.reduce((a, b) => a + b, 0)})` : '', coins.length ? `Coins: ${coins.join(', ')}` : ''].filter(Boolean).join('\n')
+          ? [
+              dice.length ? `Dice: ${dice.join(', ')} (total ${dice.reduce((a, b) => a + b, 0)})` : '',
+              coins.length ? `Coins: ${coins.join(', ')}` : '',
+            ]
+              .filter(Boolean)
+              .join('\n')
           : numbers.join(', ')
 
   return (
@@ -187,7 +192,12 @@ export default function RandomTool() {
             >
               Split
             </button>
-            <button type="button" className="btn" disabled={!entries.length} onClick={() => setText(shuffle(entries).join('\n'))}>
+            <button
+              type="button"
+              className="btn"
+              disabled={!entries.length}
+              onClick={() => setText(shuffle(entries).join('\n'))}
+            >
               Just shuffle
             </button>
           </div>
@@ -196,7 +206,9 @@ export default function RandomTool() {
             <div className="grid-tools" style={{ marginTop: '1rem' }}>
               {teams.map((team, i) => (
                 <div key={i} className="panel">
-                  <p className="field-label">Team {i + 1} · {team.length}</p>
+                  <p className="field-label">
+                    Team {i + 1} · {team.length}
+                  </p>
                   <ul className="plain-list">
                     {team.map((member) => (
                       <li key={member}>{member}</li>
@@ -235,10 +247,24 @@ export default function RandomTool() {
             </label>
           </div>
           <div className="row" style={{ flexWrap: 'wrap' }}>
-            <button type="button" className="btn btn-primary" onClick={() => { setDice(rollDice(sides, diceCount)); setCoins([]) }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => {
+                setDice(rollDice(sides, diceCount))
+                setCoins([])
+              }}
+            >
               Roll
             </button>
-            <button type="button" className="btn" onClick={() => { setCoins(flipCoins(diceCount)); setDice([]) }}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setCoins(flipCoins(diceCount))
+                setDice([])
+              }}
+            >
               Flip {diceCount} coin{diceCount === 1 ? '' : 's'}
             </button>
           </div>
@@ -247,7 +273,9 @@ export default function RandomTool() {
             <>
               <div className="dice-row">
                 {dice.map((value, i) => (
-                  <span key={i} className="die">{value}</span>
+                  <span key={i} className="die">
+                    {value}
+                  </span>
                 ))}
               </div>
               <div className="pill-row">
@@ -261,7 +289,9 @@ export default function RandomTool() {
           {coins.length ? (
             <div className="dice-row">
               {coins.map((face, i) => (
-                <span key={i} className="die" data-wide="true">{face}</span>
+                <span key={i} className="die" data-wide="true">
+                  {face}
+                </span>
               ))}
             </div>
           ) : null}
@@ -273,11 +303,21 @@ export default function RandomTool() {
           <div className="split">
             <label className="field">
               <span>From</span>
-              <input className="text-input" type="number" value={min} onChange={(e) => setMin(Number(e.target.value) || 0)} />
+              <input
+                className="text-input"
+                type="number"
+                value={min}
+                onChange={(e) => setMin(Number(e.target.value) || 0)}
+              />
             </label>
             <label className="field">
               <span>To</span>
-              <input className="text-input" type="number" value={max} onChange={(e) => setMax(Number(e.target.value) || 0)} />
+              <input
+                className="text-input"
+                type="number"
+                value={max}
+                onChange={(e) => setMax(Number(e.target.value) || 0)}
+              />
             </label>
           </div>
           <div className="row" style={{ flexWrap: 'wrap' }}>
@@ -312,7 +352,9 @@ export default function RandomTool() {
           {numbers.length ? (
             <div className="dice-row">
               {numbers.map((n, i) => (
-                <span key={i} className="die" data-wide="true">{n}</span>
+                <span key={i} className="die" data-wide="true">
+                  {n}
+                </span>
               ))}
             </div>
           ) : null}

@@ -97,7 +97,8 @@ export function parsePair(raw: string | null): ThemePair {
   try {
     const parsed = JSON.parse(raw) as Partial<ThemePair>
     return {
-      light: isThemeId(parsed.light) && themeMeta(parsed.light).appearance === 'light' ? parsed.light : DEFAULT_PAIR.light,
+      light:
+        isThemeId(parsed.light) && themeMeta(parsed.light).appearance === 'light' ? parsed.light : DEFAULT_PAIR.light,
       dark: isThemeId(parsed.dark) && themeMeta(parsed.dark).appearance === 'dark' ? parsed.dark : DEFAULT_PAIR.dark,
     }
   } catch {

@@ -62,7 +62,10 @@ export default function FaviconTool() {
       title="Favicon set"
       lede="One square image becomes 16–512 PNG icons plus a favicon.ico. Cover-cropped in this tab."
     >
-      <DropZone onFiles={(files) => files[0] && load(files[0])} hint="Use a simple mark. Tiny sizes crush fine detail." />
+      <DropZone
+        onFiles={(files) => files[0] && load(files[0])}
+        hint="Use a simple mark. Tiny sizes crush fine detail."
+      />
       <div className="split">
         <section className="panel">
           {url ? (

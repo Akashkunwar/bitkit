@@ -29,11 +29,7 @@ export function handoffGeneration(): number {
 export function fileKind(file: File): HandoffKind | null {
   if (file.type.startsWith('image/')) return 'image'
   if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) return 'pdf'
-  if (
-    file.type.startsWith('text/') ||
-    file.type === 'application/json' ||
-    /\.(md|txt|json|csv)$/i.test(file.name)
-  ) {
+  if (file.type.startsWith('text/') || file.type === 'application/json' || /\.(md|txt|json|csv)$/i.test(file.name)) {
     return 'text'
   }
   return null
@@ -76,9 +72,7 @@ export function restoreHandoff(payload: HandoffPayload, gen: number): void {
 }
 
 export function filesFromBlobs(items: { blob: Blob; name: string }[]): File[] {
-  return items.map(
-    (item) => new File([item.blob], item.name, { type: item.blob.type || 'application/octet-stream' }),
-  )
+  return items.map((item) => new File([item.blob], item.name, { type: item.blob.type || 'application/octet-stream' }))
 }
 
 /** Office formats have no HandoffKind of their own, but they have one home. */

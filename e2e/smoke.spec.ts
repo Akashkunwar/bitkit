@@ -15,12 +15,7 @@ const registry = readFileSync(resolve(process.cwd(), 'src/registry.ts'), 'utf8')
 const ROUTES = [...registry.matchAll(/^\s{4}path: '([^']+)',$/gm)].map((m) => m[1])
 
 /** Noise that is expected and not a defect. */
-const IGNORED = [
-  /favicon/i,
-  /ServiceWorker/i,
-  /Download the React DevTools/i,
-  /\[vite\]/i,
-]
+const IGNORED = [/favicon/i, /ServiceWorker/i, /Download the React DevTools/i, /\[vite\]/i]
 
 function watchErrors(page: Page): string[] {
   const errors: string[] = []
@@ -64,9 +59,7 @@ for (const route of ROUTES) {
     await expect(page.locator('.crash')).toHaveCount(0)
 
     // Nothing may push the document into horizontal scroll.
-    const overflows = await page.evaluate(
-      () => document.documentElement.scrollWidth > window.innerWidth + 2,
-    )
+    const overflows = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2)
     expect(overflows, `${route} scrolls horizontally`).toBe(false)
 
     expect(errors, `${route} logged console errors`).toEqual([])

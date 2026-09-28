@@ -17,10 +17,7 @@ function walk(dir: string): string[] {
   })
 }
 
-const NETWORK_ALLOWLIST = new Set([
-  join(srcRoot, 'lib/ocr.ts'),
-  join(srcRoot, 'lib/cutout.ts'),
-])
+const NETWORK_ALLOWLIST = new Set([join(srcRoot, 'lib/ocr.ts'), join(srcRoot, 'lib/cutout.ts')])
 
 describe('privacy: processors do not upload', () => {
   it('lib modules never call fetch or XMLHttpRequest except allowlisted engines', () => {

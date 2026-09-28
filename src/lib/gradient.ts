@@ -63,7 +63,8 @@ export function gradientCss(state: GradientState): string {
   if (state.type === 'linear') return `linear-gradient(${state.angle}deg, ${stopList(state.stops)})`
   if (state.type === 'radial')
     return `radial-gradient(${state.radialShape} at ${state.radialPosition}, ${stopList(state.stops)})`
-  if (state.type === 'conic') return `conic-gradient(from ${state.angle}deg at ${state.radialPosition}, ${stopList(state.stops)})`
+  if (state.type === 'conic')
+    return `conic-gradient(from ${state.angle}deg at ${state.radialPosition}, ${stopList(state.stops)})`
   const layers = state.meshBlobs.map(
     (b) => `radial-gradient(circle at ${b.x}% ${b.y}%, ${b.color} 0%, transparent ${b.radius}%)`,
   )
@@ -79,7 +80,6 @@ export function gradientCssRule(state: GradientState): string {
   }
   return `background-image: ${gradientCss(state)};`
 }
-
 
 const POSITION_FRACTIONS: Record<string, number> = { left: 0, top: 0, center: 0.5, right: 1, bottom: 1 }
 
@@ -123,12 +123,21 @@ function sampleStops(stops: GradientStop[], t: number): string {
 function mixHex(a: string, b: string, t: number): string {
   const parse = (hex: string) => {
     const m = hex.replace('#', '')
-    const full = m.length === 3 ? m.split('').map((c) => c + c).join('') : m
+    const full =
+      m.length === 3
+        ? m
+            .split('')
+            .map((c) => c + c)
+            .join('')
+        : m
     return [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) || 0)
   }
   const [r1, g1, b1] = parse(a)
   const [r2, g2, b2] = parse(b)
-  const mix = (x: number, y: number) => Math.round(x + (y - x) * t).toString(16).padStart(2, '0')
+  const mix = (x: number, y: number) =>
+    Math.round(x + (y - x) * t)
+      .toString(16)
+      .padStart(2, '0')
   return `#${mix(r1, r2)}${mix(g1, g2)}${mix(b1, b2)}`
 }
 
@@ -166,9 +175,7 @@ function conicSvg(state: GradientState, width: number, height: number): string {
 
 export function gradientSvg(state: GradientState, width = 800, height = 600): string {
   const sorted = [...state.stops].sort((a, b) => a.position - b.position)
-  const stopsXml = sorted
-    .map((s) => `    <stop offset="${s.position}%" stop-color="${s.color}"/>`)
-    .join('\n')
+  const stopsXml = sorted.map((s) => `    <stop offset="${s.position}%" stop-color="${s.color}"/>`).join('\n')
 
   if (state.type === 'linear') {
     const rad = ((state.angle - 90) * Math.PI) / 180

@@ -21,14 +21,7 @@ export function offsetMinutes(date: Date, timeZone: string): number {
     second: '2-digit',
   }).formatToParts(date)
   const get = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? '0')
-  const asUtc = Date.UTC(
-    get('year'),
-    get('month') - 1,
-    get('day'),
-    get('hour') % 24,
-    get('minute'),
-    get('second'),
-  )
+  const asUtc = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour') % 24, get('minute'), get('second'))
   return Math.round((asUtc - date.getTime()) / 60_000)
 }
 

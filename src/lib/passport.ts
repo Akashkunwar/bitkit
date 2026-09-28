@@ -9,7 +9,10 @@ export type SheetLayout = {
 
 export const PASSPORT_PX = 600
 
-const SPECS: Record<SheetKind, { pageW: number; pageH: number; cols: number; rows: number; gap: number; margin: number }> = {
+const SPECS: Record<
+  SheetKind,
+  { pageW: number; pageH: number; cols: number; rows: number; gap: number; margin: number }
+> = {
   '4x6': { pageW: 1200, pageH: 1800, cols: 2, rows: 3, gap: 0, margin: 0 },
   a4: { pageW: 2480, pageH: 3508, cols: 3, rows: 4, gap: 40, margin: 80 },
 }

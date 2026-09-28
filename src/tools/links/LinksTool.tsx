@@ -42,7 +42,11 @@ export default function LinksTool() {
               : '',
           error: null,
         }
-      if (mode === 'vcard') return { value: name.trim() ? vcard({ name, org, title, phone: cardPhone, email, url: site }) : '', error: null }
+      if (mode === 'vcard')
+        return {
+          value: name.trim() ? vcard({ name, org, title, phone: cardPhone, email, url: site }) : '',
+          error: null,
+        }
       return {
         value: eventTitle.trim() && start ? icsEvent({ title: eventTitle, start, end, location, description }) : '',
         error: null,
@@ -50,7 +54,28 @@ export default function LinksTool() {
     } catch (err) {
       return { value: '', error: err instanceof Error ? err.message : 'Could not build that.' }
     }
-  }, [mode, phone, waText, url, source, medium, campaign, term, content, name, org, title, cardPhone, email, site, eventTitle, start, end, location, description])
+  }, [
+    mode,
+    phone,
+    waText,
+    url,
+    source,
+    medium,
+    campaign,
+    term,
+    content,
+    name,
+    org,
+    title,
+    cardPhone,
+    email,
+    site,
+    eventTitle,
+    start,
+    end,
+    location,
+    description,
+  ])
 
   const result = built.value
   const liveError = built.error
@@ -77,7 +102,12 @@ export default function LinksTool() {
             <>
               <label className="field">
                 <span>Phone with country code</span>
-                <input className="text-input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9198XXXXXXXX" />
+                <input
+                  className="text-input"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="9198XXXXXXXX"
+                />
               </label>
               <label className="field">
                 <span>Prefilled message</span>
@@ -89,7 +119,12 @@ export default function LinksTool() {
             <>
               <label className="field">
                 <span>Destination URL</span>
-                <input className="text-input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example.com/offer" />
+                <input
+                  className="text-input"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="https://example.com/offer"
+                />
               </label>
               <div className="row">
                 <label className="field" style={{ flex: 1 }}>
@@ -156,11 +191,21 @@ export default function LinksTool() {
               <div className="row">
                 <label className="field" style={{ flex: 1 }}>
                   <span>Starts</span>
-                  <input className="text-input" type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} />
+                  <input
+                    className="text-input"
+                    type="datetime-local"
+                    value={start}
+                    onChange={(e) => setStart(e.target.value)}
+                  />
                 </label>
                 <label className="field" style={{ flex: 1 }}>
                   <span>Ends</span>
-                  <input className="text-input" type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} />
+                  <input
+                    className="text-input"
+                    type="datetime-local"
+                    value={end}
+                    onChange={(e) => setEnd(e.target.value)}
+                  />
                 </label>
               </div>
               <label className="field">
@@ -169,7 +214,12 @@ export default function LinksTool() {
               </label>
               <label className="field">
                 <span>Notes</span>
-                <textarea className="code-area" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />
+                <textarea
+                  className="code-area"
+                  rows={4}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
               </label>
             </>
           ) : null}
@@ -177,11 +227,22 @@ export default function LinksTool() {
         <aside className="panel">
           <label className="field">
             <span>Result</span>
-            <textarea className="code-area" rows={10} readOnly value={result} placeholder="Fill the fields to build a result." />
+            <textarea
+              className="code-area"
+              rows={10}
+              readOnly
+              value={result}
+              placeholder="Fill the fields to build a result."
+            />
           </label>
           {liveError ? <p className="status-bad">{liveError}</p> : null}
           <div className="row">
-            <button type="button" className="btn btn-primary" disabled={!result} onClick={() => void copy(result, 'link')}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={!result}
+              onClick={() => void copy(result, 'link')}
+            >
               {copied === 'link' ? 'Copied ✓' : 'Copy'}
             </button>
             {mode === 'whatsapp' || mode === 'utm' ? (

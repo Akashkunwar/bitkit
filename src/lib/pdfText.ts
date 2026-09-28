@@ -161,8 +161,7 @@ function tableFromLines(lines: Line[], bodySize: number): DocBlock | null {
 
   // A first row of labels above rows that carry numbers is a header row.
   const header =
-    rows[0].every((cell) => !NUMERIC.test(cell)) &&
-    rows.slice(1).some((row) => row.some((cell) => NUMERIC.test(cell)))
+    rows[0].every((cell) => !NUMERIC.test(cell)) && rows.slice(1).some((row) => row.some((cell) => NUMERIC.test(cell)))
   return { kind: 'table', rows, header }
 }
 
