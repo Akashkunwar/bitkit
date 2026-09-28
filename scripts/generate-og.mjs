@@ -8,7 +8,7 @@
  * Run: npm run og
  */
 import { deflateSync } from 'node:zlib'
-import { writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -17,6 +17,11 @@ const PUBLIC = resolve(HERE, '..', 'public')
 
 const W = 1200
 const H = 630
+
+// Counted from the registry, like the sitemap, so the card cannot go stale.
+const registry = readFileSync(resolve(HERE, '..', 'src/registry.ts'), 'utf8')
+const TOOL_TOTAL = [...registry.matchAll(/^\s{4}path: '([^']+)',$/gm)].length
+if (!TOOL_TOTAL) throw new Error('No tool paths found in src/registry.ts — has its shape changed?')
 
 // --- PNG encoding (same approach as generate-icons.mjs) -------------------
 
@@ -67,11 +72,12 @@ function encodePng(width, height, rgb) {
 
 // --- Canvas ---------------------------------------------------------------
 
-const BG = [0x0d, 0x14, 0x13]
-const INK = [0xe8, 0xf0, 0xee]
-const MUTED = [0x8f, 0xa3, 0xa0]
-const ACCENT = [0x2f, 0xbf, 0xa4]
-const ACCENT_DEEP = [0x0a, 0x61, 0x54]
+// The Dark theme's tokens (src/styles/tokens.css).
+const BG = [0x0b, 0x0c, 0x10]
+const INK = [0xec, 0xee, 0xf4]
+const MUTED = [0x9a, 0xa1, 0xb2]
+const ACCENT = [0x8b, 0x86, 0xff]
+const ACCENT_DEEP = [0x63, 0x66, 0xf1]
 
 const buf = Buffer.alloc(W * H * 3)
 
@@ -222,7 +228,7 @@ drawText('BITKIT', mx, wordY, 15, INK)
 rect(mx, wordY + 15 * 7 + 34, 232, 6, ACCENT)
 
 const tagY = wordY + 15 * 7 + 72
-drawText('42 PRIVATE BROWSER TOOLS', mx, tagY, 5, INK)
+drawText(`${TOOL_TOTAL} PRIVATE BROWSER TOOLS`, mx, tagY, 5, INK)
 drawText('NOTHING LEAVES YOUR DEVICE', mx, tagY + 5 * 7 + 18, 5, MUTED)
 
 writeFileSync(resolve(PUBLIC, 'og.png'), encodePng(W, H, buf))

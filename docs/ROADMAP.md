@@ -36,10 +36,21 @@ The gap people actually hit: they arrive with a Word file, a stack of PDFs, or a
 
 Shipped: Office to PDF (`.docx`, `.pptx`, `.xlsx`, `.csv`, `.rtf`, `.html`, `.md`, `.txt`), PDF to Word & text (`.docx`, Markdown, plain text), watermark / page numbers / Bates numbering / running heads, and a ZIP archive tool. All four share one document model (`src/lib/docBlocks.ts`), so every reader gains every writer.
 
+## Phase 7 — Redesign and conversion depth (shipped)
+
+A new interface, and the conversions people ask for by name.
+
+- **Interface.** A new design system across five themes (indigo-violet brand, category-tinted icons), a full-height sidebar that can be hidden, a ⌘K command palette, a home page with smart file drop, and tool pages with breadcrumbs, pinning, and related tools.
+- **Documents.** Images to PDF rebuilt around a sortable grid with page setup; PDF to images; Word to image with an exact-look PDF; Markdown to PDF rebuilt around themed, paginated output.
+- **Images.** Image converter, Rotate & flip, Image collage, Screenshot frame.
+- **Calculators.** Scientific calculator, Unit converter (16 quantities), Finance calculators (EMI, SIP, compound interest, CAGR, discounts).
+- **More.** Barcode generator, Text to speech.
+- **Engineering.** ESLint and Prettier in CI, pdf.js on its legacy build for browser coverage, send-to targets derived from the registry, and a ranked token search.
+
 ## Non-goals (do not schedule)
 
 - SynthID / watermark / detector evasion
 - Cloud sync or accounts in the frontend-only product
 - System-wide clipboard daemon (would need a native app or extension)
 - PDF encryption or password removal — pdf-lib cannot encrypt, and cracking a password is not something this app should do
-- Pixel-faithful Word or PowerPoint rendering — that needs a layout engine, and half-doing it would misrepresent the output
+- Pixel-identical Word or PowerPoint rendering. Word to image renders a close layout through docx-preview and says plainly where it can differ (substituted fonts, pagination for files not saved by Word); matching Word exactly needs Word's own layout engine.

@@ -205,11 +205,7 @@ export default function SpeechTool() {
           </label>
           <label className="field">
             <span>Voice</span>
-            <select
-              value={voice?.voiceURI ?? ''}
-              onChange={(e) => update({ voice: e.target.value })}
-              disabled={!filtered.length}
-            >
+            <select value={voice?.voiceURI ?? ''} onChange={(e) => update({ voice: e.target.value })}>
               {filtered.length ? null : <option value="">No voices installed</option>}
               {filtered.map((v) => (
                 <option key={v.voiceURI} value={v.voiceURI}>

@@ -42,7 +42,7 @@ const BASE = `
 .doc-page li > p { margin: 0.2em 0; }
 .doc-page li > ul, .doc-page li > ol { margin: 0.2em 0; }
 .doc-page li:has(> .task-box) { list-style: none; margin-left: -1.3em; }
-.doc-page .task-box { display: inline-block; width: 1.2em; margin-right: 0.15em; color: #8c959f; }
+.doc-page .task-box { display: inline-block; width: 1.2em; margin-right: 0.15em; color: #57606a; }
 .doc-page .task-box.is-done { color: var(--doc-accent); }
 .doc-page [align="center"] { text-align: center; }
 .doc-page [align="right"] { text-align: right; }

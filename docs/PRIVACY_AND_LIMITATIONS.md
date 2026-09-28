@@ -51,17 +51,27 @@ Image Finishing is for legitimate visual edits (crop, color, resize, overlays) a
 
 ## PDF output
 
-Browser **Print → Save as PDF** is the high-quality, searchable path. Layout can differ slightly by browser.
+Markdown to PDF offers three routes, and says which is which in the tool:
 
-The one-click PDF download is a best-effort client-side render. It may not be pixel-identical to print output and may rasterize some elements.
+- **Download PDF (exact look)** renders the themed preview itself into page images, then wraps them in a PDF. Every script, emoji, table, and code block comes out exactly as previewed, with header, footer, and page numbers. The trade-off is that the text is part of the picture: it cannot be selected or searched, and files are larger.
+- **Print → Save as PDF** uses the same theme through `@page` rules, so text stays selectable and searchable. Running headers and "Page n of N" rely on CSS page margin boxes, which Chromium 131+ supports; other browsers print the pages without them. Layout can differ slightly by browser.
+- **Text engine** draws with the PDF standard fonts: the smallest file with selectable text, but Latin-1 only. The tool warns when a document uses characters it cannot draw.
 
-Custom webfonts in print depend on the browser having loaded the bundled fonts.
+Fonts in exported page images are system fonts on purpose — a web font does not load inside the SVG image the renderer draws through.
+
+## Word to image
+
+Word files are laid out in the tab by docx-preview, which reproduces fonts, colours, tables, images, headers, and footers, and follows the page breaks Word recorded when it last saved the file. It is not Word's layout engine: fonts the document names but this device lacks are substituted, and a file saved by another program (which records no page breaks) is paginated here instead — overflowing content is cut onto the next page at the nearest blank line of pixels, never through a line of text. The exact-look PDF from this tool has the same image-based trade-off as above.
+
+## Text to speech
+
+Speech uses the voices the browser provides. Most are on-device, but some browsers also list "online" voices that send the text to the browser vendor's speech service. BitKit labels those, defaults to an on-device voice, and never picks an online one on its own. Pages cannot record synthesised speech, so there is no audio download.
 
 ## Office file conversion
 
 Word, PowerPoint, and Excel files are ZIP containers of XML. BitKit reads that XML directly in the tab — there is no conversion service and nothing is uploaded — which also fixes the ceiling on fidelity.
 
-What comes across: text, heading levels, bold and italic, bulleted and numbered lists, tables, and explicit page breaks. What does not: images, text boxes, columns, headers and footers, footnotes, fonts, colour, and exact page geometry. A `.pptx` is read as a text outline, one heading and bullet list per slide — not a picture of the deck. Legacy `.doc`, `.ppt`, and `.xls` (the pre-2007 binary formats) are not readable; re-save them as the modern format first.
+What comes across: text, heading levels, bold and italic, bulleted and numbered lists, tables, and explicit page breaks. What does not: images, text boxes, columns, headers and footers, footnotes, fonts, colour, and exact page geometry. When the look matters more than selectable text, **Word to image** renders the page layout instead (see *Word to image* above). A `.pptx` is read as a text outline, one heading and bullet list per slide — not a picture of the deck. Legacy `.doc`, `.ppt`, and `.xls` (the pre-2007 binary formats) are not readable; re-save them as the modern format first.
 
 The one-click PDF export draws text with the PDF standard fonts, which are Latin-1 only. Devanagari, CJK, and similar scripts cannot be drawn that way, so the tool detects them and points at **Print → Save as PDF**, where the browser embeds its own fonts.
 
@@ -76,6 +86,10 @@ A scanned PDF has no text layer at all. The tool detects that and sends you to O
 The watermark, page numbers, and running heads are drawn over the existing page content. The original text stays selectable, and the marks can be removed by anyone with a PDF editor. Treat a watermark as a label, not as a security control.
 
 BitKit cannot encrypt a PDF or remove an existing password — it has no way to crack one, and it does not claim to. Encrypted files are flagged so you know why the output may look wrong.
+
+## PDF rendering engine
+
+Every tool that draws PDF pages (PDF editor, PDF to images, PDF shrink, PDF to Word) loads pdf.js's *legacy* build. The modern build calls very new JavaScript built-ins and failed to render pages in current Safari, Firefox ESR, and slightly older Chromium; the legacy build ships the polyfills.
 
 ## ZIP archives
 

@@ -5,7 +5,7 @@ import { createContext, useContext } from 'react'
  *
  * Scope: the shell, home page, and every tool's title and blurb — everything
  * you need to find your way around. Tool interiors stay in English for now;
- * translating 65 tools' worth of copy is a separate project, and shipping a
+ * translating 76 tools' worth of copy is a separate project, and shipping a
  * half-translated tool reads worse than an untranslated one. The language
  * switcher says so rather than pretending otherwise.
  */

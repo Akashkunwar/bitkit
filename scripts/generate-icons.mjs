@@ -85,8 +85,21 @@ function mix(a, b, t) {
   ]
 }
 
-const GRADIENT_FROM = [0x12, 0xa5, 0x8e]
-const GRADIENT_TO = [0x0a, 0x6e, 0x60]
+// Matches the three stops in public/favicon.svg and src/app/Brand.tsx.
+const GRADIENT_STOPS = [
+  [0, [0x63, 0x66, 0xf1]],
+  [0.55, [0x8b, 0x5c, 0xf6]],
+  [1, [0xd9, 0x46, 0xef]],
+]
+
+function gradientAt(t) {
+  for (let i = 1; i < GRADIENT_STOPS.length; i += 1) {
+    const [end, to] = GRADIENT_STOPS[i]
+    const [start, from] = GRADIENT_STOPS[i - 1]
+    if (t <= end) return mix(from, to, (t - start) / (end - start))
+  }
+  return GRADIENT_STOPS[GRADIENT_STOPS.length - 1][1]
+}
 const MARK = [0xff, 0xff, 0xff]
 
 /**
@@ -157,7 +170,7 @@ function drawIcon(size, { inset = 0, bleed = false } = {}) {
         continue
       }
       const t = gradientAccum / bgCoverage
-      const bg = mix(GRADIENT_FROM, GRADIENT_TO, t)
+      const bg = gradientAt(t)
       const markRatio = markCoverage / bgCoverage
       const colour = mix(bg, MARK, markRatio)
       rgba[i] = colour[0]

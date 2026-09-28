@@ -1501,7 +1501,7 @@ audio.media-preview {
 
 .field .number-slider-input input {
   width: 9ch;
-  min-height: 0;
+  min-height: 1.75rem;
   padding: 0;
   border: 0;
   background: transparent;

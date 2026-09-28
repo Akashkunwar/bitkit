@@ -15,23 +15,34 @@ No remote runtime assets. Fonts are bundled. There is no analytics SDK.
 
 ```
 src/
-  app/                 # shell, router, theme, command palette
-  components/          # shared UI (drop zone, tool layout, download)
-  lib/                 # processors, storage, clipboard, download, sanitize
-  registry.ts          # tool metadata, routes, search terms, shortcuts
-  styles/              # design tokens and global CSS
+  app/                 # shell: sidebar, top bar, command palette, home, theme, keys
+  components/          # shared UI: ToolLayout, DropZone, Segmented, SortableGrid,
+                       #   NumberSlider, ToolIcon, SendTo, PdfPassword, …
+  lib/                 # processors, storage, clipboard, download, sanitize — no JSX
+  registry.ts          # tool metadata, icons, routes, search terms, shortcuts
+  styles/              # tokens → base → layout → components → home → tools → print
   tools/               # one folder per tool (lazy-loaded)
   workers/             # image encode / compress worker
 ```
+
+### Shared building blocks
+
+- **`ToolLayout`** looks the tool up by route, so a tool passes only its title and lede and gets the breadcrumb, icon, pin, copy-link, and related tools.
+- **`useImageList`** owns a list of images with rotated thumbnails, sort, reorder, and object-URL cleanup. Images to PDF, Rotate & flip, the converter, and the collage all use it; **`SortableGrid`** renders it with pointer, keyboard, and position-menu reordering.
+- **`usePins`** is one store for pinned tools so the sidebar, home, and tool header always agree. **`usePasteFiles`** is the one window paste listener tools share.
+- **`lib/pdfjsRuntime.ts`** is the only place pdf.js is imported; it loads the legacy build and sets the worker once.
+- **`lib/domRaster.ts`** draws laid-out HTML into page images via SVG `foreignObject` and cuts tall renders into pages on blank rows. Word to image and Markdown to PDF both use it through **`lib/docRender.ts`**; **`lib/docThemes.ts`** holds the document stylesheets.
+- Pure maths lives beside the UI it serves and is unit-tested: `pageLayout`, `collage`, `frame`, `image/transform`, `calc`, `unitConvert`, `finance`, `barcode`.
 
 ## Tool registry
 
 `src/registry.ts` is the single catalog. Each entry declares:
 
-- `id`, `path`, `title`, `blurb`, `category`, `keywords`, `shortcut`
+- `id`, `path`, `title`, `blurb`, `category`, `icon`, `keywords`, `shortcut`
+- `accepts` (what Send-to can hand it) and `isNew`
 - lazy `component` import
 
-The dashboard, command bar, recents, and favorites all read this registry. Adding a tool means adding a registry row and a `src/tools/<id>` module.
+The home page, sidebar, command palette, Send-to targets, chords, sitemap, and OG card all read this registry. Adding a tool means adding a registry row and a `src/tools/<id>` module, then `npm run assets`.
 
 ## Data flow
 
@@ -70,10 +81,10 @@ Shared algorithm lives in `src/lib/image/compress.ts` so tests can run without a
 
 ### Markdown
 
-1. Parse with `marked`.
-2. Sanitize with `DOMPurify` (no scripts, no remote form actions).
-3. Preview in a print-styled article.
-4. Export: `window.print()` first; `jspdf` HTML renderer as a one-click fallback.
+1. Parse with `marked`; task checkboxes become glyphs and headings get ids.
+2. Sanitize with `DOMPurify` (no scripts, no inputs, no remote form actions).
+3. Preview on a to-scale page in the chosen document theme.
+4. Export: exact-look PDF (rendered pages), `window.print()` with `@page` rules for selectable text, or the `jspdf` text engine.
 
 ### Notes
 
@@ -96,6 +107,10 @@ Dexie database `kit-notes` with `id`, `title`, `body`, `pinned`, `updatedAt`. De
 - Service worker caches only same-origin app assets.
 - Optional network for first-load app shell only.
 - A zero-network test asserts processors do not call `fetch` / `XMLHttpRequest`.
+
+## Quality gates
+
+CI runs, in order: typecheck, ESLint (hook rules, type-only imports, no stray `any`), Prettier, unit tests, build, bundle budget, generated-assets freshness, and the Playwright suite — every route mounted, keyboard flows, and an accessibility audit of contrast (all five themes, including gradient text), names, target size, and heading order.
 
 ## Lazy loading
 

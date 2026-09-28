@@ -26,6 +26,14 @@ const SAMPLE = [
   '/compress',
   '/json',
   '/gradient',
+  // New in the redesign: the busiest layouts of each kind.
+  '/calculator',
+  '/unit-converter',
+  '/finance',
+  '/markdown',
+  '/image-pdf',
+  '/barcode',
+  '/text-to-speech',
 ]
 
 type Issue = { rule: string; detail: string }
@@ -300,7 +308,10 @@ test('the cheatsheet traps and restores focus', async ({ page }) => {
 
 test('every registered route is reachable from the rail or search', async ({ page }) => {
   await page.goto('/')
-  const searchable = await page.evaluate(() => document.querySelectorAll('.tool-card').length)
-  // Home lists every tool when nothing is filtered.
-  expect(searchable).toBe(ROUTES.length)
+  // Home links every tool when nothing is filtered. Some appear twice (pinned,
+  // recent, new), so count distinct destinations rather than cards.
+  const linked = await page.evaluate(
+    () => new Set([...document.querySelectorAll('.tool-card-link')].map((a) => a.getAttribute('href'))).size,
+  )
+  expect(linked).toBe(ROUTES.length)
 })

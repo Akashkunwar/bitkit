@@ -4,7 +4,7 @@
 
 A privacy-first, frontend-only toolbox that consolidates everyday image, document, note, and text tasks into one minimal site. Every operation runs locally in the browser. There are no accounts, uploads, tracking, or backend services in the initial product.
 
-The product name in the UI is **BitKit**. Files stay on the device. After first load the app works offline. The five tools below were the original MVP; the live registry now has **65** tools built on the same local-only contract.
+The product name in the UI is **BitKit**. Files stay on the device. After first load the app works offline. The five tools below were the original MVP; the live registry now has **76** tools built on the same local-only contract.
 
 ## Personas
 
