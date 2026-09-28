@@ -1,6 +1,10 @@
 /** Ramps run from darkest to lightest so the mapping is a straight lookup. */
 export const RAMPS: { id: string; label: string; chars: string }[] = [
-  { id: 'detailed', label: 'Detailed (70)', chars: "$@B%8&WM#*oahkbdpwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. " },
+  {
+    id: 'detailed',
+    label: 'Detailed (70)',
+    chars: '$@B%8&WM#*oahkbdpwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,"^`\'. ',
+  },
   { id: 'standard', label: 'Standard (10)', chars: '@%#*+=-:. ' },
   { id: 'blocks', label: 'Blocks', chars: '█▓▒░ ' },
   { id: 'binary', label: 'Binary', chars: '10 ' },
@@ -46,8 +50,7 @@ export function imageDataToAscii(image: ImageData, options: AsciiOptions): Ascii
       const i = (y * image.width + x) * 4
       const alpha = image.data[i + 3] / 255
       // Rec. 601 luma, composited over white so transparency reads as blank.
-      const luma =
-        0.299 * image.data[i] + 0.587 * image.data[i + 1] + 0.114 * image.data[i + 2]
+      const luma = 0.299 * image.data[i] + 0.587 * image.data[i + 1] + 0.114 * image.data[i + 2]
       const value = adjust(luma * alpha + 255 * (1 - alpha), options.contrast, options.brightness)
       const t = options.invert ? 1 - value / 255 : value / 255
       const index = Math.min(chars.length - 1, Math.max(0, Math.round(t * (chars.length - 1))))
@@ -59,13 +62,9 @@ export function imageDataToAscii(image: ImageData, options: AsciiOptions): Ascii
 }
 
 /** Target pixel grid for a given source size, corrected for cell shape. */
-export function gridFor(
-  srcWidth: number,
-  srcHeight: number,
-  options: AsciiOptions,
-): { width: number; height: number } {
+export function gridFor(srcWidth: number, srcHeight: number, options: AsciiOptions): { width: number; height: number } {
   const width = Math.max(8, Math.min(400, Math.round(options.columns)))
-  const height = Math.max(1, Math.round((srcHeight / srcWidth) * width / options.cellAspect))
+  const height = Math.max(1, Math.round(((srcHeight / srcWidth) * width) / options.cellAspect))
   return { width, height }
 }
 

@@ -138,7 +138,10 @@ export default function MdTableTool() {
 
   const addRow = () => setTable((c) => ({ ...c, rows: [...c.rows, c.headers.map(() => '')] }))
   const addColumn = () => {
-    setTable((c) => ({ headers: [...c.headers, `Column ${c.headers.length + 1}`], rows: c.rows.map((r) => [...r, '']) }))
+    setTable((c) => ({
+      headers: [...c.headers, `Column ${c.headers.length + 1}`],
+      rows: c.rows.map((r) => [...r, '']),
+    }))
     setAligns((a) => [...a, 'left'])
   }
   const removeRow = (r: number) => {

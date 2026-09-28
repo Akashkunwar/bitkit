@@ -129,13 +129,7 @@ export default function CarouselTool() {
             </label>
             <label className="field">
               <span>Panels — {panels}</span>
-              <input
-                type="range"
-                min={2}
-                max={10}
-                value={panels}
-                onChange={(e) => setPanels(Number(e.target.value))}
-              />
+              <input type="range" min={2} max={10} value={panels} onChange={(e) => setPanels(Number(e.target.value))} />
             </label>
           </div>
 
@@ -193,9 +187,7 @@ export default function CarouselTool() {
                   <button
                     type="button"
                     className="btn-ghost"
-                    onClick={() =>
-                      triggerDownload(panel.blob, `panel-${String(panel.index + 1).padStart(2, '0')}.jpg`)
-                    }
+                    onClick={() => triggerDownload(panel.blob, `panel-${String(panel.index + 1).padStart(2, '0')}.jpg`)}
                   >
                     Save
                   </button>

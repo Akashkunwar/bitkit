@@ -28,9 +28,7 @@ const KINDS: { value: ChartKind; label: string }[] = [
 ]
 
 function firstNumericColumns(table: Table): number[] {
-  return table.headers
-    .map((_, i) => i)
-    .filter((i) => columnType(table.rows, i) === 'number')
+  return table.headers.map((_, i) => i).filter((i) => columnType(table.rows, i) === 'number')
 }
 
 export default function ChartTool() {
@@ -38,7 +36,9 @@ export default function ChartTool() {
   const [table, setTable] = useState<Table>(() => tableFromCsv(SAMPLE))
   const [kind, setKind] = useState<ChartKind>('bar')
   const [labelColumn, setLabelColumn] = useState(0)
-  const [valueColumns, setValueColumns] = useState<number[]>(() => firstNumericColumns(tableFromCsv(SAMPLE)).slice(0, 1))
+  const [valueColumns, setValueColumns] = useState<number[]>(() =>
+    firstNumericColumns(tableFromCsv(SAMPLE)).slice(0, 1),
+  )
   const [title, setTitle] = useState('Signups by month')
   const [showGrid, setShowGrid] = useState(true)
   const [showLegend, setShowLegend] = useState(true)
@@ -114,10 +114,7 @@ export default function ChartTool() {
   }
 
   return (
-    <ToolLayout
-      title="Chart maker"
-      lede="Turn a CSV into a chart and export it as SVG or PNG. Nothing is uploaded."
-    >
+    <ToolLayout title="Chart maker" lede="Turn a CSV into a chart and export it as SVG or PNG. Nothing is uploaded.">
       <DropZone
         accept=".csv,.tsv,.json,.xlsx,text/csv"
         label="Drop a CSV, TSV, JSON, or .xlsx file — or edit the sample below."
@@ -155,11 +152,7 @@ export default function ChartTool() {
       <div className="split">
         <label className="field">
           <span>Labels from</span>
-          <select
-            className="text-input"
-            value={labelColumn}
-            onChange={(e) => setLabelColumn(Number(e.target.value))}
-          >
+          <select className="text-input" value={labelColumn} onChange={(e) => setLabelColumn(Number(e.target.value))}>
             {table.headers.map((h, i) => (
               <option key={h} value={i}>
                 {h}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { X } from 'lucide-react'
 import { CATEGORIES, tools } from '../registry'
 import { chordsByTool, LEADER } from '../lib/chords'
 
@@ -6,8 +7,9 @@ type Props = { open: boolean; onClose: () => void }
 
 const GLOBAL: { keys: string; what: string }[] = [
   { keys: '?', what: 'Open this cheatsheet' },
-  { keys: '⌘K  /  Ctrl K', what: 'Search tools' },
-  { keys: '/', what: 'Jump to search' },
+  { keys: '⌘K  /  Ctrl K', what: 'Search tools and run actions' },
+  { keys: '/', what: 'Open the command palette' },
+  { keys: '[', what: 'Show or hide the sidebar' },
   { keys: 'Esc', what: 'Close search, menu, or this panel' },
   { keys: `${LEADER.toUpperCase()} H`, what: 'Home' },
   { keys: 'Ctrl Z', what: 'Undo the last destructive action' },
@@ -67,10 +69,7 @@ export function Cheatsheet({ open, onClose }: Props) {
 
   if (!open) return null
 
-  const keycaps = (chord: string) =>
-    chord.split(' ').map((key, i) => (
-      <kbd key={`${key}-${i}`}>{key}</kbd>
-    ))
+  const keycaps = (chord: string) => chord.split(' ').map((key, i) => <kbd key={`${key}-${i}`}>{key}</kbd>)
 
   return (
     <div className="sheet-backdrop" onClick={onClose}>
@@ -85,7 +84,7 @@ export function Cheatsheet({ open, onClose }: Props) {
         <header className="sheet-head">
           <h2 id="cheatsheet-title">Keyboard shortcuts</h2>
           <button ref={closeRef} type="button" className="icon-btn" aria-label="Close" onClick={onClose}>
-            ✕
+            <X size={18} aria-hidden="true" />
           </button>
         </header>
 

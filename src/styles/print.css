@@ -1,0 +1,81 @@
+/* ---------- Print ----------
+ *
+ * Tools that print (Markdown, Office, Invoice) mark their output .print-root
+ * and everything else .no-print; the shell chrome is hidden outright.
+ */
+
+@media print {
+  html,
+  body {
+    background: #fff !important;
+    color: #000;
+  }
+
+  .shell {
+    display: block;
+    background: none;
+  }
+
+  .no-print,
+  .sidebar,
+  .topbar,
+  .scrim,
+  .related,
+  .status-stack,
+  .chord-hint,
+  .undo-toast {
+    display: none !important;
+  }
+
+  .main {
+    padding: 0;
+    max-width: none;
+  }
+
+  .tool-layout {
+    display: block;
+  }
+
+  /* Documents print at their own size, not the on-screen zoomed preview. */
+  .md-workbench {
+    display: block;
+  }
+
+  .md-workbench .md-preview-pane {
+    display: block !important;
+    height: auto;
+    overflow: visible;
+    background: none;
+  }
+
+  .md-paper-wrap {
+    zoom: 1 !important;
+    padding: 0;
+  }
+
+  .md-paper .page-break {
+    margin: 0;
+    border: 0;
+  }
+
+  .md-paper .page-break::after {
+    display: none;
+  }
+
+  .doc-page.md-paper {
+    width: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    box-shadow: none;
+  }
+
+  .print-root {
+    position: static;
+    box-shadow: none !important;
+    border: 0 !important;
+    border-radius: 0;
+    padding: 0;
+    background: #fff;
+    color: #000;
+  }
+}

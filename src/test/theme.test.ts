@@ -18,10 +18,9 @@ const tokens = readFileSync(resolve(process.cwd(), 'src/styles/tokens.css'), 'ut
 
 /** The `--bg` a theme block declares, so the metadata cannot drift from the CSS. */
 function declaredBackground(id: string): string {
-  const block =
-    id === 'light'
-      ? tokens.slice(tokens.indexOf(':root {'), tokens.indexOf('[data-theme="dark"]'))
-      : tokens.slice(tokens.indexOf(`[data-theme="${id}"]`))
+  // Quote style is the formatter's choice, so match either.
+  const selector = (theme: string) => tokens.search(new RegExp(`\\[data-theme=["']${theme}["']\\]`))
+  const block = id === 'light' ? tokens.slice(tokens.indexOf(':root {'), selector('dark')) : tokens.slice(selector(id))
   return block.match(/--bg:\s*(#[0-9a-f]{3,8})/i)?.[1].toLowerCase() ?? ''
 }
 

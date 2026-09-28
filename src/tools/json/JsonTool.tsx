@@ -90,8 +90,7 @@ export default function JsonTool() {
             </p>
           ) : validation.error ? (
             <p className="status-bad">
-              Invalid JSON — line {validation.error.line}, column {validation.error.column}:{' '}
-              {validation.error.message}
+              Invalid JSON — line {validation.error.line}, column {validation.error.column}: {validation.error.message}
             </p>
           ) : (
             <p className="status-ok">

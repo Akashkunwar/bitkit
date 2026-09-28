@@ -155,7 +155,10 @@ export function columnStats(table: Table, index: number): ColumnStats {
     unique: new Set(filled).size,
   }
   if (type === 'number') {
-    const nums = filled.map(toNumber).filter((n): n is number => n != null).sort((a, b) => a - b)
+    const nums = filled
+      .map(toNumber)
+      .filter((n): n is number => n != null)
+      .sort((a, b) => a - b)
     if (nums.length) {
       const sum = nums.reduce((a, b) => a + b, 0)
       const mid = Math.floor(nums.length / 2)
@@ -192,9 +195,7 @@ export function filterTable(table: Table, query: string, column: number | null):
   const q = query.trim().toLowerCase()
   if (!q) return table
   const rows = table.rows.filter((row) =>
-    column == null
-      ? row.some((cell) => cell.toLowerCase().includes(q))
-      : (row[column] ?? '').toLowerCase().includes(q),
+    column == null ? row.some((cell) => cell.toLowerCase().includes(q)) : (row[column] ?? '').toLowerCase().includes(q),
   )
   return { ...table, rows }
 }
@@ -235,7 +236,7 @@ export function renameColumn(table: Table, index: number, name: string): Table {
 export function moveColumn(table: Table, index: number, delta: number): Table {
   const to = index + delta
   if (to < 0 || to >= table.headers.length) return table
-  const swap = <T,>(list: T[]) => {
+  const swap = <T>(list: T[]) => {
     const out = [...list]
     const [item] = out.splice(index, 1)
     out.splice(to, 0, item)

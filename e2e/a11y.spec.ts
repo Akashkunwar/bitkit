@@ -15,7 +15,26 @@ const registry = readFileSync(resolve(process.cwd(), 'src/registry.ts'), 'utf8')
 const ROUTES = [...registry.matchAll(/^\s{4}path: '([^']+)',$/gm)].map((m) => m[1])
 
 // A representative slice: one from each category plus the shell-heavy pages.
-const SAMPLE = ['/', '/settings', '/pipelines', '/table', '/health', '/emoji', '/counter', '/compress', '/json', '/gradient']
+const SAMPLE = [
+  '/',
+  '/settings',
+  '/pipelines',
+  '/table',
+  '/health',
+  '/emoji',
+  '/counter',
+  '/compress',
+  '/json',
+  '/gradient',
+  // New in the redesign: the busiest layouts of each kind.
+  '/calculator',
+  '/unit-converter',
+  '/finance',
+  '/markdown',
+  '/image-pdf',
+  '/barcode',
+  '/text-to-speech',
+]
 
 type Issue = { rule: string; detail: string }
 
@@ -29,8 +48,7 @@ async function audit(page: Page): Promise<Issue[]> {
       const s = c / 255
       return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
     }
-    const luminance = ([r, g, b]: number[]) =>
-      0.2126 * toChannel(r) + 0.7152 * toChannel(g) + 0.0722 * toChannel(b)
+    const luminance = ([r, g, b]: number[]) => 0.2126 * toChannel(r) + 0.7152 * toChannel(g) + 0.0722 * toChannel(b)
     /**
      * Resolves a computed colour to [r, g, b, a] in 0-255 / 0-1.
      *
@@ -51,7 +69,10 @@ async function audit(page: Page): Promise<Issue[]> {
       }
       const rgb = value.match(/rgba?\(([^)]+)\)/)
       if (rgb) {
-        const parts = rgb[1].split(/[\s,/]+/).filter(Boolean).map(Number)
+        const parts = rgb[1]
+          .split(/[\s,/]+/)
+          .filter(Boolean)
+          .map(Number)
         return [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0, parts[3] === undefined ? 1 : parts[3]]
       }
       return [0, 0, 0, 1]
@@ -59,12 +80,7 @@ async function audit(page: Page): Promise<Issue[]> {
 
     const over = (fg: number[], bg: number[]): number[] => {
       const a = fg[3]
-      return [
-        fg[0] * a + bg[0] * (1 - a),
-        fg[1] * a + bg[1] * (1 - a),
-        fg[2] * a + bg[2] * (1 - a),
-        1,
-      ]
+      return [fg[0] * a + bg[0] * (1 - a), fg[1] * a + bg[1] * (1 - a), fg[2] * a + bg[2] * (1 - a), 1]
     }
 
     /** Walks up compositing every translucent layer onto the one behind it. */
@@ -98,12 +114,23 @@ async function audit(page: Page): Promise<Issue[]> {
       const size = parseFloat(style.fontSize)
       const large = size >= 24 || (size >= 18.66 && Number(style.fontWeight) >= 700)
       const background = backgroundOf(el)
-      const ratio = contrast(over(parse(style.color), background), background)
+      const colour = parse(style.color)
+      // Gradient text is painted by its background and clipped to the glyphs,
+      // with a transparent `color`. Measure every gradient stop instead: the
+      // weakest one is what a reader sees on some part of the word.
+      const clip = style.getPropertyValue('-webkit-background-clip') || style.backgroundClip
+      const stops =
+        clip === 'text' && colour[3] === 0
+          ? [...style.backgroundImage.matchAll(/color\(srgb[^)]+\)|rgba?\([^)]+\)/g)].map((m) => parse(m[0]))
+          : []
+      const ratio = stops.length
+        ? Math.min(...stops.map((stop) => contrast(over(stop, background), background)))
+        : contrast(over(colour, background), background)
       const required = large ? 3 : 4.5
       if (ratio < required) {
         issues.push({
           rule: 'contrast',
-          detail: `${ratio.toFixed(2)}:1 needs ${required} — ${el.tagName}.${String(el.className) || "(no class)"} "${el.textContent.trim().slice(0, 24)}"`,
+          detail: `${ratio.toFixed(2)}:1 needs ${required} — ${el.tagName}.${String(el.className) || '(no class)'} "${el.textContent.trim().slice(0, 24)}"`,
         })
       }
     })
@@ -119,7 +146,8 @@ async function audit(page: Page): Promise<Issue[]> {
         node.getAttribute('placeholder') ||
         ''
       ).trim()
-      if (!name) issues.push({ rule: 'name', detail: `${node.tagName}[${node.type ?? ''}].${node.className || '(no class)'}` })
+      if (!name)
+        issues.push({ rule: 'name', detail: `${node.tagName}[${node.type ?? ''}].${node.className || '(no class)'}` })
     })
 
     // 3. Target size, WCAG 2.2 AA is 24x24. Range inputs are exempt, and so
@@ -142,11 +170,10 @@ async function audit(page: Page): Promise<Issue[]> {
     })
 
     // 4. Heading order must not skip a level.
-    const levels = [...document.querySelectorAll('main h1, main h2, main h3, main h4')].map((h) =>
-      Number(h.tagName[1]),
-    )
+    const levels = [...document.querySelectorAll('main h1, main h2, main h3, main h4')].map((h) => Number(h.tagName[1]))
     for (let i = 1; i < levels.length; i += 1) {
-      if (levels[i] - levels[i - 1] > 1) issues.push({ rule: 'heading', detail: `h${levels[i - 1]} then h${levels[i]}` })
+      if (levels[i] - levels[i - 1] > 1)
+        issues.push({ rule: 'heading', detail: `h${levels[i - 1]} then h${levels[i]}` })
     }
 
     // 5. The page needs exactly one main landmark and a document language.
@@ -168,9 +195,9 @@ for (const route of SAMPLE) {
 
 // Every theme, not only the two that shipped first: a palette that fails
 // contrast is invisible in review and obvious to the person using it.
-const THEME_IDS = [...readFileSync(resolve(process.cwd(), 'src/lib/theme.ts'), 'utf8').matchAll(/^    id: '([^']+)',$/gm)].map(
-  (m) => m[1],
-)
+const THEME_IDS = [
+  ...readFileSync(resolve(process.cwd(), 'src/lib/theme.ts'), 'utf8').matchAll(/^ {4}id: '([^']+)',$/gm),
+].map((m) => m[1])
 
 for (const theme of THEME_IDS) {
   test(`the ${theme} theme keeps the same contrast`, async ({ page }) => {
@@ -207,11 +234,11 @@ test('the theme menu is one tab stop and arrows move within it', async ({ page }
   // Exactly one option is reachable by Tab; the rest are arrow-key targets.
   const tabbable = await radios.evaluateAll((els) => els.filter((el) => el.tabIndex === 0).length)
   expect(tabbable).toBe(1)
-  await expect(page.getByRole('radio', { name: 'Mist' })).toBeFocused()
+  await expect(page.getByRole('radio', { name: 'Light' })).toBeFocused()
 
   // Arrows select as they move, so each theme previews against the live page.
   await page.keyboard.press('ArrowDown')
-  await expect(page.getByRole('radio', { name: 'Deep' })).toBeFocused()
+  await expect(page.getByRole('radio', { name: 'Dark' })).toBeFocused()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 
   await page.keyboard.press('Home')
@@ -281,7 +308,10 @@ test('the cheatsheet traps and restores focus', async ({ page }) => {
 
 test('every registered route is reachable from the rail or search', async ({ page }) => {
   await page.goto('/')
-  const searchable = await page.evaluate(() => document.querySelectorAll('.tool-card').length)
-  // Home lists every tool when nothing is filtered.
-  expect(searchable).toBe(ROUTES.length)
+  // Home links every tool when nothing is filtered. Some appear twice (pinned,
+  // recent, new), so count distinct destinations rather than cards.
+  const linked = await page.evaluate(
+    () => new Set([...document.querySelectorAll('.tool-card-link')].map((a) => a.getAttribute('href'))).size,
+  )
+  expect(linked).toBe(ROUTES.length)
 })

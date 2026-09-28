@@ -229,166 +229,188 @@ export default function QrTool() {
         </div>
       ) : (
         <div className="split">
-        <section className="panel">
-          {svg ? (
-            <>
-              <div className="qr-preview" dangerouslySetInnerHTML={{ __html: svg }} />
-              <p className="hint" style={{ textAlign: 'center' }}>
-                Payload ({payload.length} chars): <code className="wrap-code">{payload}</code>
+          <section className="panel">
+            {svg ? (
+              <>
+                <div className="qr-preview" dangerouslySetInnerHTML={{ __html: svg }} />
+                <p className="hint" style={{ textAlign: 'center' }}>
+                  Payload ({payload.length} chars): <code className="wrap-code">{payload}</code>
+                </p>
+                <div className="row" style={{ justifyContent: 'center' }}>
+                  <button type="button" className="btn btn-primary" onClick={downloadSvg}>
+                    Download SVG
+                  </button>
+                  <button type="button" className="btn" onClick={downloadPng}>
+                    Download PNG ({size}px)
+                  </button>
+                  <button type="button" className="btn" onClick={copySvg}>
+                    {copied ? 'Copied ✓' : 'Copy SVG code'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p className="muted" style={{ textAlign: 'center', padding: '3rem 0' }}>
+                {error ?? 'Fill in the fields to generate a QR code.'}
               </p>
-              <div className="row" style={{ justifyContent: 'center' }}>
-                <button type="button" className="btn btn-primary" onClick={downloadSvg}>
-                  Download SVG
-                </button>
-                <button type="button" className="btn" onClick={downloadPng}>
-                  Download PNG ({size}px)
-                </button>
-                <button type="button" className="btn" onClick={copySvg}>
-                  {copied ? 'Copied ✓' : 'Copy SVG code'}
-                </button>
-              </div>
-            </>
-          ) : (
-            <p className="muted" style={{ textAlign: 'center', padding: '3rem 0' }}>
-              {error ?? 'Fill in the fields to generate a QR code.'}
-            </p>
-          )}
-          {error && svg ? <p className="status-bad">{error}</p> : null}
-        </section>
-        <aside className="panel">
-          <Segmented
-            label="Payload type"
-            value={mode}
-            options={[
-              { value: 'url', label: 'Link' },
-              { value: 'text', label: 'Text' },
-              { value: 'wifi', label: 'Wi-Fi' },
-              { value: 'email', label: 'Email' },
-              { value: 'phone', label: 'Phone' },
-              { value: 'sms', label: 'SMS' },
-            ]}
-            onChange={setMode}
-          />
-          {mode === 'text' ? (
-            <label className="field">
-              <span>Text</span>
-              <textarea className="text-input" rows={4} value={text} onChange={(e) => setText(e.target.value)} />
-            </label>
-          ) : null}
-          {mode === 'url' ? (
-            <label className="field">
-              <span>URL</span>
-              <input
-                className="text-input"
-                placeholder="example.com/page"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-              />
-            </label>
-          ) : null}
-          {mode === 'wifi' ? (
-            <>
+            )}
+            {error && svg ? <p className="status-bad">{error}</p> : null}
+          </section>
+          <aside className="panel">
+            <Segmented
+              label="Payload type"
+              value={mode}
+              options={[
+                { value: 'url', label: 'Link' },
+                { value: 'text', label: 'Text' },
+                { value: 'wifi', label: 'Wi-Fi' },
+                { value: 'email', label: 'Email' },
+                { value: 'phone', label: 'Phone' },
+                { value: 'sms', label: 'SMS' },
+              ]}
+              onChange={setMode}
+            />
+            {mode === 'text' ? (
               <label className="field">
-                <span>Network name (SSID)</span>
-                <input className="text-input" value={ssid} onChange={(e) => setSsid(e.target.value)} />
+                <span>Text</span>
+                <textarea className="text-input" rows={4} value={text} onChange={(e) => setText(e.target.value)} />
               </label>
-              <Segmented
-                label="Security"
-                value={encryption}
-                options={[
-                  { value: 'WPA', label: 'WPA/WPA2' },
-                  { value: 'WEP', label: 'WEP' },
-                  { value: 'nopass', label: 'Open' },
-                ]}
-                onChange={setEncryption}
-              />
-              {encryption !== 'nopass' ? (
-                <label className="field">
-                  <span>Password</span>
-                  <input className="text-input" value={wifiPass} onChange={(e) => setWifiPass(e.target.value)} />
-                </label>
-              ) : null}
-              <label className="row" style={{ marginBottom: '0.75rem' }}>
-                <input type="checkbox" checked={hidden} onChange={(e) => setHidden(e.target.checked)} />
-                Hidden network
-              </label>
-            </>
-          ) : null}
-          {mode === 'email' ? (
-            <>
+            ) : null}
+            {mode === 'url' ? (
               <label className="field">
-                <span>To</span>
+                <span>URL</span>
                 <input
                   className="text-input"
-                  type="email"
-                  placeholder="someone@example.com"
-                  value={emailTo}
-                  onChange={(e) => setEmailTo(e.target.value)}
+                  placeholder="example.com/page"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
                 />
               </label>
+            ) : null}
+            {mode === 'wifi' ? (
+              <>
+                <label className="field">
+                  <span>Network name (SSID)</span>
+                  <input className="text-input" value={ssid} onChange={(e) => setSsid(e.target.value)} />
+                </label>
+                <Segmented
+                  label="Security"
+                  value={encryption}
+                  options={[
+                    { value: 'WPA', label: 'WPA/WPA2' },
+                    { value: 'WEP', label: 'WEP' },
+                    { value: 'nopass', label: 'Open' },
+                  ]}
+                  onChange={setEncryption}
+                />
+                {encryption !== 'nopass' ? (
+                  <label className="field">
+                    <span>Password</span>
+                    <input className="text-input" value={wifiPass} onChange={(e) => setWifiPass(e.target.value)} />
+                  </label>
+                ) : null}
+                <label className="row" style={{ marginBottom: '0.75rem' }}>
+                  <input type="checkbox" checked={hidden} onChange={(e) => setHidden(e.target.checked)} />
+                  Hidden network
+                </label>
+              </>
+            ) : null}
+            {mode === 'email' ? (
+              <>
+                <label className="field">
+                  <span>To</span>
+                  <input
+                    className="text-input"
+                    type="email"
+                    placeholder="someone@example.com"
+                    value={emailTo}
+                    onChange={(e) => setEmailTo(e.target.value)}
+                  />
+                </label>
+                <label className="field">
+                  <span>Subject</span>
+                  <input
+                    className="text-input"
+                    value={emailSubject}
+                    onChange={(e) => setEmailSubject(e.target.value)}
+                  />
+                </label>
+                <label className="field">
+                  <span>Body</span>
+                  <textarea
+                    className="text-input"
+                    rows={3}
+                    value={emailBody}
+                    onChange={(e) => setEmailBody(e.target.value)}
+                  />
+                </label>
+              </>
+            ) : null}
+            {mode === 'phone' || mode === 'sms' ? (
               <label className="field">
-                <span>Subject</span>
-                <input className="text-input" value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} />
+                <span>Phone number</span>
+                <input
+                  className="text-input"
+                  placeholder="+91 98765 43210"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
               </label>
+            ) : null}
+            {mode === 'sms' ? (
               <label className="field">
-                <span>Body</span>
-                <textarea className="text-input" rows={3} value={emailBody} onChange={(e) => setEmailBody(e.target.value)} />
+                <span>Message</span>
+                <textarea
+                  className="text-input"
+                  rows={3}
+                  value={smsMessage}
+                  onChange={(e) => setSmsMessage(e.target.value)}
+                />
               </label>
-            </>
-          ) : null}
-          {mode === 'phone' || mode === 'sms' ? (
+            ) : null}
+
+            <Segmented
+              label="Error correction"
+              value={ecLevel}
+              options={[
+                { value: 'L', label: 'L 7%' },
+                { value: 'M', label: 'M 15%' },
+                { value: 'Q', label: 'Q 25%' },
+                { value: 'H', label: 'H 30%' },
+              ]}
+              onChange={setEcLevel}
+            />
             <label className="field">
-              <span>Phone number</span>
+              <span>PNG size — {size}px</span>
               <input
-                className="text-input"
-                placeholder="+91 98765 43210"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                type="range"
+                min={128}
+                max={2048}
+                step={64}
+                value={size}
+                onChange={(e) => setSize(Number(e.target.value))}
               />
             </label>
-          ) : null}
-          {mode === 'sms' ? (
             <label className="field">
-              <span>Message</span>
-              <textarea className="text-input" rows={3} value={smsMessage} onChange={(e) => setSmsMessage(e.target.value)} />
+              <span>Quiet zone — {margin} modules</span>
+              <input type="range" min={0} max={8} value={margin} onChange={(e) => setMargin(Number(e.target.value))} />
             </label>
-          ) : null}
-
-          <Segmented
-            label="Error correction"
-            value={ecLevel}
-            options={[
-              { value: 'L', label: 'L 7%' },
-              { value: 'M', label: 'M 15%' },
-              { value: 'Q', label: 'Q 25%' },
-              { value: 'H', label: 'H 30%' },
-            ]}
-            onChange={setEcLevel}
-          />
-          <label className="field">
-            <span>PNG size — {size}px</span>
-            <input type="range" min={128} max={2048} step={64} value={size} onChange={(e) => setSize(Number(e.target.value))} />
-          </label>
-          <label className="field">
-            <span>Quiet zone — {margin} modules</span>
-            <input type="range" min={0} max={8} value={margin} onChange={(e) => setMargin(Number(e.target.value))} />
-          </label>
-          <div className="row">
-            <label className="field" style={{ flex: 1 }}>
-              <span>Foreground</span>
-              <input type="color" value={dark} onChange={(e) => setDark(e.target.value)} />
-            </label>
-            <label className="field" style={{ flex: 1 }}>
-              <span>Background</span>
-              <input type="color" value={light} onChange={(e) => setLight(e.target.value)} />
-            </label>
-          </div>
-          <p className="hint">
-            Higher error correction makes denser codes that survive damage or logos. Keep contrast high for reliable scanning.
-          </p>
-          <SendTo from="qr" text={payload || undefined} />
-        </aside>
-      </div>
+            <div className="row">
+              <label className="field" style={{ flex: 1 }}>
+                <span>Foreground</span>
+                <input type="color" value={dark} onChange={(e) => setDark(e.target.value)} />
+              </label>
+              <label className="field" style={{ flex: 1 }}>
+                <span>Background</span>
+                <input type="color" value={light} onChange={(e) => setLight(e.target.value)} />
+              </label>
+            </div>
+            <p className="hint">
+              Higher error correction makes denser codes that survive damage or logos. Keep contrast high for reliable
+              scanning.
+            </p>
+            <SendTo from="qr" text={payload || undefined} />
+          </aside>
+        </div>
       )}
     </ToolLayout>
   )

@@ -172,7 +172,12 @@ export default function ArchiveTool() {
               <input value={zipName} onChange={(e) => setZipName(e.target.value)} placeholder="bundle" />
             </label>
             <div className="row">
-              <button type="button" className="btn btn-primary" disabled={!queue.length || busy} onClick={() => void pack()}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={!queue.length || busy}
+                onClick={() => void pack()}
+              >
                 {busy ? 'Packing…' : 'Download .zip'}
               </button>
               <button type="button" className="btn" disabled={!queue.length} onClick={() => setQueue([])}>
@@ -194,13 +199,18 @@ export default function ArchiveTool() {
             ))}
             {archive ? (
               <p className="hint">
-                {archive.entries.length} entr{archive.entries.length === 1 ? 'y' : 'ies'} ·{' '}
-                {formatBytes(archiveSize)} unpacked · {formatBytes(archive.file.size)} on disk
+                {archive.entries.length} entr{archive.entries.length === 1 ? 'y' : 'ies'} · {formatBytes(archiveSize)}{' '}
+                unpacked · {formatBytes(archive.file.size)} on disk
               </p>
             ) : null}
           </section>
           <aside className="panel">
-            <button type="button" className="btn btn-primary" disabled={!archive || busy} onClick={() => void extract()}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={!archive || busy}
+              onClick={() => void extract()}
+            >
               {busy ? 'Extracting…' : 'Extract every file'}
             </button>
             <p className="hint">

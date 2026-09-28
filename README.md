@@ -1,40 +1,47 @@
 <div align="center">
   <img src="public/favicon.svg" width="72" height="72" alt="">
   <h1>BitKit</h1>
-  <p><strong>65 everyday tools that run entirely in your browser.</strong></p>
+  <p><strong>76 everyday tools that run entirely in your browser.</strong></p>
   <p>No account. No server. Nothing you open ever leaves your device.</p>
 </div>
 
 ---
 
-Most small utilities — resize an image, shrink a PDF, clean a CSV, decode a JWT — mean
-uploading your file to somebody else's server. BitKit does all of it locally, in the tab,
-using the platform APIs browsers already ship. After the first load it works offline.
+Most small utilities — turn photos into a PDF, a Word file into images, resize an image,
+shrink a PDF, decode a JWT — mean uploading your file to somebody else's server. BitKit does
+all of it locally, in the tab, using the platform APIs browsers already ship. After the
+first load it works offline.
 
 ## Tools
 
 | Group | Tools |
 | --- | --- |
-| **Daily** | Convert (time, zones, units, percent, GST), Links & cards, Meeting planner, Age & date difference, Deadline calculator, Timers, Random picker, Number to words, Health calculators, Trip cost |
-| **Image** | Clipboard download, Resize & compress, Image finishing, Image metadata (EXIF/GPS), Favicon set, Passport sheet, Background cutout, SVG convert, Carousel splitter, Meme generator, ASCII from image |
-| **Document** | Markdown to PDF, PDF editor, PDF merge & split, Image ↔ PDF, OCR, PDF form fill, Office to PDF (Word/PowerPoint/Excel), PDF to Word & text, Watermark & page numbers, PDF shrink, Markdown table, Invoice |
+| **Daily** | **Calculator** (scientific, typed or tapped), **Unit converter** (16 quantities), **Finance** (EMI, SIP, compound interest, CAGR, discounts), Convert (time, zones, CSS units, percent, GST), Links & cards, Meeting planner, Age & date difference, Deadline calculator, Timers, Random picker, Number to words, Health calculators, Trip cost |
+| **Image** | **Image converter** (JPG/PNG/WebP/AVIF/BMP), **Rotate & flip**, **Image collage**, **Screenshot frame**, Clipboard download, Resize & compress, Image finishing, Image metadata (EXIF/GPS), Favicon set, Passport sheet, Background cutout, SVG convert, Carousel splitter, Meme generator, ASCII from image |
+| **Document** | **Images to PDF** (reorder, rotate, page setup), **PDF to images** (PNG/JPEG/WebP, any DPI), **Word to image** (and exact-look PDF), **Markdown to PDF** (themes, paginated), PDF editor, PDF merge & split, OCR, PDF form fill, Office to PDF, PDF to Word & text, Watermark & page numbers, PDF shrink, Markdown table, Invoice |
 | **Data** | Data table (CSV/TSV/JSON/XLSX), Chart maker, ZIP archive |
 | **Media** | Video & audio trim, Screen & camera recorder, Noise generator, Sound meter |
-| **Developer** | JSON formatter, Text diff, Password generator, QR code, Encode (Base64/JWT/SHA), Text bench, Regex tester, Checksum, JSON·YAML·TOML, Cron builder, Number base |
+| **Developer** | **Barcode generator** (Code 128, EAN-13, UPC-A, EAN-8, Code 39), JSON formatter, Text diff, Password generator, QR code, Encode (Base64/JWT/SHA), Text bench, Regex tester, Checksum, JSON·YAML·TOML, Cron builder, Number base |
 | **Design** | Gradient builder, Tailwind theme builder, Contrast checker, Colour picker, Diagram (Mermaid), Colour vision |
-| **Writing** | Unicode text styler, Emoji search, Platform counter, Readability, Box drawing |
+| **Writing** | **Text to speech**, Unicode text styler, Emoji search, Platform counter, Readability, Box drawing |
 | **Notes** | Local notes, Data & settings, Pipelines |
 
-Press <kbd>/</kbd> or <kbd>⌘K</kbd> to search — the palette runs actions too, not just
-navigation ("paste and compress to 450 KB"). Press <kbd>?</kbd> for every shortcut.
+New in this release are in **bold**. Drop any file on the home page to see every tool that can open it.
+
+Press <kbd>⌘K</kbd> (or <kbd>Ctrl</kbd> <kbd>K</kbd>, or <kbd>/</kbd>) for the command
+palette — it runs actions too, not just navigation ("compress an image to 450 KB").
+Press <kbd>?</kbd> for every shortcut and <kbd>[</kbd> to hide the sidebar.
 
 Every tool has a chord. Twenty-four keep a single letter (<kbd>G</kbd> <kbd>R</kbd> for
-resize), and all 65 are reachable by category (<kbd>G</kbd> <kbd>4</kbd> <kbd>D</kbd> —
+resize), and all 76 are reachable by category (<kbd>G</kbd> <kbd>4</kbd> <kbd>D</kbd> —
 fourth group, Data table). Digits can never collide with the single-letter chords, which
 is what made room for the rest.
 
 ## Beyond the tools
 
+- **A modern interface.** Category-coloured icons on every tool, a sidebar you can hide
+  for wide tools, breadcrumbs, one-click pinning, related tools at the foot of each page,
+  and a home page that routes any dropped file to the tools that can open it.
 - **Five themes.** Mist and Deep, plus Paper (warm, low-blue), Midnight (true black
   for OLED), and Contrast (AAA body text, no shadows). *Match system* follows the OS
   and lets you pick which pair it switches between — Paper by day, Midnight by night is
@@ -49,7 +56,7 @@ is what made room for the rest.
   directory, writing results to a subfolder. Elsewhere it falls back to multi-select.
 - **Offline and updates.** The app says when you are offline and when a new version is
   ready, instead of leaving a stale service worker in place.
-- **Hindi.** The shell, home page, and navigation are translated. Tool interiors are
+- **Hindi.** The shell, home page, command palette, and navigation are translated. Tool interiors are
   still English — see [`src/lib/i18n.ts`](src/lib/i18n.ts) for why that line is drawn there.
 - **One tool crashing cannot blank the app.** Each route is wrapped in a boundary that
   keeps navigation alive and offers a pre-filled issue link.
@@ -75,14 +82,18 @@ npm run dev
 ```
 
 ```bash
-npm test          # 202 unit tests
-npm run test:e2e  # 86 Playwright checks, including accessibility
-npm run typecheck # tsc project references
-npm run build     # regenerates assets, typechecks, then builds
+npm test             # 386 unit tests
+npm run test:e2e     # Playwright: every route, keyboard flows, and accessibility
+npm run typecheck    # tsc project references
+npm run lint         # ESLint (hooks, type imports, no stray any)
+npm run format:check # Prettier
+npm run build        # regenerates assets, typechecks, then builds
 ```
 
-CI runs typecheck, unit tests, a bundle budget on the eager chunk, an assets-freshness
-check, and the Playwright suite including a WCAG contrast and target-size audit.
+CI runs typecheck, lint, formatting, unit tests, a bundle budget on the eager chunk, an
+assets-freshness check, and the Playwright suite including a WCAG contrast (every theme,
+gradient text included) and target-size audit. Barcode tests decode every symbology with
+ZXing, so a wrong pattern table cannot ship.
 
 Brand assets are generated, not hand-drawn — `npm run assets` rebuilds the PWA icons,
 the Open Graph card, and `sitemap.xml` from the tool registry. CI fails if they are
@@ -139,13 +150,17 @@ Then update `<link rel="canonical">` in [index.html](index.html).
 
 ## Architecture
 
-- **Vite + React 19 + TypeScript**, routed with React Router.
+- **Vite + React 19 + TypeScript**, routed with React Router; icons from Lucide.
 - Every tool is a lazy route registered in [`src/registry.ts`](src/registry.ts) — one
-  entry defines its title, category, search keywords, shortcut, and handoff types.
+  entry defines its title, icon, category, search keywords, shortcut, and handoff types.
 - Pure logic lives in `src/lib/`, UI in `src/tools/`, so the interesting parts are
   unit-testable without a DOM.
-- Heavy engines (Mermaid, Tesseract, pdf.js, MediaPipe) are lazy-loaded and
-  runtime-cached rather than precached, keeping the first visit small.
+- Heavy engines (Mermaid, Tesseract, pdf.js, docx-preview, MediaPipe) are lazy-loaded
+  and runtime-cached rather than precached, keeping the first visit small.
+- Styles are layered — tokens, base, layout, components, home, tools, print — and every
+  tool shares one class vocabulary, so the design system restyles all of them at once.
+- See [docs/FRONTEND_ARCHITECTURE.md](docs/FRONTEND_ARCHITECTURE.md) for the shared
+  building blocks (sortable image grids, the HTML-to-page renderer, pdf.js runtime).
 - **Send to** hands a result from one tool to another without a round trip.
 
 ## Licence

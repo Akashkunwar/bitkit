@@ -29,10 +29,7 @@ function nameToNumber(token: string, names?: readonly string[]): string {
 }
 
 /** Expands one cron field into the concrete values it matches. */
-export function expandField(
-  expr: string,
-  field: { min: number; max: number; names?: readonly string[] },
-): number[] {
+export function expandField(expr: string, field: { min: number; max: number; names?: readonly string[] }): number[] {
   const values = new Set<number>()
   for (const rawPart of expr.split(',')) {
     const part = rawPart.trim()
@@ -113,9 +110,7 @@ export function describeCron(expr: string): string {
   else {
     const minuteStride = stride(minute)
     const hourStride = stride(hour)
-    const minuteText = minuteStride
-      ? `every ${minuteStride} minutes`
-      : `minute ${list(minute)}`
+    const minuteText = minuteStride ? `every ${minuteStride} minutes` : `minute ${list(minute)}`
     if (everyHour) time = `At ${minuteText} past every hour`
     else if (minute.length === 1 && hour.length <= 4) {
       time = `At ${hour.map((h) => `${String(h).padStart(2, '0')}:${String(minute[0]).padStart(2, '0')}`).join(', ')}`

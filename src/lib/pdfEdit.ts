@@ -4,7 +4,15 @@ import { loadPdf } from './pdfLoad'
 export type Point = { x: number; y: number }
 
 export type PenAnnotation = { id: string; kind: 'pen'; points: Point[]; color: string; width: number }
-export type TextAnnotation = { id: string; kind: 'text'; x: number; y: number; text: string; size: number; color: string }
+export type TextAnnotation = {
+  id: string
+  kind: 'text'
+  x: number
+  y: number
+  text: string
+  size: number
+  color: string
+}
 type RectBase = { id: string; x: number; y: number; w: number; h: number; color: string; opacity: number }
 export type WhiteoutAnnotation = RectBase & { kind: 'whiteout' }
 export type HighlightAnnotation = RectBase & { kind: 'highlight' }
@@ -30,7 +38,13 @@ export function annotationId(): string {
 
 export function hexToRgb(hex: string): RGB {
   const raw = hex.trim().replace('#', '')
-  const m = raw.length === 3 ? raw.split('').map((c) => c + c).join('') : raw
+  const m =
+    raw.length === 3
+      ? raw
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : raw
   if (!/^[0-9a-fA-F]{6}$/.test(m)) return rgb(0, 0, 0)
   return rgb(parseInt(m.slice(0, 2), 16) / 255, parseInt(m.slice(2, 4), 16) / 255, parseInt(m.slice(4, 6), 16) / 255)
 }
@@ -63,7 +77,10 @@ export async function exportPdf(sourceBytes: Uint8Array, pages: PageState[]): Pr
   const { doc: src } = await loadPdf(sourceBytes)
   const out = await PDFDocument.create()
   const font = await out.embedFont(StandardFonts.Helvetica)
-  const copied = await out.copyPages(src, pages.map((p) => p.sourceIndex))
+  const copied = await out.copyPages(
+    src,
+    pages.map((p) => p.sourceIndex),
+  )
 
   const imageCache = new Map<string, Awaited<ReturnType<typeof out.embedPng>>>()
 

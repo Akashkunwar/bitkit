@@ -14,6 +14,7 @@ import type { DocBlock, Run } from './docBlocks'
 const enc = new TextEncoder()
 
 // Control characters are illegal in XML 1.0 and make Word refuse the file.
+// eslint-disable-next-line no-control-regex
 const ILLEGAL_XML = /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g
 
 function escapeXml(value: string): string {
@@ -131,7 +132,11 @@ function headingLevel(style: string | null): 1 | 2 | 3 | 4 | null {
 
 function cellText(tc: Element): string {
   return children(tc, 'p')
-    .map((p) => runsOfParagraph(p).map((r) => r.text).join(''))
+    .map((p) =>
+      runsOfParagraph(p)
+        .map((r) => r.text)
+        .join(''),
+    )
     .join(' ')
     .replace(/\s+/g, ' ')
     .trim()

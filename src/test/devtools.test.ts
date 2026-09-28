@@ -102,10 +102,12 @@ describe('tailwind lib', () => {
     const scale = buildScale(170, 0.14)
     expect(scale).toHaveLength(11)
     expect(scale[0].value.l).toBeGreaterThan(scale[10].value.l)
-    const block = buildThemeBlock(
-      [{ id: 'x', name: 'Primary Color', hue: 170, chroma: 0.14 }],
-      { fontSans: 'Inter', fontMono: 'monospace', radius: '1rem', spacingUnit: '0.25rem' },
-    )
+    const block = buildThemeBlock([{ id: 'x', name: 'Primary Color', hue: 170, chroma: 0.14 }], {
+      fontSans: 'Inter',
+      fontMono: 'monospace',
+      radius: '1rem',
+      spacingUnit: '0.25rem',
+    })
     expect(block).toContain('@theme {')
     expect(block).toContain('--color-primary-color-500: oklch(')
     expect(block).toContain('--font-sans: Inter;')

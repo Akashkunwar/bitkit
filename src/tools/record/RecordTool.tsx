@@ -53,7 +53,7 @@ export default function RecordTool() {
 
   useEffect(() => {
     return () => {
-      recorderRef.current?.state !== 'inactive' && recorderRef.current?.stop()
+      if (recorderRef.current && recorderRef.current.state !== 'inactive') recorderRef.current.stop()
       stopTracks()
       if (output) URL.revokeObjectURL(output.url)
     }

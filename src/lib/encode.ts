@@ -44,7 +44,10 @@ export function decodeJwt(token: string): JwtView {
   return { header, payload, parts: parts.length }
 }
 
-export async function digestHex(data: BufferSource, algo: 'SHA-1' | 'SHA-256' | 'SHA-384' | 'SHA-512'): Promise<string> {
+export async function digestHex(
+  data: BufferSource,
+  algo: 'SHA-1' | 'SHA-256' | 'SHA-384' | 'SHA-512',
+): Promise<string> {
   const buf = await crypto.subtle.digest(algo, data)
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('')
 }

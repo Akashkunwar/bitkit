@@ -8,7 +8,7 @@ import { compressInWorker } from '../../lib/image/workerClient'
 import { FORM_PRESETS, type FitMode } from '../../lib/image/size'
 import { formatBytes, parseByteLimit, applyFilenamePattern, mimeToExt } from '../../lib/format'
 import { triggerDownload } from '../../lib/download'
-import { filesFromPaste } from '../../lib/clipboard'
+import { usePasteFiles } from '../../lib/usePasteFiles'
 import { useHandoff } from '../../lib/useHandoff'
 import { SendTo } from '../../components/SendTo'
 import { filesFromBlobs } from '../../lib/handoff'
@@ -54,15 +54,9 @@ export default function CompressTool() {
   }, [])
   useToolPreset('compress', applyPalettePreset)
 
-  useEffect(() => {
-    const onPaste = (event: ClipboardEvent) => {
-      void filesFromPaste(event).then((files) => {
-        if (files.length) addFiles(files)
-      })
-    }
-    window.addEventListener('paste', onPaste)
-    return () => window.removeEventListener('paste', onPaste)
-  }, [])
+  usePasteFiles((files) => {
+    if (files.length) addFiles(files)
+  })
 
   const addFiles = (files: File[]) => {
     const next = files
@@ -125,17 +119,18 @@ export default function CompressTool() {
   const jpegWarning = mime === 'image/jpeg'
   const anyOver = items.some((item) => item.result && !item.result.withinLimit)
 
-  const summary = useMemo(
-    () => items.filter((item) => item.result).length,
-    [items],
-  )
+  const summary = useMemo(() => items.filter((item) => item.result).length, [items])
 
   return (
     <ToolLayout
       title="Resize & compress"
       lede="Match portal limits: pixels, kilobytes, or both. Encoding happens on this device."
     >
-      <DropZone multiple onFiles={addFiles} hint="Batch supported. Huge files may fail on phones because of memory limits." />
+      <DropZone
+        multiple
+        onFiles={addFiles}
+        hint="Batch supported. Huge files may fail on phones because of memory limits."
+      />
 
       <div className="split">
         <section className="panel">
@@ -195,23 +190,30 @@ export default function CompressTool() {
             <p className="banner warn">JPEG has no transparency. Transparent areas become white.</p>
           ) : null}
           {mime === 'image/png' && maxBytes ? (
-            <p className="banner warn">PNG is lossless. A byte cap may require shrinking the pixel size instead of quality.</p>
+            <p className="banner warn">
+              PNG is lossless. A byte cap may require shrinking the pixel size instead of quality.
+            </p>
           ) : null}
           <div className="row">
             <DownloadButton label="Convert" disabled={!items.length} onClick={() => void run()} />
-            <button type="button" className="btn" disabled={!summary || anyOver} onClick={() => {
-              items.forEach((item, index) => {
-                if (!item.result) return
-                triggerDownload(
-                  item.result.blob,
-                  applyFilenamePattern('{original}', {
-                    original: item.file.name,
-                    ext: mimeToExt(mime),
-                    index: index + 1,
-                  }),
-                )
-              })
-            }}>
+            <button
+              type="button"
+              className="btn"
+              disabled={!summary || anyOver}
+              onClick={() => {
+                items.forEach((item, index) => {
+                  if (!item.result) return
+                  triggerDownload(
+                    item.result.blob,
+                    applyFilenamePattern('{original}', {
+                      original: item.file.name,
+                      ext: mimeToExt(mime),
+                      index: index + 1,
+                    }),
+                  )
+                })
+              }}
+            >
               Download all
             </button>
             {anyOver ? (
@@ -238,39 +240,44 @@ export default function CompressTool() {
           </div>
           {anyOver ? (
             <p className="status-bad">
-              At least one file is still over the limit after quality and size reduction. Try a smaller
-              dimension or a lossy format.
+              At least one file is still over the limit after quality and size reduction. Try a smaller dimension or a
+              lossy format.
             </p>
           ) : null}
           <FolderBatch
-        extensions={['jpg', 'jpeg', 'png', 'webp', 'avif']}
-        outputFolder="compressed"
-        label="Compress a whole folder"
-        onFilesPicked={addFiles}
-        process={async (file) => {
-          const result = await compressImage(file, {
-            width: width ? Number(width) : undefined,
-            height: height ? Number(height) : undefined,
-            fit,
-            mime,
-            maxBytes,
-            background: mime === 'image/jpeg' ? '#ffffff' : undefined,
-          })
-          return {
-            name: applyFilenamePattern('{original}', { original: file.name, ext: mimeToExt(mime) }),
-            blob: result.blob,
-          }
-        }}
-      />
+            extensions={['jpg', 'jpeg', 'png', 'webp', 'avif']}
+            outputFolder="compressed"
+            label="Compress a whole folder"
+            onFilesPicked={addFiles}
+            process={async (file) => {
+              const result = await compressImage(file, {
+                width: width ? Number(width) : undefined,
+                height: height ? Number(height) : undefined,
+                fit,
+                mime,
+                maxBytes,
+                background: mime === 'image/jpeg' ? '#ffffff' : undefined,
+              })
+              return {
+                name: applyFilenamePattern('{original}', { original: file.name, ext: mimeToExt(mime) }),
+                blob: result.blob,
+              }
+            }}
+          />
 
-      <SendTo
+          <SendTo
             from="compress"
             files={
               items.some((item) => item.result)
                 ? filesFromBlobs(
                     items.flatMap((item) =>
                       item.result
-                        ? [{ blob: item.result.blob, name: item.file.name.replace(/\.[^.]+$/, '') + '.' + mimeToExt(mime) }]
+                        ? [
+                            {
+                              blob: item.result.blob,
+                              name: item.file.name.replace(/\.[^.]+$/, '') + '.' + mimeToExt(mime),
+                            },
+                          ]
                         : [],
                     ),
                   )

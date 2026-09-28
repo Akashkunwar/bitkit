@@ -66,8 +66,16 @@ export default function FormsTool() {
     >
       <div className="split">
         <section className="panel">
-          <DropZone accept="application/pdf,.pdf" label="Drop a fillable PDF." onFiles={(files) => files[0] && void load(files[0])} />
-          {file ? <p className="hint" style={{ marginTop: '0.8rem' }}>{file.name} · {fields.length} field{fields.length === 1 ? '' : 's'}</p> : null}
+          <DropZone
+            accept="application/pdf,.pdf"
+            label="Drop a fillable PDF."
+            onFiles={(files) => files[0] && void load(files[0])}
+          />
+          {file ? (
+            <p className="hint" style={{ marginTop: '0.8rem' }}>
+              {file.name} · {fields.length} field{fields.length === 1 ? '' : 's'}
+            </p>
+          ) : null}
           {encryptionWarning(encrypted) ? <p className="banner warn">{encryptionWarning(encrypted)}</p> : null}
           {error ? <p className="status-bad">{error}</p> : null}
           {fields.length ? (
@@ -82,7 +90,9 @@ export default function FormsTool() {
                       <input
                         type="checkbox"
                         checked={values[field.name] === 'true'}
-                        onChange={(e) => setValues((cur) => ({ ...cur, [field.name]: e.target.checked ? 'true' : 'false' }))}
+                        onChange={(e) =>
+                          setValues((cur) => ({ ...cur, [field.name]: e.target.checked ? 'true' : 'false' }))
+                        }
                       />
                       Checked
                     </label>
@@ -115,7 +125,12 @@ export default function FormsTool() {
             <input type="checkbox" checked={flatten} onChange={(e) => setFlatten(e.target.checked)} />
             Flatten fields so recipients cannot edit them
           </label>
-          <button type="button" className="btn btn-primary" disabled={!bytes || !fields.length || busy} onClick={() => void save()}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={!bytes || !fields.length || busy}
+            onClick={() => void save()}
+          >
             {busy ? 'Working…' : 'Fill and preview download'}
           </button>
           {!flatten ? (
@@ -139,13 +154,7 @@ export default function FormsTool() {
           )}
           <SendTo
             from="forms"
-            files={
-              filled
-                ? filesFromBlobs([{ blob: filled, name: 'filled.pdf' }])
-                : file
-                  ? [file]
-                  : undefined
-            }
+            files={filled ? filesFromBlobs([{ blob: filled, name: 'filled.pdf' }]) : file ? [file] : undefined}
           />
         </aside>
       </div>

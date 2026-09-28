@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import * as pdfjs from 'pdfjs-dist'
+import { pdfjs } from '../../lib/pdfjsRuntime'
 import type { PDFDocumentProxy } from 'pdfjs-dist'
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
@@ -12,8 +11,6 @@ import { destroyPdfJs, isPdfPasswordError, openPdfJs } from '../../lib/pdfJs'
 import { PdfPassword } from '../../components/PdfPassword'
 import { useHandoff } from '../../lib/useHandoff'
 import { SendTo } from '../../components/SendTo'
-
-pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
 
 type ToolMode = 'select' | 'pen' | 'text' | 'whiteout' | 'highlight' | 'sign'
 
@@ -56,7 +53,12 @@ function PageCanvas({
       canvas.style.height = `${vp.height}px`
       const ctx = canvas.getContext('2d')
       if (!ctx) return
-      task = page.render({ canvas, canvasContext: ctx, viewport: vp, transform: dpr === 1 ? undefined : [dpr, 0, 0, dpr, 0, 0] })
+      task = page.render({
+        canvas,
+        canvasContext: ctx,
+        viewport: vp,
+        transform: dpr === 1 ? undefined : [dpr, 0, 0, dpr, 0, 0],
+      })
       try {
         await task.promise
         onViewport?.({ width: vp.width, height: vp.height, scale })
@@ -301,7 +303,11 @@ export default function PdfTool() {
   const onOverlayUp = () => {
     if (!draft) return
     const keep =
-      draft.kind === 'pen' ? draft.points.length > 1 : draft.kind === 'whiteout' || draft.kind === 'highlight' ? draft.w > 2 && draft.h > 2 : true
+      draft.kind === 'pen'
+        ? draft.points.length > 1
+        : draft.kind === 'whiteout' || draft.kind === 'highlight'
+          ? draft.w > 2 && draft.h > 2
+          : true
     if (keep) addAnnotation(draft)
     setDraft(null)
     dragStart.current = null
@@ -367,8 +373,21 @@ export default function PdfTool() {
       'data-selected': selectedAnnotation === ann.id || undefined,
     }
     if (ann.kind === 'pen') {
-      const d = ann.points.map((p, i) => `${i === 0 ? 'M' : 'L'}${(p.x * scale).toFixed(1)} ${(p.y * scale).toFixed(1)}`).join(' ')
-      return <path {...common} d={d} fill="none" stroke={ann.color} strokeWidth={ann.width * scale} strokeLinecap="round" strokeLinejoin="round" className="ann" />
+      const d = ann.points
+        .map((p, i) => `${i === 0 ? 'M' : 'L'}${(p.x * scale).toFixed(1)} ${(p.y * scale).toFixed(1)}`)
+        .join(' ')
+      return (
+        <path
+          {...common}
+          d={d}
+          fill="none"
+          stroke={ann.color}
+          strokeWidth={ann.width * scale}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="ann"
+        />
+      )
     }
     if (ann.kind === 'whiteout' || ann.kind === 'highlight') {
       return (
@@ -387,7 +406,15 @@ export default function PdfTool() {
     }
     if (ann.kind === 'text') {
       return (
-        <text {...common} x={ann.x * scale} y={(ann.y + ann.size) * scale} fontSize={ann.size * scale} fill={ann.color} fontFamily="Helvetica, Arial, sans-serif" className="ann">
+        <text
+          {...common}
+          x={ann.x * scale}
+          y={(ann.y + ann.size) * scale}
+          fontSize={ann.size * scale}
+          fill={ann.color}
+          fontFamily="Helvetica, Arial, sans-serif"
+          className="ann"
+        >
           {ann.text.split('\n').map((line, i) => (
             <tspan key={i} x={ann.x * scale} dy={i === 0 ? 0 : ann.size * 1.25 * scale}>
               {line}
@@ -396,7 +423,17 @@ export default function PdfTool() {
         </text>
       )
     }
-    return <image {...common} href={ann.dataUrl} x={ann.x * scale} y={ann.y * scale} width={ann.w * scale} height={ann.h * scale} className="ann" />
+    return (
+      <image
+        {...common}
+        href={ann.dataUrl}
+        x={ann.x * scale}
+        y={ann.y * scale}
+        width={ann.w * scale}
+        height={ann.h * scale}
+        className="ann"
+      />
+    )
   }
 
   if (!doc) {
@@ -461,7 +498,9 @@ export default function PdfTool() {
       }
     >
       {error ? <p className="status-bad">{error}</p> : null}
-      {encryptionWarning(encrypted, 'pdfjs') ? <p className="banner warn">{encryptionWarning(encrypted, 'pdfjs')}</p> : null}
+      {encryptionWarning(encrypted, 'pdfjs') ? (
+        <p className="banner warn">{encryptionWarning(encrypted, 'pdfjs')}</p>
+      ) : null}
       {encrypted ? (
         <p className="hint">
           Preview is unlocked in this tab. Saving annotations still writes the original file — if the download is blank,
@@ -498,10 +537,22 @@ export default function PdfTool() {
             ))}
           </div>
           <div className="row" style={{ marginTop: '0.75rem' }}>
-            <button type="button" className="btn" disabled={selectedIndex <= 0} onClick={() => movePage(-1)} title="Move page up">
+            <button
+              type="button"
+              className="btn"
+              disabled={selectedIndex <= 0}
+              onClick={() => movePage(-1)}
+              title="Move page up"
+            >
               ↑
             </button>
-            <button type="button" className="btn" disabled={selectedIndex < 0 || selectedIndex >= pages.length - 1} onClick={() => movePage(1)} title="Move page down">
+            <button
+              type="button"
+              className="btn"
+              disabled={selectedIndex < 0 || selectedIndex >= pages.length - 1}
+              onClick={() => movePage(1)}
+              title="Move page down"
+            >
               ↓
             </button>
             <button
@@ -509,7 +560,13 @@ export default function PdfTool() {
               className="btn"
               disabled={!selected}
               title="Rotate 90°"
-              onClick={() => selected && patchPage(selected.id, (p) => ({ rotation: (((p.rotation + 90) % 360) as PageState['rotation']), annotations: [] }))}
+              onClick={() =>
+                selected &&
+                patchPage(selected.id, (p) => ({
+                  rotation: ((p.rotation + 90) % 360) as PageState['rotation'],
+                  annotations: [],
+                }))
+              }
             >
               ⟳
             </button>
@@ -520,7 +577,11 @@ export default function PdfTool() {
               title="Duplicate page"
               onClick={() => {
                 if (!selected) return
-                const copy: PageState = { ...selected, id: pageId(), annotations: selected.annotations.map((a) => ({ ...a, id: annotationId() })) }
+                const copy: PageState = {
+                  ...selected,
+                  id: pageId(),
+                  annotations: selected.annotations.map((a) => ({ ...a, id: annotationId() })),
+                }
                 const next = [...pages]
                 next.splice(selectedIndex + 1, 0, copy)
                 setPages(next)
@@ -627,7 +688,13 @@ export default function PdfTool() {
               </label>
               <label className="field">
                 <span>Width — {penWidth}pt</span>
-                <input type="range" min={1} max={10} value={penWidth} onChange={(e) => setPenWidth(Number(e.target.value))} />
+                <input
+                  type="range"
+                  min={1}
+                  max={10}
+                  value={penWidth}
+                  onChange={(e) => setPenWidth(Number(e.target.value))}
+                />
               </label>
             </>
           ) : null}
@@ -639,9 +706,17 @@ export default function PdfTool() {
               </label>
               <label className="field">
                 <span>Size — {textSize}pt</span>
-                <input type="range" min={8} max={48} value={textSize} onChange={(e) => setTextSize(Number(e.target.value))} />
+                <input
+                  type="range"
+                  min={8}
+                  max={48}
+                  value={textSize}
+                  onChange={(e) => setTextSize(Number(e.target.value))}
+                />
               </label>
-              <p className="hint">Click the page to place a text box. Combine with whiteout to replace existing text.</p>
+              <p className="hint">
+                Click the page to place a text box. Combine with whiteout to replace existing text.
+              </p>
             </>
           ) : null}
           {tool === 'highlight' ? (
@@ -650,15 +725,15 @@ export default function PdfTool() {
               <input type="color" value={highlightColor} onChange={(e) => setHighlightColor(e.target.value)} />
             </label>
           ) : null}
-          {tool === 'whiteout' ? <p className="hint">Drag over content to cover it with an opaque white block.</p> : null}
+          {tool === 'whiteout' ? (
+            <p className="hint">Drag over content to cover it with an opaque white block.</p>
+          ) : null}
           {tool === 'sign' ? (
             <>
               <span className="field-label">Draw your signature</span>
               <SignaturePad onSave={setSignature} />
               {signature ? (
-                <p className="hint">
-                  Signature saved ✓ — click anywhere on the page to place it.
-                </p>
+                <p className="hint">Signature saved ✓ — click anywhere on the page to place it.</p>
               ) : (
                 <p className="hint">Draw above, press “Use signature”, then click the page.</p>
               )}

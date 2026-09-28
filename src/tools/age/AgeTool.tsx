@@ -59,9 +59,8 @@ export default function AgeTool() {
       ) : (
         <>
           <div className="big-answer">
-            <strong>{result.span.parts.years}</strong> <span>years</span>{' '}
-            <strong>{result.span.parts.months}</strong> <span>months</span>{' '}
-            <strong>{result.span.parts.days}</strong> <span>days</span>
+            <strong>{result.span.parts.years}</strong> <span>years</span> <strong>{result.span.parts.months}</strong>{' '}
+            <span>months</span> <strong>{result.span.parts.days}</strong> <span>days</span>
           </div>
 
           <div className="pill-row">

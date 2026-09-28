@@ -51,9 +51,7 @@ describe('docx reading', () => {
   })
 
   it('treats w:val="0" as bold off, not bold on', () => {
-    const blocks = docxBlocksFromXml(
-      docXml('<w:p><w:r><w:rPr><w:b w:val="0"/></w:rPr><w:t>normal</w:t></w:r></w:p>'),
-    )
+    const blocks = docxBlocksFromXml(docXml('<w:p><w:r><w:rPr><w:b w:val="0"/></w:rPr><w:t>normal</w:t></w:r></w:p>'))
     expect((blocks[0] as Extract<DocBlock, { kind: 'p' }>).runs[0].bold).toBeUndefined()
   })
 
@@ -78,7 +76,14 @@ describe('docx reading', () => {
         `<w:tbl><w:tr>${cell('Name', true)}${cell('Qty', true)}</w:tr><w:tr>${cell('Bolt')}${cell('4')}</w:tr></w:tbl>`,
       ),
     )
-    expect(blocks[0]).toEqual({ kind: 'table', rows: [['Name', 'Qty'], ['Bolt', '4']], header: true })
+    expect(blocks[0]).toEqual({
+      kind: 'table',
+      rows: [
+        ['Name', 'Qty'],
+        ['Bolt', '4'],
+      ],
+      header: true,
+    })
   })
 
   it('emits a page break for an explicit break', () => {
@@ -92,7 +97,14 @@ describe('docx writing', () => {
     { kind: 'h', level: 1, runs: [{ text: 'Quarterly note' }] },
     { kind: 'p', runs: [{ text: 'Revenue is ' }, { text: 'up', bold: true }] },
     { kind: 'li', runs: [{ text: 'One item' }], depth: 0, marker: '•' },
-    { kind: 'table', rows: [['A', 'B'], ['1', '2']], header: true },
+    {
+      kind: 'table',
+      rows: [
+        ['A', 'B'],
+        ['1', '2'],
+      ],
+      header: true,
+    },
   ]
 
   it('produces a package Word can open', async () => {
@@ -181,9 +193,7 @@ describe('html to blocks', () => {
   })
 
   it('keeps nested lists, ordered markers, and inline emphasis', () => {
-    const blocks = blocksFromHtml(
-      '<h1>T</h1><ol><li>alpha<ul><li><em>beta</em></li></ul></li><li>gamma</li></ol>',
-    )
+    const blocks = blocksFromHtml('<h1>T</h1><ol><li>alpha<ul><li><em>beta</em></li></ul></li><li>gamma</li></ol>')
     const items = blocks.filter((b) => b.kind === 'li') as Extract<DocBlock, { kind: 'li' }>[]
     expect(items.map((i) => i.marker)).toEqual(['1.', '•', '2.'])
     expect(items[1].depth).toBe(1)

@@ -34,9 +34,7 @@ export default function CounterTool() {
             aria-label={isPinned ? `Unpin ${platform.name}` : `Pin ${platform.name}`}
             onClick={() =>
               setPinned((current) =>
-                current.includes(platform.id)
-                  ? current.filter((id) => id !== platform.id)
-                  : [...current, platform.id],
+                current.includes(platform.id) ? current.filter((id) => id !== platform.id) : [...current, platform.id],
               )
             }
           >
@@ -100,8 +98,8 @@ export default function CounterTool() {
 
       {counts.graphemes !== counts.characters ? (
         <p className="hint">
-          {counts.characters} code units but {counts.graphemes} visible characters — emoji and accented letters
-          take more than one unit, and platforms differ on which they count.
+          {counts.characters} code units but {counts.graphemes} visible characters — emoji and accented letters take
+          more than one unit, and platforms differ on which they count.
         </p>
       ) : null}
 

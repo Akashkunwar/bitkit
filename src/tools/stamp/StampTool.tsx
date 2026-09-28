@@ -237,7 +237,10 @@ export default function StampTool() {
                 <>
                   <label className="field">
                     <span>Bates prefix</span>
-                    <input value={numbers.prefix} onChange={(e) => setNumbers({ ...numbers, prefix: e.target.value })} />
+                    <input
+                      value={numbers.prefix}
+                      onChange={(e) => setNumbers({ ...numbers, prefix: e.target.value })}
+                    />
                   </label>
                   <label className="field">
                     <span>Digits</span>

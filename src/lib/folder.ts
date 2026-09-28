@@ -6,8 +6,7 @@
  * can offer the multi-file fallback instead of failing silently.
  */
 
-export const FOLDER_SUPPORTED =
-  typeof window !== 'undefined' && 'showDirectoryPicker' in window
+export const FOLDER_SUPPORTED = typeof window !== 'undefined' && 'showDirectoryPicker' in window
 
 export type PickedFile = { file: File; relativePath: string }
 
@@ -36,10 +35,7 @@ export async function pickDirectory(mode: 'read' | 'readwrite' = 'read'): Promis
   }
 }
 
-export async function readDirectory(
-  dir: FileSystemDirectoryHandle,
-  options: PickOptions = {},
-): Promise<PickedFile[]> {
+export async function readDirectory(dir: FileSystemDirectoryHandle, options: PickOptions = {}): Promise<PickedFile[]> {
   const { recursive = false, limit = 500 } = options
   const out: PickedFile[] = []
 
@@ -60,11 +56,7 @@ export async function readDirectory(
   return out
 }
 
-export async function writeFile(
-  dir: FileSystemDirectoryHandle,
-  name: string,
-  data: Blob,
-): Promise<void> {
+export async function writeFile(dir: FileSystemDirectoryHandle, name: string, data: Blob): Promise<void> {
   const handle = await dir.getFileHandle(name, { create: true })
   const writable = await handle.createWritable()
   await writable.write(data)

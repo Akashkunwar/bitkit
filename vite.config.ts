@@ -18,9 +18,9 @@ export default defineConfig({
         name: 'BitKit — private browser tools',
         short_name: 'BitKit',
         description:
-          'Compress images, shrink PDFs, clean CSVs, make charts, trim video, and more. Everything runs locally in your browser.',
-        theme_color: '#0d1413',
-        background_color: '#0d1413',
+          'Images to PDF, PDF to images, Word to image, Markdown to PDF, calculators, converters, and more. Everything runs locally in your browser.',
+        theme_color: '#0b0c10',
+        background_color: '#0b0c10',
         display: 'standalone',
         orientation: 'any',
         categories: ['utilities', 'productivity', 'developer'],

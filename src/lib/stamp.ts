@@ -11,13 +11,7 @@ import { loadPdf } from './pdfLoad'
 import { parsePageRange } from './pdfPages'
 import { parseHex } from './contrast'
 
-export type Placement =
-  | 'top-left'
-  | 'top-center'
-  | 'top-right'
-  | 'bottom-left'
-  | 'bottom-center'
-  | 'bottom-right'
+export type Placement = 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right'
 
 export const PLACEMENTS: { value: Placement; label: string }[] = [
   { value: 'top-left', label: 'Top left' },
@@ -118,10 +112,7 @@ export function numberLabel(spec: NumberSpec, n: number, total: number): string 
   return `Page ${n} of ${total}`
 }
 
-export function expandTokens(
-  template: string,
-  ctx: { n: number; total: number; filename: string },
-): string {
+export function expandTokens(template: string, ctx: { n: number; total: number; filename: string }): string {
   return template
     .replaceAll('{n}', String(ctx.n))
     .replaceAll('{total}', String(ctx.total))

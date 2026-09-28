@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
@@ -7,7 +7,7 @@ import { useHandoff } from '../../lib/useHandoff'
 import { filesFromBlobs } from '../../lib/handoff'
 import { buildFaviconSet, ICON_SIZES } from '../../lib/favicon'
 import { zipStore } from '../../lib/zip'
-import { filesFromPaste } from '../../lib/clipboard'
+import { usePasteFiles } from '../../lib/usePasteFiles'
 
 export default function FaviconTool() {
   const [file, setFile] = useState<File | null>(null)
@@ -29,15 +29,9 @@ export default function FaviconTool() {
     if (image) load(image)
   })
 
-  useEffect(() => {
-    const onPaste = (event: ClipboardEvent) => {
-      void filesFromPaste(event).then((files) => {
-        if (files[0]) load(files[0])
-      })
-    }
-    window.addEventListener('paste', onPaste)
-    return () => window.removeEventListener('paste', onPaste)
-  }, [])
+  usePasteFiles((files) => {
+    if (files[0]) load(files[0])
+  })
 
   const run = async () => {
     if (!file) return
@@ -68,7 +62,10 @@ export default function FaviconTool() {
       title="Favicon set"
       lede="One square image becomes 16–512 PNG icons plus a favicon.ico. Cover-cropped in this tab."
     >
-      <DropZone onFiles={(files) => files[0] && load(files[0])} hint="Use a simple mark. Tiny sizes crush fine detail." />
+      <DropZone
+        onFiles={(files) => files[0] && load(files[0])}
+        hint="Use a simple mark. Tiny sizes crush fine detail."
+      />
       <div className="split">
         <section className="panel">
           {url ? (

@@ -44,7 +44,10 @@ export default function TripTool() {
   const summary = [
     `Trip: ${totals.km} km${roundTrip ? ' (return)' : ''}`,
     `Fuel: ${totals.litres.toFixed(1)} L = ${money(totals.fuel)}`,
-    extras.filter((e) => e.amount).map((e) => `${e.label}: ${money(e.amount)}`).join('\n'),
+    extras
+      .filter((e) => e.amount)
+      .map((e) => `${e.label}: ${money(e.amount)}`)
+      .join('\n'),
     `Total: ${money(totals.total)}`,
     `Each (${people}): ${money(totals.each)}`,
   ]
@@ -52,10 +55,7 @@ export default function TripTool() {
     .join('\n')
 
   return (
-    <ToolLayout
-      title="Trip cost"
-      lede="Fuel, tolls, and everything else — split across everyone in the car."
-    >
+    <ToolLayout title="Trip cost" lede="Fuel, tolls, and everything else — split across everyone in the car.">
       <div className="split">
         <label className="field">
           <span>Distance one way — km</span>
@@ -125,9 +125,7 @@ export default function TripTool() {
               className="text-input"
               style={{ flex: 1 }}
               value={extra.label}
-              onChange={(e) =>
-                setExtras(extras.map((x) => (x.id === extra.id ? { ...x, label: e.target.value } : x)))
-              }
+              onChange={(e) => setExtras(extras.map((x) => (x.id === extra.id ? { ...x, label: e.target.value } : x)))}
             />
             <input
               className="text-input"

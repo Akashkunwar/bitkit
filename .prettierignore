@@ -1,0 +1,10 @@
+dist
+dev-dist
+coverage
+playwright-report
+test-results
+public
+package-lock.json
+.shots
+*.md
+wrangler.jsonc

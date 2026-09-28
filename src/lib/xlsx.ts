@@ -200,9 +200,7 @@ export async function readXlsxWorkbook(bytes: Uint8Array): Promise<XlsxSheet[]> 
     : []
   const listed = parseWorkbookSheets(files)
   const fallback = files.filter((f) => /^xl\/worksheets\/sheet\d+\.xml$/.test(f.name))
-  const targets = listed.length
-    ? listed
-    : fallback.map((f, i) => ({ name: `Sheet${i + 1}`, path: f.name }))
+  const targets = listed.length ? listed : fallback.map((f, i) => ({ name: `Sheet${i + 1}`, path: f.name }))
   const out: XlsxSheet[] = []
   for (const sheet of targets) {
     const file = files.find((f) => f.name === sheet.path || f.name.endsWith(sheet.path.replace(/^xl\//, '')))

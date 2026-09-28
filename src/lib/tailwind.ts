@@ -45,7 +45,13 @@ function linearToSrgb(v: number): number {
 
 export function hexToOklch(hex: string): Oklch {
   const m = hex.replace('#', '')
-  const full = m.length === 3 ? m.split('').map((ch) => ch + ch).join('') : m
+  const full =
+    m.length === 3
+      ? m
+          .split('')
+          .map((ch) => ch + ch)
+          .join('')
+      : m
   const r = srgbToLinear(parseInt(full.slice(0, 2), 16) / 255)
   const g = srgbToLinear(parseInt(full.slice(2, 4), 16) / 255)
   const b = srgbToLinear(parseInt(full.slice(4, 6), 16) / 255)
@@ -111,7 +117,11 @@ export type ThemeExtras = {
 export function buildThemeBlock(colors: ThemeColor[], extras: ThemeExtras): string {
   const lines: string[] = ['@theme {']
   for (const color of colors) {
-    const name = color.name.trim().toLowerCase().replaceAll(/[^a-z0-9-]+/g, '-') || 'color'
+    const name =
+      color.name
+        .trim()
+        .toLowerCase()
+        .replaceAll(/[^a-z0-9-]+/g, '-') || 'color'
     for (const { step, value } of buildScale(color.hue, color.chroma)) {
       lines.push(`  --color-${name}-${step}: ${oklchString(value)};`)
     }

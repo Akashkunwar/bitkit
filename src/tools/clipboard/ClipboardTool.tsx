@@ -91,7 +91,10 @@ export default function ClipboardTool() {
     >
       <div className="split">
         <section className="panel">
-          <DropZone onFiles={handleFiles} hint="This page must stay focused. The site cannot intercept paste from other apps." />
+          <DropZone
+            onFiles={handleFiles}
+            hint="This page must stay focused. The site cannot intercept paste from other apps."
+          />
           {preview ? (
             <div className="preview-frame" style={{ marginTop: '1rem' }}>
               <img src={preview.url} alt="Pasted image preview" />
@@ -142,12 +145,7 @@ export default function ClipboardTool() {
               disabled={!preview}
               onClick={() => preview && triggerDownload(preview.blob, preview.name)}
             />
-            <button
-              type="button"
-              className="btn"
-              disabled={!preview}
-              onClick={() => preview && copyBlob(preview.blob)}
-            >
+            <button type="button" className="btn" disabled={!preview} onClick={() => preview && copyBlob(preview.blob)}>
               Copy back
             </button>
           </div>

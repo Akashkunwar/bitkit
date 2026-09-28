@@ -18,7 +18,13 @@ function inlineFor(tag: string, current: Inline): Inline {
 function collectRuns(node: Node, style: Inline, out: Run[]): void {
   if (node.nodeType === Node.TEXT_NODE) {
     const text = (node.textContent ?? '').replace(/\s+/g, ' ')
-    if (text) out.push({ text, ...(style.bold ? { bold: true } : {}), ...(style.italic ? { italic: true } : {}), ...(style.mono ? { mono: true } : {}) })
+    if (text)
+      out.push({
+        text,
+        ...(style.bold ? { bold: true } : {}),
+        ...(style.italic ? { italic: true } : {}),
+        ...(style.mono ? { mono: true } : {}),
+      })
     return
   }
   if (!(node instanceof HTMLElement)) return
@@ -92,7 +98,9 @@ function walk(node: Node, out: DocBlock[], depth: number): void {
     const rows: string[][] = []
     let header = false
     node.querySelectorAll('tr').forEach((tr, i) => {
-      const cells = [...tr.querySelectorAll('th,td')].map((cell) => (cell.textContent ?? '').replace(/\s+/g, ' ').trim())
+      const cells = [...tr.querySelectorAll('th,td')].map((cell) =>
+        (cell.textContent ?? '').replace(/\s+/g, ' ').trim(),
+      )
       if (!cells.length) return
       if (i === 0 && tr.querySelector('th')) header = true
       rows.push(cells)

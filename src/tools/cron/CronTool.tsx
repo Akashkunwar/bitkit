@@ -55,17 +55,16 @@ export default function CronTool() {
         />
       </label>
 
-      {parsed.error ? (
-        <p className="status-bad">{parsed.error}</p>
-      ) : (
-        <p className="status-ok">{parsed.description}</p>
-      )}
+      {parsed.error ? <p className="status-bad">{parsed.error}</p> : <p className="status-ok">{parsed.description}</p>}
 
       <div className="cron-grid">
         {CRON_FIELDS.map((field, i) => (
           <label key={field.key} className="field">
             <span>
-              {field.label} <span className="hint">({field.min}–{field.max})</span>
+              {field.label}{' '}
+              <span className="hint">
+                ({field.min}–{field.max})
+              </span>
             </span>
             <input
               className="text-input mono-val"
@@ -125,8 +124,8 @@ export default function CronTool() {
       </div>
 
       <p className="hint" style={{ marginTop: '0.8rem' }}>
-        Five fields: minute, hour, day of month, month, weekday. When both day-of-month and weekday are restricted,
-        cron runs when <em>either</em> matches — that is standard behaviour, not a bug.
+        Five fields: minute, hour, day of month, month, weekday. When both day-of-month and weekday are restricted, cron
+        runs when <em>either</em> matches — that is standard behaviour, not a bug.
       </p>
 
       <SendTo from="cron" text={expr} />

@@ -105,7 +105,11 @@ export function extractTax(inclusive: number, rate: number): { base: number; tax
   return { base, tax, total: inclusive }
 }
 
-export function splitBill(total: number, people: number, tipPercent: number): { tip: number; grand: number; each: number } {
+export function splitBill(
+  total: number,
+  people: number,
+  tipPercent: number,
+): { tip: number; grand: number; each: number } {
   if (people < 1) throw new Error('Need at least one person.')
   const tip = (total * tipPercent) / 100
   const grand = total + tip

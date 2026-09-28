@@ -106,7 +106,13 @@ export default function ChecksumTool() {
       </div>
 
       {busy ? (
-        <div className="meter" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}>
+        <div
+          className="meter"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress * 100)}
+        >
           <div className="meter-fill" style={{ width: `${Math.max(4, progress * 100)}%` }} />
         </div>
       ) : null}

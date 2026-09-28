@@ -4,10 +4,7 @@ import { stageDownscale, CANVAS_SAFE_MAX } from './limits'
 export type EncodeMime = 'image/jpeg' | 'image/webp' | 'image/png'
 
 /** How a byte cap is applied. PNG has no quality knob, so it must downscale. */
-export function compressPlan(
-  mime: EncodeMime,
-  maxBytes?: number,
-): { qualityBisect: boolean; downscale: boolean } {
+export function compressPlan(mime: EncodeMime, maxBytes?: number): { qualityBisect: boolean; downscale: boolean } {
   if (!maxBytes) return { qualityBisect: false, downscale: false }
   return { qualityBisect: mime !== 'image/png', downscale: true }
 }
@@ -46,9 +43,7 @@ export async function decodeImage(file: Blob): Promise<ImageBitmap | HTMLImageEl
   } catch (err) {
     const { isHeicLike } = await import('./formatHint')
     if (isHeicLike(file)) {
-      throw new Error(
-        'This browser cannot decode HEIC/HEIF. Export a JPEG from Photos and drop that instead.',
-      )
+      throw new Error('This browser cannot decode HEIC/HEIF. Export a JPEG from Photos and drop that instead.')
     }
     throw err
   }
@@ -96,15 +91,13 @@ async function canvasToBlob(
     return canvas.convertToBlob({ type: mime, quality })
   }
   return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error('Encoding failed.'))),
-      mime,
-      quality,
-    )
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Encoding failed.'))), mime, quality)
   })
 }
 
-function get2d(canvas: HTMLCanvasElement | OffscreenCanvas): CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D {
+function get2d(
+  canvas: HTMLCanvasElement | OffscreenCanvas,
+): CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D {
   const ctx = canvas.getContext('2d')
   if (!ctx || !('drawImage' in ctx)) throw new Error('Canvas is unavailable in this browser.')
   return ctx as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
@@ -135,10 +128,9 @@ function draw(
 export async function compressImage(file: Blob, options: CompressOptions = {}): Promise<CompressResult> {
   const mime: EncodeMime = options.mime ?? (options.maxBytes ? 'image/jpeg' : 'image/png')
   const source = await decodeImage(file)
-  const drawn = draw(source, options, mime === 'image/jpeg' ? options.background ?? '#ffffff' : options.background)
+  const drawn = draw(source, options, mime === 'image/jpeg' ? (options.background ?? '#ffffff') : options.background)
 
-  const encodeAt = (canvas: HTMLCanvasElement | OffscreenCanvas, quality: number) =>
-    canvasToBlob(canvas, mime, quality)
+  const encodeAt = (canvas: HTMLCanvasElement | OffscreenCanvas, quality: number) => canvasToBlob(canvas, mime, quality)
 
   const plan = compressPlan(mime, options.maxBytes)
 

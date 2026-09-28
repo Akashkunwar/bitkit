@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { DownloadButton } from '../../components/DownloadButton'
@@ -7,7 +7,7 @@ import { decodeImage } from '../../lib/image/compress'
 import { renderFinished, MARKETING_PRESETS, type ColorAdjust } from '../../lib/image/filters'
 import { applyFilenamePattern, mimeToExt } from '../../lib/format'
 import { triggerDownload } from '../../lib/download'
-import { filesFromPaste } from '../../lib/clipboard'
+import { usePasteFiles } from '../../lib/usePasteFiles'
 import { useHandoff } from '../../lib/useHandoff'
 import { SendTo } from '../../components/SendTo'
 
@@ -30,15 +30,9 @@ export default function FinishTool() {
   const imgRef = useRef<HTMLImageElement>(null)
   const drag = useRef<{ x: number; y: number } | null>(null)
 
-  useEffect(() => {
-    const onPaste = (event: ClipboardEvent) => {
-      void filesFromPaste(event).then((files) => {
-        if (files[0]) void load(files[0])
-      })
-    }
-    window.addEventListener('paste', onPaste)
-    return () => window.removeEventListener('paste', onPaste)
-  }, [])
+  usePasteFiles((files) => {
+    if (files[0]) void load(files[0])
+  })
 
   const load = async (next: File) => {
     if (url) URL.revokeObjectURL(url)
@@ -85,10 +79,7 @@ export default function FinishTool() {
         })
         blob = sized.blob
       }
-      triggerDownload(
-        blob,
-        applyFilenamePattern('{original}-edit', { original: file.name, ext: mimeToExt(mime) }),
-      )
+      triggerDownload(blob, applyFilenamePattern('{original}-edit', { original: file.name, ext: mimeToExt(mime) }))
     } finally {
       setBusy(false)
     }
@@ -126,8 +117,8 @@ export default function FinishTool() {
       lede="Crop, color, rotate, overlay, and export. This does not remove AI watermarks or provenance signals, and it will not make a generated image “undetectable.”"
     >
       <p className="banner">
-        SynthID and similar marks live in the pixels. Ordinary edits are not a removal tool. Label AI-assisted
-        marketing assets when that is the honest description.
+        SynthID and similar marks live in the pixels. Ordinary edits are not a removal tool. Label AI-assisted marketing
+        assets when that is the honest description.
       </p>
       <DropZone onFiles={(files) => files[0] && void load(files[0])} />
       <div className="split">
@@ -172,7 +163,11 @@ export default function FinishTool() {
         </section>
         <aside className="panel">
           <div className="row">
-            <button type="button" className="btn" onClick={() => setRotate((r) => ((r + 90) % 360) as 0 | 90 | 180 | 270)}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => setRotate((r) => ((r + 90) % 360) as 0 | 90 | 180 | 270)}
+            >
               Rotate 90°{rotate ? ` · ${rotate}°` : ''}
             </button>
             <button type="button" className="btn" onClick={() => setFlipX((v) => !v)}>
@@ -250,14 +245,14 @@ export default function FinishTool() {
             ]}
             onChange={setMime}
           />
-          <DownloadButton label={busy ? 'Exporting…' : 'Download'} disabled={!file || busy} onClick={() => void exportImage()} />
+          <DownloadButton
+            label={busy ? 'Exporting…' : 'Download'}
+            disabled={!file || busy}
+            onClick={() => void exportImage()}
+          />
           <SendTo from="finish" files={file ? [file] : undefined} />
-          <p className="hint">
-            Crop on the unrotated image. Rotate and flip apply when you export.
-          </p>
-          <p className="hint">
-            Re-encoding strips most EXIF. That is a side effect, not a way to hide origin.
-          </p>
+          <p className="hint">Crop on the unrotated image. Rotate and flip apply when you export.</p>
+          <p className="hint">Re-encoding strips most EXIF. That is a side effect, not a way to hide origin.</p>
         </aside>
       </div>
     </ToolLayout>

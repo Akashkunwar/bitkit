@@ -73,8 +73,5 @@ export async function buildFaviconSet(source: Blob): Promise<{ name: string; byt
   }
   const icoPngs = pngs.filter((p) => (ICO_SIZES as readonly number[]).includes(p.size))
   const ico = buildIco(icoPngs)
-  return [
-    { name: 'favicon.ico', bytes: ico },
-    ...pngs.map((p) => ({ name: `icon-${p.size}.png`, bytes: p.bytes })),
-  ]
+  return [{ name: 'favicon.ico', bytes: ico }, ...pngs.map((p) => ({ name: `icon-${p.size}.png`, bytes: p.bytes }))]
 }

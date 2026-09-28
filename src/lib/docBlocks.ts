@@ -49,11 +49,7 @@ export function countWords(blocks: DocBlock[]): number {
 }
 
 function escapeHtml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
+  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')
 }
 
 function runsToHtml(runs: Run[]): string {
@@ -135,7 +131,8 @@ export function blocksToMarkdown(blocks: DocBlock[]): string {
   for (const block of blocks) {
     if (block.kind === 'h') out.push(`${'#'.repeat(block.level)} ${runsToMarkdown(block.runs)}`)
     else if (block.kind === 'p') out.push(runsToMarkdown(block.runs))
-    else if (block.kind === 'li') out.push(`${'  '.repeat(block.depth)}${block.marker === '•' ? '-' : block.marker} ${runsToMarkdown(block.runs)}`)
+    else if (block.kind === 'li')
+      out.push(`${'  '.repeat(block.depth)}${block.marker === '•' ? '-' : block.marker} ${runsToMarkdown(block.runs)}`)
     else if (block.kind === 'pre') out.push(`\`\`\`\n${block.text}\n\`\`\``)
     else if (block.kind === 'break') out.push('---')
     else {
@@ -152,7 +149,12 @@ export function blocksToMarkdown(blocks: DocBlock[]): string {
       )
     }
   }
-  return out.join('\n\n').replace(/\n{3,}/g, '\n\n').trim() + '\n'
+  return (
+    out
+      .join('\n\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim() + '\n'
+  )
 }
 
 export function blocksToText(blocks: DocBlock[]): string {
@@ -162,7 +164,12 @@ export function blocksToText(blocks: DocBlock[]): string {
     else if (block.kind === 'break') out.push('—'.repeat(20))
     else out.push(blockText(block))
   }
-  return out.join('\n\n').replace(/\n{4,}/g, '\n\n\n').trim() + '\n'
+  return (
+    out
+      .join('\n\n')
+      .replace(/\n{4,}/g, '\n\n\n')
+      .trim() + '\n'
+  )
 }
 
 /** First heading, else first non-empty paragraph — used to name the output file. */
@@ -173,6 +180,9 @@ export function documentTitle(blocks: DocBlock[], fallback = 'document'): string
     if (text) return text.slice(0, 80)
   }
   const para = blocks.find((b) => b.kind === 'p' && plain(b.runs).trim().length > 3)
-  if (para) return plain((para as Extract<DocBlock, { kind: 'p' }>).runs).trim().slice(0, 60)
+  if (para)
+    return plain((para as Extract<DocBlock, { kind: 'p' }>).runs)
+      .trim()
+      .slice(0, 60)
   return fallback
 }

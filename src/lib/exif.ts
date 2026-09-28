@@ -44,7 +44,10 @@ function viewOf(bytes: Uint8Array): DataView {
 }
 
 function ascii(bytes: Uint8Array, start: number, len: number): string {
-  return new TextDecoder('latin1').decode(bytes.subarray(start, start + len)).replaceAll('\0', '').trim()
+  return new TextDecoder('latin1')
+    .decode(bytes.subarray(start, start + len))
+    .replaceAll('\0', '')
+    .trim()
 }
 
 function readValue(
@@ -56,7 +59,15 @@ function readValue(
   inline: number,
 ): string | number | number[] | null {
   const size =
-    type === 1 || type === 2 || type === 7 ? 1 : type === 3 ? 2 : type === 4 || type === 9 ? 4 : type === 5 || type === 10 ? 8 : 0
+    type === 1 || type === 2 || type === 7
+      ? 1
+      : type === 3
+        ? 2
+        : type === 4 || type === 9
+          ? 4
+          : type === 5 || type === 10
+            ? 8
+            : 0
   if (!size) return null
   const total = size * count
   const offset = tiff + inline
@@ -344,11 +355,17 @@ export function stripPng(bytes: Uint8Array): Uint8Array {
 export async function stripMetadata(file: Blob): Promise<{ blob: Blob; method: 'lossless' | 'reencode' }> {
   const bytes = new Uint8Array(await file.arrayBuffer())
   if (bytes[0] === 0xff && bytes[1] === 0xd8) {
-    return { blob: new Blob([stripJpeg(bytes).slice().buffer as ArrayBuffer], { type: 'image/jpeg' }), method: 'lossless' }
+    return {
+      blob: new Blob([stripJpeg(bytes).slice().buffer as ArrayBuffer], { type: 'image/jpeg' }),
+      method: 'lossless',
+    }
   }
   const sig = [137, 80, 78, 71, 13, 10, 26, 10]
   if (sig.every((b, i) => bytes[i] === b)) {
-    return { blob: new Blob([stripPng(bytes).slice().buffer as ArrayBuffer], { type: 'image/png' }), method: 'lossless' }
+    return {
+      blob: new Blob([stripPng(bytes).slice().buffer as ArrayBuffer], { type: 'image/png' }),
+      method: 'lossless',
+    }
   }
   const { compressImage } = await import('./image/compress')
   const mime = file.type === 'image/webp' ? 'image/webp' : file.type === 'image/jpeg' ? 'image/jpeg' : 'image/png'

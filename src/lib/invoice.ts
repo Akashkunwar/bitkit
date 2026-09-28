@@ -73,7 +73,6 @@ export function money(amount: number, currency: string): string {
 function pdfSafeCurrency(currency: string): string {
   const map: Record<string, string> = { '₹': 'Rs. ', '€': 'EUR ', '£': 'GBP ', '¥': 'JPY ', $: '$' }
   if (map[currency]) return map[currency]
-  // eslint-disable-next-line no-control-regex
   return /^[\u0020-\u00ff]*$/.test(currency) ? currency : `${currency.replace(/[^\u0020-\u00ff]/g, '')} `
 }
 
@@ -85,7 +84,8 @@ export function invoicePdf(invoice: Invoice): Blob {
   const pageHeight = doc.internal.pageSize.getHeight()
   const margin = 18
   const right = pageWidth - margin
-  const amount = (n: number) => `${currency}${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const amount = (n: number) =>
+    `${currency}${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(22)

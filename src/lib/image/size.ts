@@ -21,11 +21,7 @@ function round(n: number): number {
   return Math.max(1, Math.round(n))
 }
 
-export function computeTargetSize(
-  srcW: number,
-  srcH: number,
-  opts: SizeOptions,
-): DrawRect {
+export function computeTargetSize(srcW: number, srcH: number, opts: SizeOptions): DrawRect {
   const fit = opts.fit ?? 'contain'
   const hasExact = Boolean(opts.width || opts.height)
 

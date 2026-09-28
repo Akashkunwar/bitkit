@@ -68,12 +68,7 @@ export function formatConfig(value: unknown, format: ConfigFormat, indent = 2): 
 
 export type ConvertResult = { output: string; error: string | null }
 
-export function convertConfig(
-  input: string,
-  from: ConfigFormat,
-  to: ConfigFormat,
-  indent = 2,
-): ConvertResult {
+export function convertConfig(input: string, from: ConfigFormat, to: ConfigFormat, indent = 2): ConvertResult {
   try {
     const value = parseConfig(input, from)
     return { output: formatConfig(value, to, indent), error: null }

@@ -87,7 +87,9 @@ describe('number to words', () => {
     expect(integerToWords(0, 'indian')).toBe('zero')
     expect(integerToWords(101, 'indian')).toBe('one hundred and one')
     expect(integerToWords(100000, 'indian')).toBe('one lakh')
-    expect(integerToWords(12345678, 'indian')).toBe('one crore twenty-three lakh forty-five thousand six hundred and seventy-eight')
+    expect(integerToWords(12345678, 'indian')).toBe(
+      'one crore twenty-three lakh forty-five thousand six hundred and seventy-eight',
+    )
   })
 
   it('spells the international scale', () => {
@@ -323,7 +325,13 @@ describe('box drawing', () => {
   })
 
   it('emits markdown when asked', () => {
-    const out = drawTable([['a', 'b'], ['1', '2']], { style: 'markdown', header: true, align: 'left', padding: 1 })
+    const out = drawTable(
+      [
+        ['a', 'b'],
+        ['1', '2'],
+      ],
+      { style: 'markdown', header: true, align: 'left', padding: 1 },
+    )
     expect(out.split('\n')[1]).toContain('---')
     expect(out.startsWith('|')).toBe(true)
   })
@@ -415,9 +423,23 @@ describe('registry after the everyday batch', () => {
     expect(new Set(tools.map((t) => t.path)).size).toBe(ids.length)
     expect(ids).toEqual(
       expect.arrayContaining([
-        'age', 'deadline', 'timers', 'random', 'numwords', 'health', 'trip',
-        'carousel', 'meme', 'ascii', 'noise', 'soundmeter',
-        'styler', 'emoji', 'counter', 'readability', 'boxdraw',
+        'age',
+        'deadline',
+        'timers',
+        'random',
+        'numwords',
+        'health',
+        'trip',
+        'carousel',
+        'meme',
+        'ascii',
+        'noise',
+        'soundmeter',
+        'styler',
+        'emoji',
+        'counter',
+        'readability',
+        'boxdraw',
       ]),
     )
   })

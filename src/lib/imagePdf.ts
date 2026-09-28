@@ -1,54 +1,165 @@
-import { PDFDocument, PageSizes } from 'pdf-lib'
+import { PDFDocument, rgb } from 'pdf-lib'
 import { decodeImage } from './image/compress'
-import { stageDownscale } from './image/limits'
+import { CANVAS_SAFE_MAX } from './image/limits'
+import {
+  MARGINS,
+  pageFor,
+  placeImage,
+  rotatedSize,
+  targetPixels,
+  type ImageFit,
+  type Margin,
+  type Orientation,
+  type PageSize,
+  type Rotation,
+} from './pageLayout'
 
-export type PageFit = 'fit' | 'a4' | 'letter'
+export type PdfImageInput = { file: Blob; rotation?: Rotation }
 
-const SIZES: Record<Exclude<PageFit, 'fit'>, [number, number]> = {
-  a4: PageSizes.A4,
-  letter: PageSizes.Letter,
+export type ImagesToPdfOptions = {
+  pageSize: PageSize
+  orientation: Orientation
+  fit: ImageFit
+  margin: Margin
+  /** Page colour behind the image, as #rrggbb. */
+  background: string
+  /** JPEG quality 0–1 for photos. PNG sources stay lossless. */
+  quality: number
+  /** Cap embedded resolution; null keeps every source pixel. */
+  dpi: number | null
+  title?: string
+  onProgress?: (done: number, total: number) => void
 }
 
-async function toEmbeddable(blob: Blob): Promise<{ kind: 'jpeg' | 'png'; bytes: Uint8Array }> {
-  const source = await decodeImage(blob)
+export const DEFAULT_IMAGE_PDF: ImagesToPdfOptions = {
+  pageSize: 'a4',
+  orientation: 'auto',
+  fit: 'contain',
+  margin: 'small',
+  background: '#ffffff',
+  quality: 0.9,
+  dpi: 300,
+}
+
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
+  const n = m ? parseInt(m[1], 16) : 0xffffff
+  return { r: ((n >> 16) & 255) / 255, g: ((n >> 8) & 255) / 255, b: (n & 255) / 255 }
+}
+
+function sourceSize(source: ImageBitmap | HTMLImageElement): { width: number; height: number } {
   const width = 'naturalWidth' in source && source.naturalWidth ? source.naturalWidth : source.width
   const height = 'naturalHeight' in source && source.naturalHeight ? source.naturalHeight : source.height
-  const { width: w, height: h } = stageDownscale(width, height)
-  const canvas = document.createElement('canvas')
-  canvas.width = w
-  canvas.height = h
-  const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('Canvas is unavailable.')
-  ctx.drawImage(source as CanvasImageSource, 0, 0, w, h)
-  if ('close' in source) source.close()
-  const type = blob.type === 'image/png' ? 'image/png' : 'image/jpeg'
-  const encoded = await new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Image encode failed.'))), type, 0.92)
-  })
-  return {
-    kind: type === 'image/png' ? 'png' : 'jpeg',
-    bytes: new Uint8Array(await encoded.arrayBuffer()),
-  }
+  return { width, height }
 }
 
-export async function imagesToPdf(files: Blob[], fit: PageFit = 'fit'): Promise<Uint8Array> {
-  if (!files.length) throw new Error('Drop at least one image.')
+function toBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Image encode failed.'))), type, quality)
+  })
+}
+
+/**
+ * Draws the rotated source, cropped to `crop` (in rotated pixel space), onto a
+ * canvas of `out` size. Rotation is baked in here so pdf-lib never needs to
+ * rotate a page, which some viewers handle inconsistently.
+ */
+function renderRotated(
+  source: CanvasImageSource,
+  natural: { width: number; height: number },
+  rotation: Rotation,
+  crop: { x: number; y: number; width: number; height: number },
+  out: { width: number; height: number },
+  opaque: string | null,
+): HTMLCanvasElement {
+  const canvas = document.createElement('canvas')
+  canvas.width = out.width
+  canvas.height = out.height
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Canvas is unavailable.')
+  if (opaque) {
+    ctx.fillStyle = opaque
+    ctx.fillRect(0, 0, out.width, out.height)
+  }
+  ctx.imageSmoothingQuality = 'high'
+  const scale = out.width / crop.width
+  ctx.scale(scale, out.height / crop.height)
+  ctx.translate(-crop.x, -crop.y)
+  const rotated = rotatedSize(natural.width, natural.height, rotation)
+  ctx.translate(rotated.width / 2, rotated.height / 2)
+  ctx.rotate((rotation * Math.PI) / 180)
+  ctx.drawImage(source, -natural.width / 2, -natural.height / 2)
+  return canvas
+}
+
+/**
+ * Builds one PDF from images, one page each, in the order given.
+ *
+ * Every image is decoded (EXIF orientation applied), rotated, cropped for
+ * cover, downsampled to the chosen DPI, and re-encoded before embedding.
+ * Screenshots (PNG) stay PNG so text in them stays crisp; everything else is
+ * JPEG at the chosen quality.
+ */
+export async function imagesToPdf(
+  inputs: (Blob | PdfImageInput)[],
+  options: Partial<ImagesToPdfOptions> = {},
+): Promise<Uint8Array> {
+  const opts = { ...DEFAULT_IMAGE_PDF, ...options }
+  const items = inputs.map((input) => (input instanceof Blob ? { file: input, rotation: 0 as Rotation } : input))
+  if (!items.length) throw new Error('Add at least one image.')
+
   const out = await PDFDocument.create()
-  for (const file of files) {
-    const { kind, bytes } = await toEmbeddable(file)
-    const image = kind === 'jpeg' ? await out.embedJpg(bytes) : await out.embedPng(bytes)
-    const { width, height } = image
-    if (fit === 'fit') {
-      const page = out.addPage([width, height])
-      page.drawImage(image, { x: 0, y: 0, width, height })
-      continue
+  if (opts.title) out.setTitle(opts.title)
+  out.setCreator('BitKit')
+  out.setProducer('BitKit (pdf-lib)')
+  const margin = MARGINS[opts.margin]
+  const background = hexToRgb(opts.background)
+  const whitePage = opts.background.toLowerCase() === '#ffffff'
+
+  for (let i = 0; i < items.length; i += 1) {
+    const { file, rotation = 0 } = items[i]
+    const source = await decodeImage(file)
+    try {
+      const natural = sourceSize(source)
+      const rotated = rotatedSize(natural.width, natural.height, rotation)
+      const page = pageFor(rotated.width, rotated.height, opts.pageSize, opts.orientation, margin)
+      const { dest, crop } = placeImage(rotated.width, rotated.height, page.width, page.height, margin, opts.fit)
+
+      let pixels = targetPixels(crop, dest, opts.pageSize === 'fit' ? null : opts.dpi)
+      const cap = Math.min(1, CANVAS_SAFE_MAX / Math.max(pixels.width, pixels.height))
+      pixels = {
+        width: Math.max(1, Math.round(pixels.width * cap)),
+        height: Math.max(1, Math.round(pixels.height * cap)),
+      }
+
+      const lossless = file.type === 'image/png' || file.type === 'image/gif'
+      const canvas = renderRotated(
+        source as CanvasImageSource,
+        natural,
+        rotation,
+        crop,
+        pixels,
+        lossless ? null : opts.background,
+      )
+      const encoded = await toBlob(canvas, lossless ? 'image/png' : 'image/jpeg', opts.quality)
+      const bytes = new Uint8Array(await encoded.arrayBuffer())
+      const image = lossless ? await out.embedPng(bytes) : await out.embedJpg(bytes)
+
+      const pdfPage = out.addPage([page.width, page.height])
+      if (!whitePage) {
+        pdfPage.drawRectangle({
+          x: 0,
+          y: 0,
+          width: page.width,
+          height: page.height,
+          color: rgb(background.r, background.g, background.b),
+        })
+      }
+      pdfPage.drawImage(image, dest)
+    } finally {
+      if ('close' in source) source.close()
     }
-    const [pw, ph] = SIZES[fit]
-    const page = out.addPage([pw, ph])
-    const scale = Math.min(pw / width, ph / height)
-    const w = width * scale
-    const h = height * scale
-    page.drawImage(image, { x: (pw - w) / 2, y: (ph - h) / 2, width: w, height: h })
+    opts.onProgress?.(i + 1, items.length)
   }
   return out.save()
 }

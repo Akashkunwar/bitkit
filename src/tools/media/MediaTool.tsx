@@ -261,7 +261,13 @@ export default function MediaTool() {
           </div>
 
           {busy ? (
-            <div className="meter" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}>
+            <div
+              className="meter"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(progress * 100)}
+            >
               <div className="meter-fill" style={{ width: `${progress * 100}%` }} />
             </div>
           ) : null}
@@ -278,7 +284,9 @@ export default function MediaTool() {
         </div>
       ) : null}
 
-      {output ? <SendTo from="media" files={[new File([output.blob], output.name, { type: output.blob.type })]} /> : null}
+      {output ? (
+        <SendTo from="media" files={[new File([output.blob], output.name, { type: output.blob.type })]} />
+      ) : null}
     </ToolLayout>
   )
 }

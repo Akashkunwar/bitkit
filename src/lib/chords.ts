@@ -4,7 +4,7 @@ import { tools, type ToolMeta } from '../registry'
  * Keyboard chords, matched as a prefix tree.
  *
  * The original scheme was "G then one letter", which caps out at 25 tools.
- * With 65 tools most had no shortcut at all, so chords may now be two letters
+ * With 70-odd tools most would have no shortcut at all, so chords may be two letters
  * deep: "G J" still opens JSON, while "G T A" opens the data table. A one-letter
  * chord is only allowed when no longer chord starts with the same letter, so
  * there is never an ambiguous wait.
@@ -24,9 +24,7 @@ export const LEADER = 'g'
 export const CHORD_TIMEOUT_MS = 1400
 
 export type MatchResult =
-  | { kind: 'none' }
-  | { kind: 'pending'; keys: string[]; options: Chord[] }
-  | { kind: 'match'; chord: Chord }
+  { kind: 'none' } | { kind: 'pending'; keys: string[]; options: Chord[] } | { kind: 'match'; chord: Chord }
 
 function parseShortcut(shortcut: string): string[] {
   // Accepts "G then W" and "G W" and "G T A".
@@ -82,9 +80,7 @@ export const CHORDS: Chord[] = buildChords()
  */
 export function matchChord(pressed: string[], chords: Chord[] = CHORDS): MatchResult {
   if (!pressed.length) return { kind: 'none' }
-  const candidates = chords.filter((chord) =>
-    pressed.every((key, i) => chord.keys[i] === key),
-  )
+  const candidates = chords.filter((chord) => pressed.every((key, i) => chord.keys[i] === key))
   if (!candidates.length) return { kind: 'none' }
 
   const exact = candidates.find((chord) => chord.keys.length === pressed.length)

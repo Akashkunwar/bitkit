@@ -19,6 +19,20 @@ describe('markdown sanitization', () => {
     expect(html.toLowerCase()).not.toContain('onerror')
   })
 
+  it('keeps task list ticks as glyphs without allowing inputs', () => {
+    const html = renderMarkdown('- [x] shipped\n- [ ] reviewed')
+    expect(html).not.toContain('<input')
+    expect(html).toContain('☑')
+    expect(html).toContain('☐')
+  })
+
+  it('gives headings unique ids for a table of contents', () => {
+    const html = renderMarkdown('# Intro\n\n## Intro\n\n## Café & tea')
+    expect(html).toContain('id="h-intro"')
+    expect(html).toContain('id="h-intro-1"')
+    expect(html).toContain('id="h-café-tea"')
+  })
+
   it('builds a local pdf blob from sanitized html', async () => {
     const { markdownHtmlToPdf } = await import('../lib/pdf')
     const blob = await markdownHtmlToPdf('<p>Hello table</p>', '# Hello', {

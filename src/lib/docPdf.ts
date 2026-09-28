@@ -29,13 +29,7 @@ function styleOf(run: Run, base: Style): Style {
  * italic text has to be measured token by token. Tokens wider than the column
  * (a long URL, say) are hard-split rather than allowed to run off the page.
  */
-function layoutRuns(
-  doc: jsPDF,
-  runs: Run[],
-  maxWidth: number,
-  size: number,
-  base: Style,
-): Seg[][] {
+function layoutRuns(doc: jsPDF, runs: Run[], maxWidth: number, size: number, base: Style): Seg[][] {
   doc.setFontSize(size)
   const lines: Seg[][] = []
   let line: Seg[] = []

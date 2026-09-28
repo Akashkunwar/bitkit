@@ -88,7 +88,14 @@ export default function SoundMeterTool() {
           </button>
         )}
         {listening ? (
-          <button type="button" className="btn" onClick={() => { setMax(0); setHistory([]) }}>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => {
+              setMax(0)
+              setHistory([])
+            }}
+          >
             Reset peak
           </button>
         ) : null}
@@ -112,7 +119,13 @@ export default function SoundMeterTool() {
             <span className="pill">{referenceFor(reading.spl)}</span>
           </div>
 
-          <svg className="level-history" viewBox="0 0 120 40" preserveAspectRatio="none" role="img" aria-label="Level over time">
+          <svg
+            className="level-history"
+            viewBox="0 0 120 40"
+            preserveAspectRatio="none"
+            role="img"
+            aria-label="Level over time"
+          >
             <polyline
               points={history.map((v, i) => `${i},${40 - Math.min(40, (v / 120) * 40)}`).join(' ')}
               fill="none"

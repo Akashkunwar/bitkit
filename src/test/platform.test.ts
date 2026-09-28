@@ -1,18 +1,6 @@
 import { describe, expect, it, beforeEach } from 'vitest'
-import {
-  buildChords,
-  findAmbiguous,
-  findDuplicates,
-  formatChord,
-  matchChord,
-  CHORDS,
-} from '../lib/chords'
-import {
-  encodeSettingsToHash,
-  readSettingsFromHash,
-  sortByUsage,
-  usageScore,
-} from '../lib/prefs'
+import { buildChords, findAmbiguous, findDuplicates, formatChord, matchChord, CHORDS } from '../lib/chords'
+import { encodeSettingsToHash, readSettingsFromHash, sortByUsage, usageScore } from '../lib/prefs'
 import { BACKUP_VERSION, parseBackup, summarise } from '../lib/backup'
 import { missingSteps, newPipeline, suggestFromTrail, titleForStep } from '../lib/pipelines'
 import { buildActions, searchActions, setPreset, takePreset } from '../lib/actions'
@@ -67,9 +55,7 @@ describe('chords', () => {
   })
 
   it('parses both the legacy and the new shortcut spellings', () => {
-    const built = buildChords([
-      { ...tools[0], shortcut: 'G then Q', aliases: [] },
-    ] as typeof tools)
+    const built = buildChords([{ ...tools[0], shortcut: 'G then Q', aliases: [] }] as typeof tools)
     expect(built.some((c) => c.keys.join('') === 'q')).toBe(true)
   })
 })

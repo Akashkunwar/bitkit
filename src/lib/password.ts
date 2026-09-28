@@ -22,7 +22,7 @@ function randomInt(max: number): number {
   // A single byte only covers max <= 256; beyond that the rejection window
   // collapses to zero and the loop never terminates. Widen to 32 bits.
   if (max > 256) {
-    const limit = 2 ** 32 - ((2 ** 32) % max)
+    const limit = 2 ** 32 - (2 ** 32 % max)
     const wide = new Uint32Array(1)
     for (;;) {
       crypto.getRandomValues(wide)
@@ -89,7 +89,10 @@ export function generateHexToken(bytes: number): string {
 
 export function generateBase64UrlToken(bytes: number): string {
   const buf = crypto.getRandomValues(new Uint8Array(bytes))
-  return btoa(String.fromCharCode(...buf)).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
+  return btoa(String.fromCharCode(...buf))
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replace(/=+$/, '')
 }
 
 export function generateUuid(): string {

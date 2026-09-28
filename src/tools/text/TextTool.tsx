@@ -70,10 +70,7 @@ export default function TextTool() {
   const peopleRows = useMemo(() => dummyPeople(people), [people])
 
   return (
-    <ToolLayout
-      title="Text bench"
-      lede="Case and slugs, a live word count, CSV ↔ JSON, and dummy copy. All local."
-    >
+    <ToolLayout title="Text bench" lede="Case and slugs, a live word count, CSV ↔ JSON, and dummy copy. All local.">
       <Segmented
         label="Mode"
         value={mode}
@@ -117,7 +114,13 @@ export default function TextTool() {
             {mode === 'case' ? (
               <div className="row" style={{ marginBottom: '1rem' }}>
                 {CASES.map((c) => (
-                  <button key={c.value} type="button" className="btn" disabled={!input} onClick={() => runCase(c.value)}>
+                  <button
+                    key={c.value}
+                    type="button"
+                    className="btn"
+                    disabled={!input}
+                    onClick={() => runCase(c.value)}
+                  >
                     {c.label}
                   </button>
                 ))}
@@ -238,14 +241,21 @@ export default function TextTool() {
               </tbody>
             </table>
             <div className="row" style={{ marginTop: '1rem' }}>
-              <button type="button" className="btn" onClick={() => void copy(JSON.stringify(peopleRows, null, 2), 'people')}>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => void copy(JSON.stringify(peopleRows, null, 2), 'people')}
+              >
                 {copied === 'people' ? 'Copied ✓' : 'Copy JSON'}
               </button>
               <button
                 type="button"
                 className="btn"
                 onClick={() =>
-                  triggerDownload(new Blob([JSON.stringify(peopleRows, null, 2)], { type: 'application/json' }), 'people.json')
+                  triggerDownload(
+                    new Blob([JSON.stringify(peopleRows, null, 2)], { type: 'application/json' }),
+                    'people.json',
+                  )
                 }
               >
                 Download

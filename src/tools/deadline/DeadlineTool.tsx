@@ -122,7 +122,9 @@ export default function DeadlineTool() {
           </div>
           <div className="pill-row">
             <span className="pill">{toInput(added)}</span>
-            <span className="pill">{days >= 0 ? 'after' : 'before'} {start}</span>
+            <span className="pill">
+              {days >= 0 ? 'after' : 'before'} {start}
+            </span>
             <span className="pill">{holidays.size} holidays applied</span>
           </div>
         </>
@@ -134,7 +136,9 @@ export default function DeadlineTool() {
           <div className="pill-row">
             <span className="pill">{between.off} non-working days</span>
             <span className="pill">{between.working + between.off} days total</span>
-            {between.holidaysHit ? <span className="pill">{between.holidaysHit} holidays fell on a work day</span> : null}
+            {between.holidaysHit ? (
+              <span className="pill">{between.holidaysHit} holidays fell on a work day</span>
+            ) : null}
           </div>
           <p className="hint">Both the start and end dates are counted.</p>
         </>

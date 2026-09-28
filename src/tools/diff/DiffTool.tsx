@@ -56,11 +56,23 @@ export default function DiffTool() {
       <div className="diff-panes">
         <label className="field">
           <span>Original</span>
-          <textarea className="code-area editor" rows={14} spellCheck={false} value={left} onChange={(e) => setLeft(e.target.value)} />
+          <textarea
+            className="code-area editor"
+            rows={14}
+            spellCheck={false}
+            value={left}
+            onChange={(e) => setLeft(e.target.value)}
+          />
         </label>
         <label className="field">
           <span>Changed</span>
-          <textarea className="code-area editor" rows={14} spellCheck={false} value={right} onChange={(e) => setRight(e.target.value)} />
+          <textarea
+            className="code-area editor"
+            rows={14}
+            spellCheck={false}
+            value={right}
+            onChange={(e) => setRight(e.target.value)}
+          />
         </label>
       </div>
       <div className="row" style={{ margin: '0.75rem 0' }}>

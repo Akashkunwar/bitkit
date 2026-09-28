@@ -20,9 +20,7 @@ export function StatusBar() {
   const { t } = useI18n()
   const [offline, setOffline] = useState(() => typeof navigator !== 'undefined' && !navigator.onLine)
   const [installPrompt, setInstallPrompt] = useState<InstallPrompt | null>(null)
-  const [installDismissed, setInstallDismissed] = useState(
-    () => localStorage.getItem(INSTALL_DISMISSED) === '1',
-  )
+  const [installDismissed, setInstallDismissed] = useState(() => localStorage.getItem(INSTALL_DISMISSED) === '1')
 
   const {
     needRefresh: [needRefresh, setNeedRefresh],

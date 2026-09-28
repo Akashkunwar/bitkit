@@ -1,114 +1,143 @@
-import { useState } from 'react'
-import * as pdfjs from 'pdfjs-dist'
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+import { useEffect, useMemo, useState } from 'react'
+import { ArrowUpDown, Download, FileDown, ImagePlus, Move, RotateCcw, RotateCw, Trash2, X } from 'lucide-react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
 import { SendTo } from '../../components/SendTo'
+import { SortableGrid } from '../../components/SortableGrid'
 import { triggerDownload } from '../../lib/download'
+import { formatBytes } from '../../lib/format'
 import { useHandoff } from '../../lib/useHandoff'
-import { imagesToPdf, type PageFit } from '../../lib/imagePdf'
-import { encryptionWarning, loadPdf } from '../../lib/pdfLoad'
-import { destroyPdfJs, isPdfPasswordError, openPdfJs } from '../../lib/pdfJs'
-import { PdfPassword } from '../../components/PdfPassword'
-import { zipStore } from '../../lib/zip'
+import { usePasteFiles } from '../../lib/usePasteFiles'
+import { useToolSettings } from '../../lib/prefs'
+import { imagesToPdf } from '../../lib/imagePdf'
+import { useImageList, type ImageItem, type SortMode } from '../../lib/image/useImageList'
+import {
+  MARGINS,
+  PAGE_SIZE_LABELS,
+  pageFor,
+  placeImage,
+  rotatedSize,
+  type ImageFit,
+  type Margin,
+  type Orientation,
+  type PageSize,
+} from '../../lib/pageLayout'
 
-pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
+type Quality = 'small' | 'balanced' | 'best' | 'original'
 
-type Mode = 'to-pdf' | 'to-images'
+const QUALITY: Record<Quality, { dpi: number | null; jpeg: number; label: string }> = {
+  small: { dpi: 150, jpeg: 0.75, label: 'Smaller' },
+  balanced: { dpi: 220, jpeg: 0.85, label: 'Balanced' },
+  best: { dpi: 300, jpeg: 0.92, label: 'High' },
+  original: { dpi: null, jpeg: 0.95, label: 'Original' },
+}
+
+const DEFAULTS = {
+  pageSize: 'a4' as PageSize,
+  orientation: 'auto' as Orientation,
+  fit: 'contain' as ImageFit,
+  margin: 'small' as Margin,
+  background: '#ffffff',
+  quality: 'balanced' as Quality,
+}
+
+type Result = { file: File; url: string }
+
+/** A to-scale sketch of the first page with the current settings applied. */
+function PagePreview({ item, settings }: { item: ImageItem; settings: typeof DEFAULTS }) {
+  if (!item.width || !item.thumbUrl) return null
+  const rotated = rotatedSize(item.width, item.height, item.rotation)
+  const margin = MARGINS[settings.margin]
+  const page = pageFor(rotated.width, rotated.height, settings.pageSize, settings.orientation, margin)
+  const { dest } = placeImage(rotated.width, rotated.height, page.width, page.height, margin, settings.fit)
+  const pct = (value: number, total: number) => `${(value / total) * 100}%`
+  return (
+    <figure className="page-preview">
+      <div
+        className="page-preview-sheet"
+        style={{ aspectRatio: `${page.width} / ${page.height}`, background: settings.background }}
+      >
+        <img
+          src={item.thumbUrl}
+          alt=""
+          style={{
+            left: pct(dest.x, page.width),
+            // PDF y runs up from the bottom; CSS top runs down.
+            top: pct(page.height - dest.y - dest.height, page.height),
+            width: pct(dest.width, page.width),
+            height: pct(dest.height, page.height),
+            objectFit: settings.fit === 'cover' ? 'cover' : 'fill',
+          }}
+        />
+      </div>
+      <figcaption>
+        Page 1 · {Math.round((page.width / 72) * 25.4)} × {Math.round((page.height / 72) * 25.4)} mm
+      </figcaption>
+    </figure>
+  )
+}
 
 export default function ImagePdfTool() {
-  const [mode, setMode] = useState<Mode>('to-pdf')
-  const [files, setFiles] = useState<File[]>([])
-  const [fit, setFit] = useState<PageFit>('fit')
+  const list = useImageList()
+  const { items, add, remove, clear, move, sort, reverse, rotate, rotateAll } = list
+  const { settings, update } = useToolSettings('image-pdf', DEFAULTS)
+  const [name, setName] = useState('images')
   const [busy, setBusy] = useState(false)
+  const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
-  const [outFile, setOutFile] = useState<File | null>(null)
-  const [encrypted, setEncrypted] = useState(false)
-  const [password, setPassword] = useState('')
-  const [needsPassword, setNeedsPassword] = useState(false)
+  const [result, setResult] = useState<Result | null>(null)
 
-  const addFiles = (incoming: File[]) => {
-    setFiles((prev) => [...prev, ...incoming])
-    setOutFile(null)
-    for (const file of incoming) {
-      if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-        void file.arrayBuffer().then(async (buf) => {
-          try {
-            const { encrypted: locked } = await loadPdf(new Uint8Array(buf))
-            if (locked) {
-              setEncrypted(true)
-              setNeedsPassword(true)
-            }
-          } catch {
-            /* keep prior flag */
-          }
-        })
-      }
-    }
+  const ready = items.filter((item) => !item.error)
+  const totalSize = useMemo(() => items.reduce((sum, item) => sum + item.size, 0), [items])
+
+  useEffect(
+    () => () => {
+      if (result) URL.revokeObjectURL(result.url)
+    },
+    [result],
+  )
+
+  const addFiles = (files: File[]) => {
+    const added = add(files)
+    if (!added) setError('Those files are not images. Drop JPG, PNG, WebP, GIF, BMP, or AVIF.')
+    else setError(null)
+    setResult(null)
+    if (items.length === 0 && files[0]?.name) setName(files[0].name.replace(/\.[^.]+$/, '') || 'images')
   }
 
   useHandoff((payload) => {
     if (payload.files?.length) addFiles(payload.files)
   })
+  usePasteFiles(addFiles)
 
-  const run = async () => {
-    if (!files.length) return
+  const build = async () => {
+    if (!ready.length) return
     setBusy(true)
     setError(null)
+    setProgress(0)
     try {
-      if (mode === 'to-pdf') {
-        const images = files.filter((f) => f.type.startsWith('image/'))
-        const bytes = await imagesToPdf(images, fit)
-        const file = new File([bytes.slice().buffer as ArrayBuffer], 'images.pdf', { type: 'application/pdf' })
-        setOutFile(file)
-        triggerDownload(file, file.name)
-        return
-      }
-      const pdf = files.find((f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))
-      if (!pdf) throw new Error('Drop a PDF to convert to images.')
-      const data = new Uint8Array(await pdf.arrayBuffer())
-      const doc = await openPdfJs(pdfjs, data, password || undefined)
-      try {
-        const entries: { name: string; data: Uint8Array }[] = []
-        const outFiles: File[] = []
-        for (let i = 1; i <= doc.numPages; i += 1) {
-          const page = await doc.getPage(i)
-          const vp = page.getViewport({ scale: 2 })
-          const canvas = document.createElement('canvas')
-          canvas.width = vp.width
-          canvas.height = vp.height
-          const ctx = canvas.getContext('2d')
-          if (!ctx) throw new Error('Canvas is unavailable.')
-          await page.render({ canvas, canvasContext: ctx, viewport: vp }).promise
-          const blob = await new Promise<Blob>((resolve, reject) => {
-            canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Encode failed.'))), 'image/jpeg', 0.92)
-          })
-          const bytes = new Uint8Array(await blob.arrayBuffer())
-          const name = `page-${String(i).padStart(2, '0')}.jpg`
-          entries.push({ name, data: bytes })
-          outFiles.push(new File([blob], name, { type: 'image/jpeg' }))
-        }
-        if (entries.length === 1) {
-          triggerDownload(new Blob([entries[0].data.slice().buffer as ArrayBuffer], { type: 'image/jpeg' }), entries[0].name)
-        } else {
-          const zip = zipStore(entries)
-          triggerDownload(new Blob([zip.slice().buffer as ArrayBuffer], { type: 'application/zip' }), 'pdf-pages.zip')
-        }
-        setOutFile(outFiles[0] ?? null)
-        if (outFiles.length) setFiles(outFiles)
-        setNeedsPassword(false)
-      } finally {
-        await destroyPdfJs(doc)
-      }
+      const quality = QUALITY[settings.quality]
+      const bytes = await imagesToPdf(
+        ready.map((item) => ({ file: item.file, rotation: item.rotation })),
+        {
+          pageSize: settings.pageSize,
+          orientation: settings.orientation,
+          fit: settings.fit,
+          margin: settings.margin,
+          background: settings.background,
+          dpi: quality.dpi,
+          quality: quality.jpeg,
+          title: name,
+          onProgress: (done, total) => setProgress(done / total),
+        },
+      )
+      const filename = `${name.trim() || 'images'}.pdf`
+      const file = new File([bytes.slice().buffer as ArrayBuffer], filename, { type: 'application/pdf' })
+      setResult({ file, url: URL.createObjectURL(file) })
+      triggerDownload(file, filename)
     } catch (err) {
-      if (isPdfPasswordError(err)) {
-        setNeedsPassword(true)
-        setEncrypted(true)
-        setError(err.message)
-      } else {
-        setError(err instanceof Error ? err.message : 'Conversion failed.')
-      }
+      setError(err instanceof Error ? err.message : 'Could not build the PDF.')
     } finally {
       setBusy(false)
     }
@@ -116,70 +145,279 @@ export default function ImagePdfTool() {
 
   return (
     <ToolLayout
-      title="Image ↔ PDF"
-      lede="Turn screenshots into a packet, or rasterize a PDF into JPEGs. Encoding stays in this tab."
+      title="Images to PDF"
+      lede="Turn photos, scans, and screenshots into one PDF. Drag to reorder, rotate any page, then pick the page size and margins. Nothing is uploaded."
     >
-      <Segmented
-        label="Direction"
-        value={mode}
-        options={[
-          { value: 'to-pdf', label: 'Images → PDF' },
-          { value: 'to-images', label: 'PDF → images' },
-        ]}
-        onChange={setMode}
-      />
-      <DropZone
-        accept={mode === 'to-pdf' ? 'image/*' : 'application/pdf,.pdf'}
-        multiple={mode === 'to-pdf'}
-        label={mode === 'to-pdf' ? 'Drop images in page order.' : 'Drop a PDF.'}
-        onFiles={addFiles}
-      />
-      <div className="split">
-        <section className="panel">
-          {!files.length ? <p className="muted">Nothing queued.</p> : null}
-          {files.map((file) => (
-            <p key={file.name + file.size}>
-              {file.name} · {(file.size / 1024).toFixed(0)} KB
-            </p>
-          ))}
-        </section>
-        <aside className="panel">
-          {mode === 'to-pdf' ? (
-            <Segmented
-              label="Page size"
-              value={fit}
-              options={[
-                { value: 'fit', label: 'Fit image' },
-                { value: 'a4', label: 'A4' },
-                { value: 'letter', label: 'Letter' },
-              ]}
-              onChange={setFit}
+      {!items.length ? (
+        <DropZone
+          multiple
+          accept="image/*,.heic,.heif,.avif"
+          label="Drop images here, or paste from the clipboard"
+          hint="JPG, PNG, WebP, GIF, BMP, or AVIF — add as many as you like. You can reorder them next."
+          buttonLabel="Choose images"
+          onFiles={addFiles}
+        />
+      ) : (
+        <div className="split">
+          <section className="panel">
+            <div className="toolbar">
+              <div className="toolbar-group">
+                <strong>
+                  {items.length} {items.length === 1 ? 'image' : 'images'}
+                </strong>
+                <span className="muted">· {formatBytes(totalSize)}</span>
+              </div>
+              <div className="toolbar-group">
+                <label className="visually-hidden" htmlFor="img-pdf-sort">
+                  Sort images
+                </label>
+                <select
+                  id="img-pdf-sort"
+                  className="select-inline"
+                  value=""
+                  onChange={(event) => {
+                    if (event.target.value) sort(event.target.value as SortMode)
+                  }}
+                >
+                  <option value="">Sort…</option>
+                  <option value="name-asc">Name A → Z</option>
+                  <option value="name-desc">Name Z → A</option>
+                  <option value="date-asc">Oldest first</option>
+                  <option value="date-desc">Newest first</option>
+                </select>
+                <button type="button" className="btn btn-sm" onClick={reverse} title="Reverse the order">
+                  <ArrowUpDown size={15} aria-hidden="true" />
+                  Reverse
+                </button>
+                <button type="button" className="btn btn-sm" onClick={() => rotateAll(90)} title="Rotate every image">
+                  <RotateCw size={15} aria-hidden="true" />
+                  Rotate all
+                </button>
+                <button type="button" className="btn btn-sm btn-danger" onClick={clear}>
+                  <Trash2 size={15} aria-hidden="true" />
+                  Clear
+                </button>
+              </div>
+            </div>
+
+            <SortableGrid
+              ariaLabel="Pages, in order"
+              items={items}
+              getKey={(item) => item.id}
+              getLabel={(item) => item.name}
+              onMove={(from, to) => {
+                move(from, to)
+                setResult(null)
+              }}
+              cardProps={(item) => ({ 'data-excluded': Boolean(item.error) })}
+              renderMedia={(item) =>
+                item.error ? (
+                  <p className="hint" style={{ textAlign: 'center', padding: '0 0.5rem' }}>
+                    {item.error}
+                  </p>
+                ) : item.thumbUrl ? (
+                  <img src={item.thumbUrl} alt="" draggable={false} />
+                ) : (
+                  <span className="spinner" aria-label="Loading preview" />
+                )
+              }
+              renderActions={(item) => (
+                <>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    aria-label={`Rotate ${item.name} left`}
+                    title="Rotate left"
+                    onClick={() => rotate(item.id, -90)}
+                  >
+                    <RotateCcw size={15} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    aria-label={`Rotate ${item.name} right`}
+                    title="Rotate right"
+                    onClick={() => rotate(item.id, 90)}
+                  >
+                    <RotateCw size={15} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    aria-label={`Remove ${item.name}`}
+                    title="Remove"
+                    onClick={() => remove(item.id)}
+                  >
+                    <X size={15} aria-hidden="true" />
+                  </button>
+                </>
+              )}
             />
-          ) : (
-            <>
-              <p className="hint">Pages render at 2× for a sharper JPEG. Multi-page PDFs download as a ZIP.</p>
-              {encryptionWarning(encrypted, 'pdfjs') ? <p className="banner warn">{encryptionWarning(encrypted, 'pdfjs')}</p> : null}
-              {needsPassword ? (
-                <PdfPassword
-                  value={password}
-                  onChange={setPassword}
-                  busy={busy}
-                  error={error}
-                  onUnlock={() => void run()}
+
+            <p className="hint" style={{ marginTop: '0.9rem' }}>
+              Drag a picture to move it, pick a new number from its badge, or focus a card and press Alt + arrow keys.
+            </p>
+
+            <div style={{ marginTop: '1rem' }}>
+              <DropZone
+                compact
+                multiple
+                accept="image/*,.heic,.heif,.avif"
+                label="Add more images"
+                buttonLabel="Add images"
+                onFiles={addFiles}
+              />
+            </div>
+          </section>
+
+          <aside className="panel">
+            <div className="panel-title">
+              <h2>Page setup</h2>
+            </div>
+
+            {ready[0] ? <PagePreview item={ready[0]} settings={settings} /> : null}
+
+            <label className="field">
+              <span>Page size</span>
+              <select value={settings.pageSize} onChange={(e) => update({ pageSize: e.target.value as PageSize })}>
+                {(Object.keys(PAGE_SIZE_LABELS) as PageSize[]).map((size) => (
+                  <option key={size} value={size}>
+                    {PAGE_SIZE_LABELS[size]}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            {settings.pageSize !== 'fit' ? (
+              <>
+                <Segmented
+                  label="Orientation"
+                  value={settings.orientation}
+                  onChange={(orientation) => update({ orientation })}
+                  block
+                  options={[
+                    { value: 'auto', label: 'Auto', title: 'Landscape pages for wide images' },
+                    { value: 'portrait', label: 'Portrait' },
+                    { value: 'landscape', label: 'Landscape' },
+                  ]}
                 />
-              ) : null}
-            </>
-          )}
-          <button type="button" className="btn btn-primary" disabled={!files.length || busy} onClick={() => void run()}>
-            {busy ? 'Working…' : 'Convert'}
-          </button>
-          <button type="button" className="btn-ghost" onClick={() => { setFiles([]); setOutFile(null); setEncrypted(false); setNeedsPassword(false); setPassword('') }}>
-            Clear
-          </button>
-          {error ? <p className="status-bad">{error}</p> : null}
-          <SendTo from="image-pdf" files={outFile ? [outFile] : files} />
-        </aside>
-      </div>
+                <Segmented
+                  label="Image on page"
+                  value={settings.fit}
+                  onChange={(fit) => update({ fit })}
+                  block
+                  options={[
+                    { value: 'contain', label: 'Fit', title: 'Whole image, letterboxed' },
+                    { value: 'cover', label: 'Fill', title: 'Fill the page, cropping edges' },
+                    { value: 'stretch', label: 'Stretch', title: 'Fill the page, distorting' },
+                  ]}
+                />
+              </>
+            ) : null}
+
+            <Segmented
+              label="Margin"
+              value={settings.margin}
+              onChange={(margin) => update({ margin })}
+              block
+              options={[
+                { value: 'none', label: 'None' },
+                { value: 'small', label: 'Small' },
+                { value: 'medium', label: 'Medium' },
+                { value: 'large', label: 'Large' },
+              ]}
+            />
+
+            <Segmented
+              label="Quality"
+              value={settings.quality}
+              onChange={(quality) => update({ quality })}
+              block
+              options={(Object.keys(QUALITY) as Quality[]).map((q) => ({
+                value: q,
+                label: QUALITY[q].label,
+                title: QUALITY[q].dpi ? `${QUALITY[q].dpi} dpi` : 'Every source pixel',
+              }))}
+            />
+
+            <div className="grid-2">
+              <label className="field">
+                <span>Page colour</span>
+                <input
+                  type="color"
+                  value={settings.background}
+                  onChange={(e) => update({ background: e.target.value })}
+                />
+              </label>
+              <label className="field">
+                <span>File name</span>
+                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="images" />
+              </label>
+            </div>
+
+            <button
+              type="button"
+              className="btn btn-primary btn-lg btn-block"
+              disabled={!ready.length || busy}
+              onClick={() => void build()}
+            >
+              {busy ? <span className="spinner" aria-hidden="true" /> : <FileDown size={18} aria-hidden="true" />}
+              {busy ? `Building… ${Math.round(progress * 100)}%` : `Create PDF (${ready.length} pages)`}
+            </button>
+            {busy ? (
+              <div className="progress" style={{ marginTop: '0.6rem' }}>
+                <span style={{ width: `${progress * 100}%` }} />
+              </div>
+            ) : null}
+            {error ? (
+              <p className="status-bad" role="alert">
+                {error}
+              </p>
+            ) : null}
+
+            {result ? (
+              <div className="result-card">
+                <div>
+                  <strong>{result.file.name}</strong>
+                  <span>{formatBytes(result.file.size)}</span>
+                </div>
+                <div className="row">
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    onClick={() => triggerDownload(result.file, result.file.name)}
+                  >
+                    <Download size={15} aria-hidden="true" />
+                    Download again
+                  </button>
+                  <a className="btn btn-sm" href={result.url} target="_blank" rel="noreferrer">
+                    Open
+                  </a>
+                </div>
+              </div>
+            ) : null}
+
+            <SendTo from="image-pdf" files={result ? [result.file] : []} />
+          </aside>
+        </div>
+      )}
+
+      {!items.length ? (
+        <div className="feature-strip">
+          <div>
+            <ImagePlus size={18} aria-hidden="true" />
+            <span>Any number of images, in any format your browser can open.</span>
+          </div>
+          <div>
+            <Move size={18} aria-hidden="true" />
+            <span>Reorder by dragging, or pick a new position from the number badge.</span>
+          </div>
+          <div>
+            <RotateCw size={18} aria-hidden="true" />
+            <span>Rotate pages; phone photos are straightened automatically.</span>
+          </div>
+        </div>
+      ) : null}
     </ToolLayout>
   )
 }

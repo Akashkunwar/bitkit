@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react'
-import * as pdfjs from 'pdfjs-dist'
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+import { pdfjs } from '../../lib/pdfjsRuntime'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
@@ -14,8 +13,6 @@ import { PdfPassword } from '../../components/PdfPassword'
 import { repackPdf, shrinkPdf, stripPdfMetadata, type ShrinkPreset } from '../../lib/pdfShrink'
 import { shrinkStateFromPreset } from '../../lib/toolPresets'
 import { useHandoff } from '../../lib/useHandoff'
-
-pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
 
 const PRESETS: { value: ShrinkPreset; label: string }[] = [
   { value: 'screen', label: 'Screen · 100 dpi' },
@@ -138,7 +135,9 @@ export default function ShrinkTool() {
           <p className="hint">
             {file.name} · {formatBytes(file.size)}
           </p>
-          {encryptionWarning(encrypted, 'pdfjs') ? <p className="banner warn">{encryptionWarning(encrypted, 'pdfjs')}</p> : null}
+          {encryptionWarning(encrypted, 'pdfjs') ? (
+            <p className="banner warn">{encryptionWarning(encrypted, 'pdfjs')}</p>
+          ) : null}
           {needsPassword ? (
             <PdfPassword
               value={password}
@@ -159,7 +158,12 @@ export default function ShrinkTool() {
               <Segmented label="Quality preset" value={preset} options={PRESETS} onChange={setPreset} />
               <label className="field">
                 <span>Target size — blank for no ceiling</span>
-                <input className="text-input" value={limit} placeholder="2mb" onChange={(e) => setLimit(e.target.value)} />
+                <input
+                  className="text-input"
+                  value={limit}
+                  placeholder="2mb"
+                  onChange={(e) => setLimit(e.target.value)}
+                />
               </label>
               <label className="row">
                 <input type="checkbox" checked={grayscale} onChange={(e) => setGrayscale(e.target.checked)} />

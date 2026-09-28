@@ -25,16 +25,7 @@ export type ChartData = {
  * Categorical palette. Hues are spaced far enough apart to stay distinct, and
  * each holds its lightness so the set reads evenly in light and dark themes.
  */
-export const PALETTE = [
-  '#0d8a78',
-  '#7c3aed',
-  '#c2610a',
-  '#2563eb',
-  '#b52d6b',
-  '#3f7d1f',
-  '#0e7490',
-  '#a13a3a',
-]
+export const PALETTE = ['#0d8a78', '#7c3aed', '#c2610a', '#2563eb', '#b52d6b', '#3f7d1f', '#0e7490', '#a13a3a']
 
 export function chartData(table: Table, spec: ChartSpec): ChartData {
   const labels = table.rows.map((row, i) => (row[spec.labelColumn] ?? `Row ${i + 1}`).trim() || `Row ${i + 1}`)
@@ -79,11 +70,7 @@ function fmt(n: number): string {
 }
 
 function esc(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
+  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')
 }
 
 type Layout = {
@@ -217,7 +204,9 @@ function linesSvg(spec: ChartSpec, data: ChartData, l: Layout, bounds: { min: nu
         )
       }
     }
-    parts.push(`<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`)
+    parts.push(
+      `<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`,
+    )
     s.values.forEach((value, i) => {
       if (value == null) return
       const x = l.left + slot * (i + 0.5)

@@ -1,7 +1,7 @@
 /** Unbiased random integer in [0, max) via rejection sampling on 32 bits. */
 export function randomInt(max: number): number {
   if (max <= 1) return 0
-  const limit = 2 ** 32 - ((2 ** 32) % max)
+  const limit = 2 ** 32 - (2 ** 32 % max)
   const buf = new Uint32Array(1)
   for (;;) {
     crypto.getRandomValues(buf)

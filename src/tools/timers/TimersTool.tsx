@@ -109,11 +109,10 @@ export default function TimersTool() {
   // hardcoded so it never drifts from index.html.
   const pageTitle = useRef(typeof document === 'undefined' ? '' : document.title)
   useEffect(() => {
-    document.title = running
-      ? `${clock(mode === 'stopwatch' ? elapsed : remaining)} — BitKit`
-      : pageTitle.current
+    const original = pageTitle.current
+    document.title = running ? `${clock(mode === 'stopwatch' ? elapsed : remaining)} — BitKit` : original
     return () => {
-      document.title = pageTitle.current
+      document.title = original
     }
   }, [running, remaining, elapsed, mode])
 
@@ -141,7 +140,10 @@ export default function TimersTool() {
   const progress = total ? 1 - remaining / total : 0
 
   return (
-    <ToolLayout title="Timers" lede="Countdown, stopwatch, and Pomodoro. Runs on wall-clock time, so a background tab stays accurate.">
+    <ToolLayout
+      title="Timers"
+      lede="Countdown, stopwatch, and Pomodoro. Runs on wall-clock time, so a background tab stays accurate."
+    >
       <Segmented
         label="Mode"
         value={mode}
@@ -170,9 +172,7 @@ export default function TimersTool() {
           style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%` }}
           aria-hidden="true"
         />
-        <span className="timer-value">
-          {mode === 'stopwatch' ? clock(elapsed, true) : clock(remaining)}
-        </span>
+        <span className="timer-value">{mode === 'stopwatch' ? clock(elapsed, true) : clock(remaining)}</span>
       </div>
 
       {done ? <p className="status-ok">Time is up.</p> : null}

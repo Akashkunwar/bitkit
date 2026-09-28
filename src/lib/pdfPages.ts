@@ -46,7 +46,10 @@ export async function splitPdf(bytes: Uint8Array): Promise<{ index: number; byte
 
 /** Parse 1-based ranges like `1-3,5,8-9` into 0-based page indices. */
 export function parsePageRange(input: string, pageCount: number): number[] {
-  const parts = input.split(',').map((p) => p.trim()).filter(Boolean)
+  const parts = input
+    .split(',')
+    .map((p) => p.trim())
+    .filter(Boolean)
   const indices: number[] = []
   for (const part of parts) {
     const m = part.match(/^(\d+)(?:\s*-\s*(\d+))?$/)
