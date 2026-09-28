@@ -106,7 +106,18 @@ async function audit(page: Page): Promise<Issue[]> {
       const size = parseFloat(style.fontSize)
       const large = size >= 24 || (size >= 18.66 && Number(style.fontWeight) >= 700)
       const background = backgroundOf(el)
-      const ratio = contrast(over(parse(style.color), background), background)
+      const colour = parse(style.color)
+      // Gradient text is painted by its background and clipped to the glyphs,
+      // with a transparent `color`. Measure every gradient stop instead: the
+      // weakest one is what a reader sees on some part of the word.
+      const clip = style.getPropertyValue('-webkit-background-clip') || style.backgroundClip
+      const stops =
+        clip === 'text' && colour[3] === 0
+          ? [...style.backgroundImage.matchAll(/color\(srgb[^)]+\)|rgba?\([^)]+\)/g)].map((m) => parse(m[0]))
+          : []
+      const ratio = stops.length
+        ? Math.min(...stops.map((stop) => contrast(over(stop, background), background)))
+        : contrast(over(colour, background), background)
       const required = large ? 3 : 4.5
       if (ratio < required) {
         issues.push({
@@ -215,11 +226,11 @@ test('the theme menu is one tab stop and arrows move within it', async ({ page }
   // Exactly one option is reachable by Tab; the rest are arrow-key targets.
   const tabbable = await radios.evaluateAll((els) => els.filter((el) => el.tabIndex === 0).length)
   expect(tabbable).toBe(1)
-  await expect(page.getByRole('radio', { name: 'Mist' })).toBeFocused()
+  await expect(page.getByRole('radio', { name: 'Light' })).toBeFocused()
 
   // Arrows select as they move, so each theme previews against the live page.
   await page.keyboard.press('ArrowDown')
-  await expect(page.getByRole('radio', { name: 'Deep' })).toBeFocused()
+  await expect(page.getByRole('radio', { name: 'Dark' })).toBeFocused()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 
   await page.keyboard.press('Home')

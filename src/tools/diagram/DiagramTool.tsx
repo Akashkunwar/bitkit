@@ -81,7 +81,7 @@ export default function DiagramTool() {
         startOnLoad: false,
         securityLevel: 'strict',
         theme: themeMeta(theme).appearance === 'dark' ? 'dark' : 'default',
-        fontFamily: 'Figtree Variable, Figtree, system-ui, sans-serif',
+        fontFamily: 'Inter Variable, Inter, system-ui, sans-serif',
       })
       setReady(true)
     })()

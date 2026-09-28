@@ -1,0 +1,48 @@
+/* ---------- Print ----------
+ *
+ * Tools that print (Markdown, Office, Invoice) mark their output .print-root
+ * and everything else .no-print; the shell chrome is hidden outright.
+ */
+
+@media print {
+  html,
+  body {
+    background: #fff !important;
+    color: #000;
+  }
+
+  .shell {
+    display: block;
+    background: none;
+  }
+
+  .no-print,
+  .sidebar,
+  .topbar,
+  .scrim,
+  .related,
+  .status-stack,
+  .chord-hint,
+  .undo-toast {
+    display: none !important;
+  }
+
+  .main {
+    padding: 0;
+    max-width: none;
+  }
+
+  .tool-layout {
+    display: block;
+  }
+
+  .print-root {
+    position: static;
+    box-shadow: none !important;
+    border: 0 !important;
+    border-radius: 0;
+    padding: 0;
+    background: #fff;
+    color: #000;
+  }
+}

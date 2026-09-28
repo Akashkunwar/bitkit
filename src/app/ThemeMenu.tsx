@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Check } from 'lucide-react'
 import { useTheme } from './useTheme'
 import { THEMES, themeMeta, type ThemeId, type ThemeMode } from '../lib/theme'
 import { useI18n } from '../lib/i18n'
@@ -116,7 +117,7 @@ export function ThemeMenu() {
         <span className="theme-name">{isSystem ? t('theme.system') : meta?.label}</span>
         {mode === value ? (
           <span className="theme-check" aria-hidden="true">
-            ✓
+            <Check size={16} />
           </span>
         ) : null}
       </button>

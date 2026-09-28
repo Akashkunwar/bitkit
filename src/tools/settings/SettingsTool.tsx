@@ -20,6 +20,7 @@ import {
 } from '../../lib/backup'
 import { clearUsage, readUsage, sortByUsage, usageScore, type Usage } from '../../lib/prefs'
 import { Segmented } from '../../components/Segmented'
+import { reloadPins } from '../../lib/usePins'
 import { useTheme } from '../../app/useTheme'
 import { ThemeChip } from '../../app/ThemeMenu'
 import { THEMES, TEXT_SCALES, themeMeta, type ThemeId } from '../../lib/theme'
@@ -199,6 +200,7 @@ export default function SettingsTool() {
       // The backup carries theme and appearance; without this the panel above
       // would keep rendering the old one against freshly rewritten storage.
       syncFromStorage()
+      void reloadPins()
       setStatus(
         mode === 'replace'
           ? `Replaced everything with ${result.notesAdded} notes and ${result.prefsWritten} settings.`
@@ -382,6 +384,7 @@ export default function SettingsTool() {
                     setConfirmWipe(false)
                     setStatus('Everything cleared.')
                     syncFromStorage()
+                    void reloadPins()
                     refresh()
                   })
                 }}

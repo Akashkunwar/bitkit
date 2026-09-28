@@ -83,6 +83,18 @@ test('two-letter chord navigates', async ({ page }) => {
   await expect(page).toHaveURL(/\/table$/)
 })
 
+test('the command palette opens with Ctrl+K and navigates to a tool', async ({ page }) => {
+  await page.goto('/')
+  await page.locator('body').click()
+  await page.keyboard.press('Control+k')
+  const input = page.getByRole('combobox', { name: /search tools and actions/i })
+  await expect(input).toBeFocused()
+  await input.fill('regex')
+  await page.keyboard.press('Enter')
+  await expect(page).toHaveURL(/\/regex$/)
+  await expect(page.locator('.tool-hero h1')).toHaveText('Regex tester')
+})
+
 test('the cheatsheet opens with ? and closes with Escape', async ({ page }) => {
   await page.goto('/')
   await page.locator('body').click()
@@ -95,8 +107,13 @@ test('the cheatsheet opens with ? and closes with Escape', async ({ page }) => {
 
 test('the command palette runs an action', async ({ page }) => {
   await page.goto('/')
+  await page.getByRole('button', { name: /search tools and actions/i }).click()
   await page.getByRole('combobox', { name: /search tools and actions/i }).fill('compress an image to 300')
-  await page.getByRole('option').first().click()
+  await page
+    .getByRole('dialog', { name: /command palette/i })
+    .getByRole('option')
+    .first()
+    .click()
   await expect(page).toHaveURL(/\/compress$/)
   await expect(page.locator('input[value="300kb"]')).toBeVisible()
 })

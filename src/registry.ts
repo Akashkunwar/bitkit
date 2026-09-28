@@ -1,5 +1,76 @@
 import type { ComponentType, LazyExoticComponent } from 'react'
 import { lazy } from 'react'
+import type { LucideIcon } from 'lucide-react'
+import {
+  ArrowRightLeft,
+  Calculator,
+  Image as ImageIcon,
+  Palette,
+  AudioWaveform,
+  Binary,
+  Blend,
+  BookOpen,
+  Box,
+  Braces,
+  CalendarCheck,
+  CalendarClock,
+  CaseSensitive,
+  ChartColumn,
+  Clapperboard,
+  ClipboardPaste,
+  Clock,
+  Contrast,
+  Dices,
+  Diff,
+  Eye,
+  FileArchive,
+  FileCog,
+  FilePen,
+  FileSignature,
+  FileText,
+  FileType,
+  Fingerprint,
+  Fuel,
+  GalleryHorizontal,
+  Gauge,
+  Globe,
+  Hash,
+  HeartPulse,
+  Images,
+  KeyRound,
+  Languages,
+  Laugh,
+  Link,
+  MapPin,
+  Merge,
+  Minimize2,
+  Network,
+  NotebookPen,
+  PenTool,
+  Pipette,
+  Presentation,
+  QrCode,
+  ReceiptText,
+  Regex,
+  ScanText,
+  Scissors,
+  ScreenShare,
+  Settings,
+  Sheet,
+  Shrink,
+  Smile,
+  SquareAsterisk,
+  SquareDashed,
+  Stamp,
+  Star,
+  SwatchBook,
+  Table2,
+  TextCursorInput,
+  Timer,
+  Type,
+  WandSparkles,
+  Workflow,
+} from 'lucide-react'
 import type { HandoffKind } from './lib/handoff'
 
 export type ToolCategory =
@@ -18,6 +89,25 @@ export const CATEGORIES: ToolCategory[] = [
   'Notes',
 ]
 
+export type CategoryMeta = {
+  icon: LucideIcon
+  /** CSS custom property holding the category hue, e.g. `var(--cat-image)`. */
+  color: string
+  blurb: string
+}
+
+export const CATEGORY_META: Record<ToolCategory, CategoryMeta> = {
+  Daily: { icon: Calculator, color: 'var(--cat-daily)', blurb: 'Calculators, converters, dates, and timers.' },
+  Image: { icon: ImageIcon, color: 'var(--cat-image)', blurb: 'Resize, convert, rotate, and edit pictures.' },
+  Document: { icon: FileText, color: 'var(--cat-document)', blurb: 'PDF, Word, and Markdown in every direction.' },
+  Data: { icon: Sheet, color: 'var(--cat-data)', blurb: 'Spreadsheets, charts, and archives.' },
+  Media: { icon: Clapperboard, color: 'var(--cat-media)', blurb: 'Trim, record, and measure audio and video.' },
+  Developer: { icon: Braces, color: 'var(--cat-developer)', blurb: 'Formatters, encoders, and generators.' },
+  Design: { icon: Palette, color: 'var(--cat-design)', blurb: 'Colour, contrast, gradients, and diagrams.' },
+  Writing: { icon: Type, color: 'var(--cat-writing)', blurb: 'Counters, styling, emoji, and speech.' },
+  Notes: { icon: NotebookPen, color: 'var(--cat-notes)', blurb: 'Notes, pipelines, and your data.' },
+}
+
 export type ToolMeta = {
   id: string
   path: string
@@ -30,6 +120,10 @@ export type ToolMeta = {
   /** Additional chords that also reach this tool. */
   aliases?: string[]
   accepts?: HandoffKind[]
+  /** Glyph shown on cards, the rail, and the tool header. */
+  icon: LucideIcon
+  /** Flags a tool as recently added on the home page. */
+  isNew?: boolean
   component: LazyExoticComponent<ComponentType>
 }
 
@@ -40,6 +134,7 @@ export const tools: ToolMeta[] = [
     title: 'Convert',
     blurb: 'Unix time, zones, units, rem/clamp, percent, GST, and split.',
     category: 'Daily',
+    icon: ArrowRightLeft,
     keywords: ['unix', 'timezone', 'epoch', 'units', 'px', 'rem', 'clamp', 'percent', 'gst', 'split', 'tip'],
     shortcut: 'G W',
     aliases: ['G 1 C'],
@@ -52,6 +147,7 @@ export const tools: ToolMeta[] = [
     title: 'Links & cards',
     blurb: 'WhatsApp, UTM, vCard, and calendar events. No shortener.',
     category: 'Daily',
+    icon: Link,
     keywords: ['whatsapp', 'wa.me', 'utm', 'vcard', 'ics', 'calendar', 'campaign'],
     shortcut: 'G O',
     aliases: ['G 1 L'],
@@ -64,6 +160,7 @@ export const tools: ToolMeta[] = [
     title: 'Clipboard download',
     blurb: 'Paste an image and save it. No upload hop.',
     category: 'Image',
+    icon: ClipboardPaste,
     keywords: ['paste', 'ctrl+v', 'screenshot', 'download', 'clipboard'],
     shortcut: 'G C',
     aliases: ['G 2 C'],
@@ -76,6 +173,7 @@ export const tools: ToolMeta[] = [
     title: 'Resize & compress',
     blurb: 'Hit pixel and kilobyte limits for forms and portals.',
     category: 'Image',
+    icon: Minimize2,
     keywords: ['resize', 'compress', 'kb', 'mb', '450', 'government', 'form'],
     shortcut: 'G R',
     aliases: ['G 2 R'],
@@ -88,6 +186,7 @@ export const tools: ToolMeta[] = [
     title: 'Image finishing',
     blurb: 'Crop, color, overlay, and export presets. Honest edits only.',
     category: 'Image',
+    icon: WandSparkles,
     keywords: ['crop', 'rotate', 'filter', 'overlay', 'marketing', 'export'],
     shortcut: 'G F',
     aliases: ['G 2 I'],
@@ -100,6 +199,7 @@ export const tools: ToolMeta[] = [
     title: 'Image metadata',
     blurb: 'Read EXIF and GPS, then strip tags before you share.',
     category: 'Image',
+    icon: MapPin,
     keywords: ['exif', 'gps', 'metadata', 'strip', 'privacy', 'location'],
     shortcut: 'G E',
     aliases: ['G 2 M'],
@@ -112,6 +212,7 @@ export const tools: ToolMeta[] = [
     title: 'Favicon set',
     blurb: 'One mark to 16–512 PNG icons and a favicon.ico.',
     category: 'Image',
+    icon: Star,
     keywords: ['favicon', 'icon', 'apple-touch', 'pwa', 'ico'],
     shortcut: 'G V',
     aliases: ['G 2 F'],
@@ -124,6 +225,7 @@ export const tools: ToolMeta[] = [
     title: 'Passport sheet',
     blurb: '600×600 cover crop tiled on a 4×6 or A4 print sheet.',
     category: 'Image',
+    icon: SquareDashed,
     keywords: ['passport', 'visa', 'photo', 'print', 'id', '600'],
     shortcut: 'G A',
     aliases: ['G 2 P'],
@@ -136,6 +238,7 @@ export const tools: ToolMeta[] = [
     title: 'Background cutout',
     blurb: 'On-device subject cutout. Photo stays in this tab.',
     category: 'Image',
+    icon: Scissors,
     shortcut: 'G 2 B',
     keywords: ['background', 'remove', 'cutout', 'transparent', 'segment', 'selfie'],
     accepts: ['image'],
@@ -147,6 +250,7 @@ export const tools: ToolMeta[] = [
     title: 'SVG convert',
     blurb: 'SVG to PNG, or wrap a raster in an honest SVG.',
     category: 'Image',
+    icon: PenTool,
     shortcut: 'G 2 S',
     keywords: ['svg', 'png', 'vector', 'raster', 'icon', 'wrap'],
     accepts: ['image'],
@@ -158,6 +262,7 @@ export const tools: ToolMeta[] = [
     title: 'Markdown to PDF',
     blurb: 'Preview Markdown, then print or download a PDF.',
     category: 'Document',
+    icon: FileText,
     keywords: ['md', 'pdf', 'print', 'document', 'export'],
     shortcut: 'G M',
     aliases: ['G 3 M'],
@@ -170,6 +275,7 @@ export const tools: ToolMeta[] = [
     title: 'PDF editor',
     blurb: 'Annotate, sign, white-out, and reorder pages offline.',
     category: 'Document',
+    icon: FilePen,
     keywords: ['pdf', 'annotate', 'sign', 'signature', 'whiteout', 'reorder', 'rotate', 'edit'],
     shortcut: 'G P',
     aliases: ['G 3 P'],
@@ -182,6 +288,7 @@ export const tools: ToolMeta[] = [
     title: 'PDF merge & split',
     blurb: 'Combine PDFs, extract a range, or split to one file per page.',
     category: 'Document',
+    icon: Merge,
     keywords: ['merge', 'split', 'extract', 'combine', 'pages', 'zip'],
     shortcut: 'G U',
     aliases: ['G 3 S'],
@@ -194,6 +301,7 @@ export const tools: ToolMeta[] = [
     title: 'Image ↔ PDF',
     blurb: 'Screenshots into a packet, or PDF pages out as JPEGs.',
     category: 'Document',
+    icon: Images,
     keywords: ['image', 'pdf', 'scan', 'jpeg', 'convert', 'packet'],
     shortcut: 'G I',
     aliases: ['G 3 I'],
@@ -206,6 +314,7 @@ export const tools: ToolMeta[] = [
     title: 'OCR',
     blurb: 'Read printed text from a photo. Image never leaves the tab.',
     category: 'Document',
+    icon: ScanText,
     keywords: ['ocr', 'tesseract', 'scan', 'text', 'screenshot', 'read'],
     shortcut: 'G Z',
     aliases: ['G 3 O'],
@@ -218,6 +327,7 @@ export const tools: ToolMeta[] = [
     title: 'PDF form fill',
     blurb: 'Fill AcroForm fields offline, then download.',
     category: 'Document',
+    icon: FileSignature,
     shortcut: 'G 3 F',
     keywords: ['form', 'acroform', 'fill', 'pdf', 'fields'],
     accepts: ['pdf'],
@@ -229,6 +339,7 @@ export const tools: ToolMeta[] = [
     title: 'Office to PDF',
     blurb: 'Word, PowerPoint, Excel, or Markdown into a PDF or .docx.',
     category: 'Document',
+    icon: Presentation,
     shortcut: 'G 3 W',
     keywords: [
       'word to pdf',
@@ -255,6 +366,7 @@ export const tools: ToolMeta[] = [
     title: 'PDF to Word & text',
     blurb: 'Lift the text out of a PDF as .docx, Markdown, or plain text.',
     category: 'Document',
+    icon: FileType,
     shortcut: 'G 3 X',
     keywords: ['pdf to word', 'docx', 'extract', 'text', 'copy out', 'convert', 'markdown', 'retype'],
     accepts: ['pdf'],
@@ -266,6 +378,7 @@ export const tools: ToolMeta[] = [
     title: 'Watermark & page numbers',
     blurb: 'Stamp a watermark, page numbers, Bates numbers, or a running head.',
     category: 'Document',
+    icon: Stamp,
     shortcut: 'G 3 K',
     keywords: [
       'watermark',
@@ -288,6 +401,7 @@ export const tools: ToolMeta[] = [
     title: 'JSON formatter',
     blurb: 'Format, validate, and minify with exact error lines.',
     category: 'Developer',
+    icon: Braces,
     keywords: ['json', 'format', 'validate', 'minify', 'pretty', 'parse', 'lint', 'escape'],
     shortcut: 'G J',
     aliases: ['G 6 J'],
@@ -300,6 +414,7 @@ export const tools: ToolMeta[] = [
     title: 'Text diff',
     blurb: 'Line-by-line compare, with optional JSON pretty-print.',
     category: 'Developer',
+    icon: Diff,
     keywords: ['diff', 'compare', 'patch', 'unified', 'text', 'json'],
     shortcut: 'G X',
     aliases: ['G 6 T'],
@@ -312,6 +427,7 @@ export const tools: ToolMeta[] = [
     title: 'Password generator',
     blurb: 'Secure passwords, API tokens, and PINs with strength scoring.',
     category: 'Developer',
+    icon: KeyRound,
     keywords: ['password', 'token', 'secret', 'uuid', 'hex', 'entropy', 'secure', 'random', 'pin'],
     shortcut: 'G S',
     aliases: ['G 6 P'],
@@ -323,6 +439,7 @@ export const tools: ToolMeta[] = [
     title: 'QR code',
     blurb: 'Generate or scan links, Wi-Fi, email, or SMS as QR codes.',
     category: 'Developer',
+    icon: QrCode,
     keywords: ['qr', 'qrcode', 'wifi', 'link', 'scan', 'svg', 'barcode', 'camera'],
     shortcut: 'G Q',
     aliases: ['G 6 Q'],
@@ -335,6 +452,7 @@ export const tools: ToolMeta[] = [
     title: 'Encode',
     blurb: 'Base64, URL, JWT inspect, and SHA hashes. Local only.',
     category: 'Developer',
+    icon: Binary,
     keywords: ['base64', 'url', 'jwt', 'sha', 'hash', 'encode', 'decode', 'token'],
     shortcut: 'G B',
     aliases: ['G 6 E'],
@@ -347,6 +465,7 @@ export const tools: ToolMeta[] = [
     title: 'Text bench',
     blurb: 'Case, slugs, word count, CSV ↔ JSON, and dummy copy.',
     category: 'Developer',
+    icon: CaseSensitive,
     keywords: ['case', 'slug', 'word count', 'csv', 'json', 'lorem', 'dummy'],
     shortcut: 'G L',
     aliases: ['G 6 B'],
@@ -359,6 +478,7 @@ export const tools: ToolMeta[] = [
     title: 'Regex tester',
     blurb: 'Match, groups, and replace with this browser’s RegExp.',
     category: 'Developer',
+    icon: Regex,
     keywords: ['regex', 'regexp', 'match', 'replace', 'groups', 'pattern'],
     shortcut: 'G Y',
     aliases: ['G 6 R'],
@@ -371,6 +491,7 @@ export const tools: ToolMeta[] = [
     title: 'Gradient builder',
     blurb: 'Linear, radial, conic, and mesh gradients as CSS or SVG.',
     category: 'Design',
+    icon: Blend,
     keywords: ['gradient', 'css', 'svg', 'linear', 'radial', 'conic', 'mesh', 'color', 'background'],
     shortcut: 'G D',
     aliases: ['G 7 G'],
@@ -382,6 +503,7 @@ export const tools: ToolMeta[] = [
     title: 'Tailwind theme builder',
     blurb: 'OKLCH color scales and tokens as Tailwind v4 @theme blocks.',
     category: 'Design',
+    icon: SwatchBook,
     keywords: ['tailwind', 'theme', 'oklch', 'palette', 'scale', 'tokens', 'css', 'v4', 'design system'],
     shortcut: 'G T',
     aliases: ['G 7 T'],
@@ -393,6 +515,7 @@ export const tools: ToolMeta[] = [
     title: 'Contrast checker',
     blurb: 'WCAG contrast with eyedropper or a sampled screenshot.',
     category: 'Design',
+    icon: Contrast,
     keywords: ['contrast', 'wcag', 'aa', 'aaa', 'accessibility', 'eyedropper', 'color'],
     shortcut: 'G K',
     aliases: ['G 7 C'],
@@ -405,6 +528,7 @@ export const tools: ToolMeta[] = [
     title: 'Color picker',
     blurb: 'Sample a pixel. Copy hex, RGB, HSL, or OKLCH.',
     category: 'Design',
+    icon: Pipette,
     shortcut: 'G 7 P',
     keywords: ['color', 'picker', 'eyedropper', 'hex', 'oklch', 'hsl', 'sample'],
     accepts: ['image'],
@@ -416,6 +540,7 @@ export const tools: ToolMeta[] = [
     title: 'PDF shrink',
     blurb: 'Re-render a scan or export to land under an upload limit.',
     category: 'Document',
+    icon: Shrink,
     shortcut: 'G 3 D',
     keywords: ['pdf', 'compress', 'shrink', 'smaller', 'size', 'scan', 'upload', 'limit', 'mb', 'reduce'],
     accepts: ['pdf'],
@@ -427,6 +552,7 @@ export const tools: ToolMeta[] = [
     title: 'Markdown table',
     blurb: 'Edit tables in a grid, not by counting pipes.',
     category: 'Document',
+    icon: Table2,
     shortcut: 'G 3 T',
     keywords: ['markdown', 'table', 'pipe', 'grid', 'md', 'readme', 'align'],
     accepts: ['text'],
@@ -438,6 +564,7 @@ export const tools: ToolMeta[] = [
     title: 'Invoice',
     blurb: 'Line items and tax to a clean PDF. Draft stays local.',
     category: 'Document',
+    icon: ReceiptText,
     shortcut: 'G 3 N',
     keywords: ['invoice', 'bill', 'receipt', 'gst', 'tax', 'freelance', 'pdf', 'quote'],
     component: lazy(() => import('./tools/invoice/InvoiceTool')),
@@ -448,6 +575,7 @@ export const tools: ToolMeta[] = [
     title: 'Data table',
     blurb: 'Open CSV, JSON, or .xlsx. Sort, clean, and export.',
     category: 'Data',
+    icon: Sheet,
     shortcut: 'G 4 D',
     keywords: ['csv', 'tsv', 'excel', 'xlsx', 'spreadsheet', 'table', 'sort', 'filter', 'dedupe', 'clean', 'data'],
     accepts: ['text'],
@@ -459,6 +587,7 @@ export const tools: ToolMeta[] = [
     title: 'Chart maker',
     blurb: 'CSV to bar, line, area, scatter, or pie — as SVG or PNG.',
     category: 'Data',
+    icon: ChartColumn,
     shortcut: 'G 4 C',
     keywords: ['chart', 'graph', 'plot', 'bar', 'line', 'pie', 'donut', 'scatter', 'visualise', 'csv', 'svg'],
     accepts: ['text'],
@@ -470,6 +599,7 @@ export const tools: ToolMeta[] = [
     title: 'ZIP archive',
     blurb: 'Bundle files into one .zip, or open one and pull files back out.',
     category: 'Data',
+    icon: FileArchive,
     shortcut: 'G 4 Z',
     keywords: ['zip', 'archive', 'bundle', 'extract', 'unzip', 'attach', 'package', 'folder'],
     component: lazy(() => import('./tools/archive/ArchiveTool')),
@@ -480,6 +610,7 @@ export const tools: ToolMeta[] = [
     title: 'Video & audio trim',
     blurb: 'Cut a clip, shrink it for upload, or pull the audio out.',
     category: 'Media',
+    icon: Clapperboard,
     shortcut: 'G 5 V',
     keywords: ['video', 'audio', 'trim', 'cut', 'clip', 'compress', 'mp4', 'webm', 'extract', 'mute', 'shrink'],
     component: lazy(() => import('./tools/media/MediaTool')),
@@ -490,6 +621,7 @@ export const tools: ToolMeta[] = [
     title: 'Screen & camera recorder',
     blurb: 'Record the screen, camera, or mic and save the file.',
     category: 'Media',
+    icon: ScreenShare,
     shortcut: 'G 5 S',
     keywords: ['record', 'screen', 'capture', 'webcam', 'camera', 'microphone', 'demo', 'video', 'voice'],
     component: lazy(() => import('./tools/record/RecordTool')),
@@ -500,6 +632,7 @@ export const tools: ToolMeta[] = [
     title: 'Checksum',
     blurb: 'SHA and CRC digests for any file, with match checking.',
     category: 'Developer',
+    icon: Fingerprint,
     shortcut: 'G 6 C',
     keywords: ['hash', 'checksum', 'sha256', 'sha1', 'sha512', 'crc32', 'verify', 'digest', 'fingerprint', 'integrity'],
     component: lazy(() => import('./tools/checksum/ChecksumTool')),
@@ -510,6 +643,7 @@ export const tools: ToolMeta[] = [
     title: 'JSON · YAML · TOML',
     blurb: 'Convert between the three config formats.',
     category: 'Developer',
+    icon: FileCog,
     shortcut: 'G 6 Y',
     keywords: ['yaml', 'yml', 'toml', 'json', 'convert', 'config', 'settings', 'front matter'],
     accepts: ['text'],
@@ -521,6 +655,7 @@ export const tools: ToolMeta[] = [
     title: 'Cron builder',
     blurb: 'Read a schedule in English and preview the next runs.',
     category: 'Developer',
+    icon: CalendarClock,
     shortcut: 'G 6 O',
     keywords: ['cron', 'crontab', 'schedule', 'job', 'timer', 'expression', 'quartz'],
     accepts: ['text'],
@@ -532,6 +667,7 @@ export const tools: ToolMeta[] = [
     title: 'Number base',
     blurb: 'Binary, octal, hex, and bitwise with a bit inspector.',
     category: 'Developer',
+    icon: Hash,
     shortcut: 'G 6 N',
     keywords: ['binary', 'hex', 'octal', 'decimal', 'bitwise', 'bit', 'mask', 'shift', 'two complement', 'radix'],
     accepts: ['text'],
@@ -543,6 +679,7 @@ export const tools: ToolMeta[] = [
     title: 'Diagram',
     blurb: 'Mermaid flowcharts and sequences as SVG or PNG.',
     category: 'Design',
+    icon: Network,
     shortcut: 'G 7 D',
     keywords: ['mermaid', 'diagram', 'flowchart', 'sequence', 'gantt', 'graph', 'architecture', 'svg'],
     accepts: ['text'],
@@ -554,6 +691,7 @@ export const tools: ToolMeta[] = [
     title: 'Colour vision',
     blurb: 'Simulate colour blindness on a palette or screenshot.',
     category: 'Design',
+    icon: Eye,
     shortcut: 'G 7 V',
     keywords: [
       'colour blind',
@@ -575,6 +713,7 @@ export const tools: ToolMeta[] = [
     title: 'Meeting planner',
     blurb: 'Line up working hours across zones and find the overlap.',
     category: 'Daily',
+    icon: Globe,
     shortcut: 'G 1 M',
     keywords: ['meeting', 'timezone', 'time zone', 'overlap', 'schedule', 'world clock', 'standup', 'call'],
     component: lazy(() => import('./tools/meet/MeetTool')),
@@ -585,6 +724,7 @@ export const tools: ToolMeta[] = [
     title: 'Age & date difference',
     blurb: 'Exact years, months, and days between two dates.',
     category: 'Daily',
+    icon: Clock,
     shortcut: 'G 1 A',
     keywords: ['age', 'date', 'difference', 'birthday', 'anniversary', 'days between', 'how old'],
     accepts: ['text'],
@@ -596,6 +736,7 @@ export const tools: ToolMeta[] = [
     title: 'Deadline calculator',
     blurb: 'Add working days, skipping weekends and your holidays.',
     category: 'Daily',
+    icon: CalendarCheck,
     shortcut: 'G 1 D',
     keywords: ['deadline', 'working days', 'business days', 'sla', 'due date', 'holidays', 'turnaround'],
     accepts: ['text'],
@@ -607,6 +748,7 @@ export const tools: ToolMeta[] = [
     title: 'Timers',
     blurb: 'Countdown, stopwatch, and Pomodoro in one place.',
     category: 'Daily',
+    icon: Timer,
     shortcut: 'G 1 T',
     keywords: ['timer', 'countdown', 'stopwatch', 'pomodoro', 'alarm', 'focus', 'lap'],
     component: lazy(() => import('./tools/timers/TimersTool')),
@@ -617,6 +759,7 @@ export const tools: ToolMeta[] = [
     title: 'Random picker',
     blurb: 'Wheel spinner, dice, coin flip, and fair team splitting.',
     category: 'Daily',
+    icon: Dices,
     shortcut: 'G 1 R',
     keywords: ['random', 'wheel', 'spinner', 'dice', 'coin', 'teams', 'raffle', 'shuffle', 'pick'],
     accepts: ['text'],
@@ -628,6 +771,7 @@ export const tools: ToolMeta[] = [
     title: 'Number to words',
     blurb: 'Spell out amounts in lakh, crore, or millions.',
     category: 'Daily',
+    icon: Languages,
     shortcut: 'G 1 N',
     keywords: ['number to words', 'amount in words', 'cheque', 'lakh', 'crore', 'rupees', 'spell', 'invoice'],
     accepts: ['text'],
@@ -639,6 +783,7 @@ export const tools: ToolMeta[] = [
     title: 'Health calculators',
     blurb: 'BMI, resting energy, daily calories, and macros.',
     category: 'Daily',
+    icon: HeartPulse,
     shortcut: 'G 1 H',
     keywords: ['bmi', 'bmr', 'tdee', 'calories', 'macros', 'protein', 'weight', 'fitness', 'diet'],
     component: lazy(() => import('./tools/health/HealthTool')),
@@ -649,6 +794,7 @@ export const tools: ToolMeta[] = [
     title: 'Trip cost',
     blurb: 'Fuel, tolls, and per-head split for a journey.',
     category: 'Daily',
+    icon: Fuel,
     shortcut: 'G 1 I',
     keywords: ['fuel', 'petrol', 'mileage', 'trip', 'travel', 'split', 'road trip', 'toll', 'cost'],
     component: lazy(() => import('./tools/trip/TripTool')),
@@ -659,6 +805,7 @@ export const tools: ToolMeta[] = [
     title: 'Carousel splitter',
     blurb: 'Slice a wide image into numbered Instagram panels.',
     category: 'Image',
+    icon: GalleryHorizontal,
     shortcut: 'G 2 A',
     keywords: ['carousel', 'instagram', 'slice', 'split', 'panels', 'swipe', 'linkedin', 'panorama'],
     accepts: ['image'],
@@ -670,6 +817,7 @@ export const tools: ToolMeta[] = [
     title: 'Meme generator',
     blurb: 'Top and bottom text with the right stroke and font.',
     category: 'Image',
+    icon: Laugh,
     shortcut: 'G 2 G',
     keywords: ['meme', 'caption', 'impact', 'top text', 'bottom text', 'funny'],
     accepts: ['image'],
@@ -681,6 +829,7 @@ export const tools: ToolMeta[] = [
     title: 'ASCII from image',
     blurb: 'Turn a photo into text art at any density.',
     category: 'Image',
+    icon: SquareAsterisk,
     shortcut: 'G 2 O',
     keywords: ['ascii', 'art', 'text art', 'image to text', 'terminal', 'retro'],
     accepts: ['image'],
@@ -692,6 +841,7 @@ export const tools: ToolMeta[] = [
     title: 'Noise generator',
     blurb: 'White, pink, and brown noise with a sleep timer.',
     category: 'Media',
+    icon: AudioWaveform,
     shortcut: 'G 5 N',
     keywords: ['noise', 'white noise', 'pink', 'brown', 'sleep', 'focus', 'ambient', 'concentration'],
     component: lazy(() => import('./tools/noise/NoiseTool')),
@@ -702,6 +852,7 @@ export const tools: ToolMeta[] = [
     title: 'Sound meter',
     blurb: 'Live decibel reading from the microphone.',
     category: 'Media',
+    icon: Gauge,
     shortcut: 'G 5 M',
     keywords: ['decibel', 'db', 'sound', 'loudness', 'noise level', 'spl', 'microphone', 'meter'],
     component: lazy(() => import('./tools/soundmeter/SoundMeterTool')),
@@ -712,6 +863,7 @@ export const tools: ToolMeta[] = [
     title: 'Unicode text styler',
     blurb: 'Bold and italic for bios that strip formatting.',
     category: 'Writing',
+    icon: Type,
     shortcut: 'G 8 U',
     keywords: ['unicode', 'bold', 'italic', 'fancy text', 'bio', 'font', 'style', 'instagram', 'twitter'],
     accepts: ['text'],
@@ -723,6 +875,7 @@ export const tools: ToolMeta[] = [
     title: 'Emoji search',
     blurb: 'Find emoji and kaomoji by meaning, copy instantly.',
     category: 'Writing',
+    icon: Smile,
     shortcut: 'G 8 E',
     keywords: ['emoji', 'emoticon', 'kaomoji', 'smiley', 'symbol', 'search', 'copy'],
     component: lazy(() => import('./tools/emoji/EmojiTool')),
@@ -733,6 +886,7 @@ export const tools: ToolMeta[] = [
     title: 'Platform counter',
     blurb: 'Character counts against X, LinkedIn, and SEO limits.',
     category: 'Writing',
+    icon: TextCursorInput,
     shortcut: 'G 8 P',
     keywords: ['character count', 'word count', 'limit', 'twitter', 'x', 'linkedin', 'meta description', 'seo', 'sms'],
     accepts: ['text'],
@@ -744,6 +898,7 @@ export const tools: ToolMeta[] = [
     title: 'Readability',
     blurb: 'Reading time, Flesch score, and the sentences to fix.',
     category: 'Writing',
+    icon: BookOpen,
     shortcut: 'G 8 R',
     keywords: ['readability', 'flesch', 'reading time', 'grade level', 'passive voice', 'editing', 'clarity'],
     accepts: ['text'],
@@ -755,6 +910,7 @@ export const tools: ToolMeta[] = [
     title: 'Box drawing',
     blurb: 'ASCII tables, boxes, and trees for READMEs.',
     category: 'Writing',
+    icon: Box,
     shortcut: 'G 8 B',
     keywords: ['ascii table', 'box drawing', 'tree', 'readme', 'unicode', 'terminal', 'comment', 'diagram'],
     accepts: ['text'],
@@ -766,6 +922,7 @@ export const tools: ToolMeta[] = [
     title: 'Data & settings',
     blurb: 'Back up everything, restore it, and see what you use most.',
     category: 'Notes',
+    icon: Settings,
     shortcut: 'G 9 D',
     keywords: ['backup', 'restore', 'export', 'import', 'settings', 'data', 'storage', 'clear', 'usage'],
     component: lazy(() => import('./tools/settings/SettingsTool')),
@@ -776,6 +933,7 @@ export const tools: ToolMeta[] = [
     title: 'Pipelines',
     blurb: 'Save a sequence of tools and rerun it on demand.',
     category: 'Notes',
+    icon: Workflow,
     shortcut: 'G 9 P',
     keywords: ['pipeline', 'workflow', 'chain', 'recipe', 'automation', 'steps', 'batch', 'repeat'],
     component: lazy(() => import('./tools/pipelines/PipelinesTool')),
@@ -786,6 +944,7 @@ export const tools: ToolMeta[] = [
     title: 'Local notes',
     blurb: 'A scratchpad that stays in this browser.',
     category: 'Notes',
+    icon: NotebookPen,
     keywords: ['note', 'scratch', 'localstorage', 'indexeddb', 'memo'],
     shortcut: 'G N',
     aliases: ['G 9 L'],
@@ -794,17 +953,65 @@ export const tools: ToolMeta[] = [
   },
 ]
 
-export function searchTools(query: string): ToolMeta[] {
+/** Words that carry no meaning in a search like "convert pdf to jpg". */
+const STOP_WORDS = new Set(['to', 'a', 'an', 'the', 'and', 'or', 'of', 'for', 'into', 'in', 'my', 'from', 'with'])
+
+function tokens(value: string): string[] {
+  return value
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}.+#]+/u)
+    .filter((word) => word && !STOP_WORDS.has(word))
+}
+
+/**
+ * Scores how well a tool answers a query; 0 means it does not match.
+ *
+ * Every meaningful word must appear somewhere, so "pdf to jpg" finds the PDF
+ * to images tool without that exact phrase being a keyword. Where the words
+ * land decides the rank: a title hit beats a keyword, which beats the blurb.
+ */
+export function scoreTool(tool: ToolMeta, query: string): number {
   const q = query.trim().toLowerCase()
-  if (!q) return tools
-  return tools.filter((tool) => {
-    const hay = [tool.title, tool.blurb, tool.category, ...tool.keywords].join(' ').toLowerCase()
-    return hay.includes(q)
-  })
+  if (!q) return 1
+  const title = tool.title.toLowerCase()
+  const keywords = tool.keywords.map((k) => k.toLowerCase())
+  const hay = [title, tool.blurb.toLowerCase(), tool.category.toLowerCase(), ...keywords].join(' ')
+
+  let score = 0
+  if (title === q) score += 120
+  else if (title.startsWith(q)) score += 80
+  else if (title.includes(q)) score += 50
+  if (keywords.includes(q)) score += 45
+  else if (keywords.some((k) => k.includes(q))) score += 25
+  if (hay.includes(q)) score += 10
+
+  const words = tokens(q)
+  if (!words.length) return score
+  for (const word of words) {
+    if (!hay.includes(word)) return score >= 10 ? score : 0
+    if (title.includes(word)) score += 8
+    else if (keywords.some((k) => k.includes(word))) score += 5
+    else score += 2
+  }
+  return score
+}
+
+export function searchTools(query: string): ToolMeta[] {
+  if (!query.trim()) return tools
+  return tools
+    .map((tool, index) => ({ tool, index, score: scoreTool(tool, query) }))
+    .filter((row) => row.score > 0)
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .map((row) => row.tool)
 }
 
 export function getTool(id: string): ToolMeta | undefined {
   return tools.find((tool) => tool.id === id)
+}
+
+export function toolForPath(pathname: string): ToolMeta | undefined {
+  const clean = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname
+  return tools.find((tool) => tool.path === clean)
 }
 
 /** Pinned count. Sitemap/OG are generated from `tools`; chrome copy and tests must match this. */

@@ -20,7 +20,7 @@ export default function TailwindTool() {
     { id: nextId(), name: 'accent', hue: 290, chroma: 0.18 },
   ])
   const [extras, setExtras] = useState<ThemeExtras>({
-    fontSans: 'Figtree, system-ui, sans-serif',
+    fontSans: 'Inter, system-ui, sans-serif',
     fontMono: 'ui-monospace, monospace',
     radius: '0.75rem',
     spacingUnit: '0.25rem',

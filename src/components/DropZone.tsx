@@ -1,4 +1,5 @@
 import { useRef, useState, type ChangeEvent, type DragEvent, type ReactNode } from 'react'
+import { FolderOpen, UploadCloud } from 'lucide-react'
 import { imageFormatHint } from '../lib/image/formatHint'
 
 type Props = {
@@ -7,11 +8,32 @@ type Props = {
   label?: string
   hint?: string
   onFiles: (files: File[]) => void
+  /** A single-row variant for adding more files once some are loaded. */
+  compact?: boolean
+  /** Button text; defaults to "Choose file" / "Choose files". */
+  buttonLabel?: string
   children?: ReactNode
 }
 
-export function DropZone({ accept = 'image/*', multiple, label, hint, onFiles, children }: Props) {
+/**
+ * Drag-and-drop target with a file picker fallback.
+ *
+ * The whole zone is a drop target; the button is the keyboard and touch path.
+ * A drag leaving a child element fires dragleave on the zone too, so the
+ * active state is tracked with a depth counter rather than a boolean.
+ */
+export function DropZone({
+  accept = 'image/*',
+  multiple,
+  label,
+  hint,
+  onFiles,
+  compact,
+  buttonLabel,
+  children,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const depth = useRef(0)
   const [active, setActive] = useState(false)
   const [formatNote, setFormatNote] = useState<string | null>(null)
 
@@ -25,6 +47,7 @@ export function DropZone({ accept = 'image/*', multiple, label, hint, onFiles, c
 
   const onDrop = (event: DragEvent) => {
     event.preventDefault()
+    depth.current = 0
     setActive(false)
     take(event.dataTransfer.files)
   }
@@ -34,23 +57,39 @@ export function DropZone({ accept = 'image/*', multiple, label, hint, onFiles, c
     event.target.value = ''
   }
 
+  const title = label ?? (multiple ? 'Drop files here, or paste.' : 'Drop a file here, or paste.')
+
   return (
     <div
-      className="dropzone"
+      className={compact ? 'dropzone dropzone-compact' : 'dropzone'}
       data-active={active}
-      onDragOver={(event) => {
+      onDragEnter={(event) => {
         event.preventDefault()
+        depth.current += 1
         setActive(true)
       }}
-      onDragLeave={() => setActive(false)}
+      onDragOver={(event) => {
+        event.preventDefault()
+        event.dataTransfer.dropEffect = 'copy'
+      }}
+      onDragLeave={() => {
+        depth.current = Math.max(0, depth.current - 1)
+        if (depth.current === 0) setActive(false)
+      }}
       onDrop={onDrop}
     >
-      <p>{label ?? 'Drop a file, click to choose, or paste.'}</p>
-      {hint ? <p className="hint">{hint}</p> : null}
-      {formatNote ? <p className="banner">{formatNote}</p> : null}
-      <div className="row" style={{ justifyContent: 'center', marginTop: '0.8rem' }}>
-        <button type="button" className="btn" onClick={() => inputRef.current?.click()}>
-          Choose file
+      <span className="dropzone-icon" aria-hidden="true">
+        <UploadCloud size={compact ? 18 : 22} />
+      </span>
+      <div>
+        <p className="dropzone-title">{title}</p>
+        {hint ? <p className="hint">{hint}</p> : null}
+        {formatNote ? <p className="banner">{formatNote}</p> : null}
+      </div>
+      <div className="dropzone-actions">
+        <button type="button" className="btn btn-primary" onClick={() => inputRef.current?.click()}>
+          <FolderOpen size={16} aria-hidden="true" />
+          {buttonLabel ?? (multiple ? 'Choose files' : 'Choose file')}
         </button>
       </div>
       <input

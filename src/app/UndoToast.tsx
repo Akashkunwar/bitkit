@@ -1,6 +1,7 @@
 import { UndoContext, useUndoState, type UndoApi } from '../lib/undo'
 import { useI18n } from '../lib/i18n'
 import type { ReactNode } from 'react'
+import { X } from 'lucide-react'
 
 export function UndoProvider({ children }: { children: ReactNode }) {
   const api: UndoApi = useUndoState()
@@ -15,7 +16,7 @@ export function UndoProvider({ children }: { children: ReactNode }) {
             {t('undo.undo')}
           </button>
           <button type="button" className="btn-ghost" aria-label={t('undo.dismiss')} onClick={api.dismiss}>
-            ✕
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
       ) : null}

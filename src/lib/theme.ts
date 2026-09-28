@@ -27,27 +27,27 @@ export type ThemeMeta = {
 export const THEMES: ThemeMeta[] = [
   {
     id: 'light',
-    label: 'Mist',
-    hint: 'The default. Cool grey-green, easy in daylight.',
+    label: 'Light',
+    hint: 'The default. Clean cool greys with an indigo accent.',
     appearance: 'light',
-    themeColor: '#f4f7f7',
-    swatch: ['#f4f7f7', '#ffffff', '#0c8070'],
+    themeColor: '#f6f7f9',
+    swatch: ['#f6f7f9', '#ffffff', '#5b53e8'],
   },
   {
     id: 'dark',
-    label: 'Deep',
+    label: 'Dark',
     hint: 'Dark without going black. Keeps depth between panels.',
     appearance: 'dark',
-    themeColor: '#0d1413',
-    swatch: ['#0d1413', '#1b2624', '#2fbfa4'],
+    themeColor: '#0b0c10',
+    swatch: ['#0b0c10', '#1a1d25', '#8b86ff'],
   },
   {
     id: 'paper',
     label: 'Paper',
     hint: 'Warm and low-blue, for reading and writing sessions.',
     appearance: 'light',
-    themeColor: '#f6f1e7',
-    swatch: ['#f6f1e7', '#fffdf8', '#0b6f60'],
+    themeColor: '#f7f2ea',
+    swatch: ['#f7f2ea', '#fffdf8', '#a24a1d'],
   },
   {
     id: 'midnight',
@@ -55,7 +55,7 @@ export const THEMES: ThemeMeta[] = [
     hint: 'True black. Saves power on an OLED phone.',
     appearance: 'dark',
     themeColor: '#000000',
-    swatch: ['#000000', '#151b1a', '#35c9ac'],
+    swatch: ['#000000', '#15171c', '#918cff'],
   },
   {
     id: 'contrast',
@@ -63,7 +63,7 @@ export const THEMES: ThemeMeta[] = [
     hint: 'Maximum separation, no shadows. Clears WCAG AAA on body text.',
     appearance: 'light',
     themeColor: '#ffffff',
-    swatch: ['#ffffff', '#eef1f1', '#005f52'],
+    swatch: ['#ffffff', '#eef0f3', '#3525b8'],
   },
 ]
 
