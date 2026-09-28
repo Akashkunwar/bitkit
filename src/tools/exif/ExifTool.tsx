@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { DownloadButton } from '../../components/DownloadButton'
@@ -7,7 +7,7 @@ import { triggerDownload } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { applyFilenamePattern, mimeToExt } from '../../lib/format'
 import { readMetadata, stripMetadata, type MetadataResult } from '../../lib/exif'
-import { filesFromPaste } from '../../lib/clipboard'
+import { usePasteFiles } from '../../lib/usePasteFiles'
 
 export default function ExifTool() {
   const [file, setFile] = useState<File | null>(null)
@@ -36,15 +36,9 @@ export default function ExifTool() {
     if (image) void load(image)
   })
 
-  useEffect(() => {
-    const onPaste = (event: ClipboardEvent) => {
-      void filesFromPaste(event).then((files) => {
-        if (files[0]) void load(files[0])
-      })
-    }
-    window.addEventListener('paste', onPaste)
-    return () => window.removeEventListener('paste', onPaste)
-  }, [])
+  usePasteFiles((files) => {
+    if (files[0]) void load(files[0])
+  })
 
   const strip = async () => {
     if (!file) return

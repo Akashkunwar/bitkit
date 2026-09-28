@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import type mermaidApi from 'mermaid'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
@@ -6,7 +7,7 @@ import { triggerDownload } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { useCopied } from '../../lib/useCopied'
 import { themeMeta } from '../../lib/theme'
-import { useTheme } from '../../app/Theme'
+import { useTheme } from '../../app/useTheme'
 import { svgToPng } from '../../lib/chart'
 
 const SAMPLES: { label: string; code: string }[] = [
@@ -60,7 +61,7 @@ export default function DiagramTool() {
   const [svg, setSvg] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
-  const mermaidRef = useRef<typeof import('mermaid').default | null>(null)
+  const mermaidRef = useRef<typeof mermaidApi | null>(null)
   const { theme } = useTheme()
   const { copied, copy } = useCopied()
 

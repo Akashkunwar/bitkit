@@ -109,11 +109,10 @@ export default function TimersTool() {
   // hardcoded so it never drifts from index.html.
   const pageTitle = useRef(typeof document === 'undefined' ? '' : document.title)
   useEffect(() => {
-    document.title = running
-      ? `${clock(mode === 'stopwatch' ? elapsed : remaining)} — BitKit`
-      : pageTitle.current
+    const original = pageTitle.current
+    document.title = running ? `${clock(mode === 'stopwatch' ? elapsed : remaining)} — BitKit` : original
     return () => {
-      document.title = pageTitle.current
+      document.title = original
     }
   }, [running, remaining, elapsed, mode])
 

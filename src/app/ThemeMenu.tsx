@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useTheme } from './Theme'
+import { useTheme } from './useTheme'
 import { THEMES, themeMeta, type ThemeId, type ThemeMode } from '../lib/theme'
 import { useI18n } from '../lib/i18n'
 

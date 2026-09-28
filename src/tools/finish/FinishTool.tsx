@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { DownloadButton } from '../../components/DownloadButton'
@@ -7,7 +7,7 @@ import { decodeImage } from '../../lib/image/compress'
 import { renderFinished, MARKETING_PRESETS, type ColorAdjust } from '../../lib/image/filters'
 import { applyFilenamePattern, mimeToExt } from '../../lib/format'
 import { triggerDownload } from '../../lib/download'
-import { filesFromPaste } from '../../lib/clipboard'
+import { usePasteFiles } from '../../lib/usePasteFiles'
 import { useHandoff } from '../../lib/useHandoff'
 import { SendTo } from '../../components/SendTo'
 
@@ -30,15 +30,9 @@ export default function FinishTool() {
   const imgRef = useRef<HTMLImageElement>(null)
   const drag = useRef<{ x: number; y: number } | null>(null)
 
-  useEffect(() => {
-    const onPaste = (event: ClipboardEvent) => {
-      void filesFromPaste(event).then((files) => {
-        if (files[0]) void load(files[0])
-      })
-    }
-    window.addEventListener('paste', onPaste)
-    return () => window.removeEventListener('paste', onPaste)
-  }, [])
+  usePasteFiles((files) => {
+    if (files[0]) void load(files[0])
+  })
 
   const load = async (next: File) => {
     if (url) URL.revokeObjectURL(url)

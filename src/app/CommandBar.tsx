@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { searchTools, type ToolMeta } from '../registry'
 import { searchActions, type Action, type ActionContext } from '../lib/actions'
-import { useTheme } from './Theme'
+import { useTheme } from './useTheme'
 import { useI18n } from '../lib/i18n'
 
 type Props = {

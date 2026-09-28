@@ -168,7 +168,7 @@ for (const route of SAMPLE) {
 
 // Every theme, not only the two that shipped first: a palette that fails
 // contrast is invisible in review and obvious to the person using it.
-const THEME_IDS = [...readFileSync(resolve(process.cwd(), 'src/lib/theme.ts'), 'utf8').matchAll(/^    id: '([^']+)',$/gm)].map(
+const THEME_IDS = [...readFileSync(resolve(process.cwd(), 'src/lib/theme.ts'), 'utf8').matchAll(/^ {4}id: '([^']+)',$/gm)].map(
   (m) => m[1],
 )
 

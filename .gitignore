@@ -27,3 +27,4 @@ dev-dist
 # tooling caches
 graphify-out/
 .claude/settings.local.json
+.shots/

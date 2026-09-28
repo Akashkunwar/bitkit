@@ -20,7 +20,7 @@ import {
 } from '../../lib/backup'
 import { clearUsage, readUsage, sortByUsage, usageScore, type Usage } from '../../lib/prefs'
 import { Segmented } from '../../components/Segmented'
-import { useTheme } from '../../app/Theme'
+import { useTheme } from '../../app/useTheme'
 import { ThemeChip } from '../../app/ThemeMenu'
 import { THEMES, TEXT_SCALES, themeMeta, type ThemeId } from '../../lib/theme'
 

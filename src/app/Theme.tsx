@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { ThemeContext, type ThemeState } from './useTheme'
 import {
   APPEARANCE_KEY,
   DEFAULT_APPEARANCE,
@@ -11,44 +12,9 @@ import {
   resolveTheme,
   themeMeta,
   type AppearancePrefs,
-  type ThemeId,
   type ThemeMode,
   type ThemePair,
 } from '../lib/theme'
-
-type ThemeState = {
-  /** The palette actually on screen — never 'system'. */
-  theme: ThemeId
-  /** What the user picked, which may be 'system'. */
-  mode: ThemeMode
-  /** What 'system' mode resolves to right now, whatever the current mode is. */
-  systemTheme: ThemeId
-  pair: ThemePair
-  prefs: AppearancePrefs
-  setMode: (mode: ThemeMode) => void
-  setPair: (pair: ThemePair) => void
-  setPrefs: (prefs: Partial<AppearancePrefs>) => void
-  /**
-   * Re-read every stored preference.
-   *
-   * Restore and wipe write localStorage directly, which this provider would
-   * otherwise never notice — leaving the panel showing one theme while storage
-   * holds another, until a reload disagreed with both.
-   */
-  syncFromStorage: () => void
-}
-
-const ThemeContext = createContext<ThemeState>({
-  theme: 'light',
-  mode: 'system',
-  systemTheme: 'light',
-  pair: DEFAULT_PAIR,
-  prefs: DEFAULT_APPEARANCE,
-  setMode: () => undefined,
-  setPair: () => undefined,
-  setPrefs: () => undefined,
-  syncFromStorage: () => undefined,
-})
 
 function read(key: string): string | null {
   try {
@@ -154,6 +120,3 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
 
-export function useTheme() {
-  return useContext(ThemeContext)
-}

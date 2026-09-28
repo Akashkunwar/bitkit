@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
 import { SendTo } from '../../components/SendTo'
 import { triggerDownload } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
-import { filesFromPaste } from '../../lib/clipboard'
+import { usePasteFiles } from '../../lib/usePasteFiles'
 import { decodeImage } from '../../lib/image/compress'
 import { workingBitmap } from '../../lib/image/safeCanvas'
 import { PASSPORT_PX, passportLayout, type SheetKind } from '../../lib/passport'
@@ -33,15 +33,9 @@ export default function PassportTool() {
     if (image) load(image)
   })
 
-  useEffect(() => {
-    const onPaste = (event: ClipboardEvent) => {
-      void filesFromPaste(event).then((files) => {
-        if (files[0]) load(files[0])
-      })
-    }
-    window.addEventListener('paste', onPaste)
-    return () => window.removeEventListener('paste', onPaste)
-  }, [])
+  usePasteFiles((files) => {
+    if (files[0]) load(files[0])
+  })
 
   const render = async () => {
     if (!file) return

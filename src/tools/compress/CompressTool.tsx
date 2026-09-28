@@ -8,7 +8,7 @@ import { compressInWorker } from '../../lib/image/workerClient'
 import { FORM_PRESETS, type FitMode } from '../../lib/image/size'
 import { formatBytes, parseByteLimit, applyFilenamePattern, mimeToExt } from '../../lib/format'
 import { triggerDownload } from '../../lib/download'
-import { filesFromPaste } from '../../lib/clipboard'
+import { usePasteFiles } from '../../lib/usePasteFiles'
 import { useHandoff } from '../../lib/useHandoff'
 import { SendTo } from '../../components/SendTo'
 import { filesFromBlobs } from '../../lib/handoff'
@@ -54,15 +54,9 @@ export default function CompressTool() {
   }, [])
   useToolPreset('compress', applyPalettePreset)
 
-  useEffect(() => {
-    const onPaste = (event: ClipboardEvent) => {
-      void filesFromPaste(event).then((files) => {
-        if (files.length) addFiles(files)
-      })
-    }
-    window.addEventListener('paste', onPaste)
-    return () => window.removeEventListener('paste', onPaste)
-  }, [])
+  usePasteFiles((files) => {
+    if (files.length) addFiles(files)
+  })
 
   const addFiles = (files: File[]) => {
     const next = files
