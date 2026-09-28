@@ -3,13 +3,19 @@
   "name": "bitkit",
   "compatibility_date": "2026-08-15",
 
-  // The presence of this field is what marks the project as Cloudflare Pages
-  // rather than a Worker, which is what gives the site a *.pages.dev address.
-  // A Worker would be served from <name>.<account>.workers.dev instead.
-  //
-  // Pages has no `assets.not_found_handling`, so SPA routing comes from
-  // public/_redirects. That file is valid here — the "infinite loop" rejection
-  // was Workers Assets, which normalises /index.html back to / and so trips
-  // over the same rule.
-  "pages_build_output_dir": "./dist"
+  // The Cloudflare project connected to this repo is a Worker: Workers Builds
+  // runs `npx wrangler deploy` on a clean checkout with no build step of its
+  // own. Wrangler runs this command first, so dist/ exists before upload.
+  "build": {
+    "command": "npm run build",
+  },
+
+  // A static-assets Worker: no script, just dist/. Unmatched paths get the app
+  // shell so client-side routes load directly. Workers Assets rejects the
+  // `/* /index.html 200` rule in a _redirects file as an infinite loop, so SPA
+  // routing is configured here instead. Headers still come from _headers.
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+  },
 }

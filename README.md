@@ -103,20 +103,16 @@ stale, so run it after adding a tool.
 
 The output in `dist/` is a static SPA. Both configs are already committed.
 
-### Cloudflare Pages
+### Cloudflare Workers
 
-`wrangler.jsonc` sets `pages_build_output_dir`, which marks this as a Pages
-project. Create the project in the dashboard under **Workers & Pages → Create →
-Pages → Connect to Git**, pick this repo, and set:
+`wrangler.jsonc` describes a static-assets Worker: it builds the site, uploads
+`dist/`, and serves the app shell for any unmatched path so deep links work.
+Caching and security headers come from `public/_headers`.
 
-| Setting | Value |
-| --- | --- |
-| Build command | `npm run build` |
-| Build output directory | `dist` |
-| Node version | `20` |
-
-That serves the site from `bitkit.pages.dev`. SPA routing comes from
-`public/_redirects`; caching and security headers from `public/_headers`.
+Connect the repo under **Workers & Pages → Create → Import a repository**. The
+defaults are right: leave the build command empty and keep the deploy command
+`npx wrangler deploy` — wrangler runs `npm run build` itself before uploading.
+The site is served from `bitkit.<account>.workers.dev`.
 
 To deploy from your machine instead:
 
@@ -124,12 +120,15 @@ To deploy from your machine instead:
 npx wrangler login && npm run deploy
 ```
 
-**Pages, not Workers.** `wrangler deploy` builds a Worker, which is served from
-`<name>.<account>.workers.dev` — there is no way to get a `pages.dev` address
-from one. Workers Assets also rejects the `_redirects` SPA rule above, because
-it normalises `/index.html` back to `/` and sees the rule loop. If you ever
-switch to Workers, delete that file and use
-`assets.not_found_handling: "single-page-application"` instead.
+There is deliberately no `_redirects` file. Workers Assets rejects the usual
+`/* /index.html 200` SPA rule as an infinite loop, and `not_found_handling`
+already does its job.
+
+**Cloudflare Pages** also works if you want a `pages.dev` address: connect the
+repo under **Create → Pages → Connect to Git** with build command
+`npm run build` and output directory `dist`. Pages ignores `wrangler.jsonc`
+(it has no `pages_build_output_dir`) and serves `index.html` for unknown paths
+on its own, because the build has no top-level `404.html`.
 
 ### Vercel
 
