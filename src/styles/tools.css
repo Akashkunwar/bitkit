@@ -967,3 +967,120 @@ audio.media-preview {
     min-width: 5.5rem;
   }
 }
+
+/* ---------- Rotate & flip, converter, collage ---------- */
+
+.rotate-stage,
+.collage-stage {
+  min-height: 22rem;
+  max-height: 34rem;
+  padding: 1.25rem;
+}
+
+.rotate-stage canvas,
+.collage-stage canvas {
+  max-height: 31rem;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.btn[aria-pressed='true'] {
+  color: var(--accent-strong);
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  background: var(--accent-soft);
+}
+
+.thumb-strip {
+  display: flex;
+  gap: 0.55rem;
+  margin: 1rem 0 0;
+  padding: 0.2rem 0.1rem 0.4rem;
+  list-style: none;
+  overflow-x: auto;
+}
+
+.thumb-strip li {
+  position: relative;
+  flex: none;
+}
+
+.thumb-strip-item {
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  padding: 0.25rem;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+  overflow: hidden;
+}
+
+.thumb-strip-item img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.thumb-strip-item[aria-pressed='true'] {
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+
+.thumb-strip-remove {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--bg-elev);
+  color: var(--muted);
+  box-shadow: var(--shadow-sm);
+}
+
+.thumb-strip-remove:hover {
+  color: var(--danger);
+}
+
+.file-thumb {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: var(--radius-xs);
+  background: var(--bg-sunken);
+  overflow: hidden;
+}
+
+.file-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.file-row-name {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.file-row-name .file-row-meta {
+  font-weight: 400;
+}
+
+.file-row > .file-row-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.collage-order-title {
+  margin: 1.25rem 0 0.75rem;
+  font-size: 0.9rem;
+}
