@@ -5,7 +5,7 @@ import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
 import { PdfPassword } from '../../components/PdfPassword'
-import { triggerDownload } from '../../lib/download'
+import { downloadNamed } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { destroyPdfJs, isPdfPasswordError, openPdfJs } from '../../lib/pdfJs'
 import { extractPdfText, NO_TEXT_LAYER, type ExtractOptions } from '../../lib/pdfText'
@@ -91,7 +91,7 @@ export default function PdfTextTool() {
   const saveDocx = () => {
     if (!result) return
     const bytes = buildDocx(result.blocks)
-    triggerDownload(
+    void downloadNamed(
       new Blob([bytes.slice().buffer as ArrayBuffer], {
         type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       }),
@@ -101,7 +101,7 @@ export default function PdfTextTool() {
 
   const saveText = (kind: 'md' | 'txt') => {
     if (!result) return
-    triggerDownload(
+    void downloadNamed(
       new Blob([kind === 'md' ? markdown : text], { type: 'text/plain;charset=utf-8' }),
       `${baseName(result.name)}.${kind}`,
     )

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { DateField } from '../../components/DateField'
 import { ToolLayout } from '../../components/ToolLayout'
 import { Segmented } from '../../components/Segmented'
 import { SendTo } from '../../components/SendTo'
@@ -189,24 +190,14 @@ export default function LinksTool() {
                 <input className="text-input" value={eventTitle} onChange={(e) => setEventTitle(e.target.value)} />
               </label>
               <div className="row">
-                <label className="field" style={{ flex: 1 }}>
-                  <span>Starts</span>
-                  <input
-                    className="text-input"
-                    type="datetime-local"
-                    value={start}
-                    onChange={(e) => setStart(e.target.value)}
-                  />
-                </label>
-                <label className="field" style={{ flex: 1 }}>
-                  <span>Ends</span>
-                  <input
-                    className="text-input"
-                    type="datetime-local"
-                    value={end}
-                    onChange={(e) => setEnd(e.target.value)}
-                  />
-                </label>
+                <div className="field" style={{ flex: 1 }}>
+                  <span id="ics-start">Starts</span>
+                  <DateField labelId="ics-start" withTime value={start} onChange={setStart} />
+                </div>
+                <div className="field" style={{ flex: 1 }}>
+                  <span id="ics-end">Ends</span>
+                  <DateField labelId="ics-end" withTime value={end} onChange={setEnd} />
+                </div>
               </div>
               <label className="field">
                 <span>Location</span>

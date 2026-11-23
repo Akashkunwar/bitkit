@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
-import { triggerDownload } from '../../lib/download'
+import { downloadNamed } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { inspectPdf } from '../../lib/pdfPages'
 import { encryptionWarning } from '../../lib/pdfLoad'
@@ -52,13 +52,11 @@ export default function StampTool() {
     if (payload.files?.length) void take(payload.files)
   })
 
-  const emit = (bytes: Uint8Array, suffix: string) => {
-    const name = source ? source.file.name.replace(/\.pdf$/i, '') : 'document'
-    const file = new File([bytes.slice().buffer as ArrayBuffer], `${name}-${suffix}.pdf`, {
-      type: 'application/pdf',
-    })
-    setOutFile(file)
-    triggerDownload(file, file.name)
+  const emit = async (bytes: Uint8Array, suffix: string) => {
+    const stem = source ? source.file.name.replace(/\.pdf$/i, '') : 'document'
+    const blob = new Blob([bytes.slice().buffer as ArrayBuffer], { type: 'application/pdf' })
+    const name = await downloadNamed(blob, `${stem}-${suffix}.pdf`)
+    if (name) setOutFile(new File([blob], name, { type: 'application/pdf' }))
   }
 
   const apply = async () => {
@@ -75,7 +73,7 @@ export default function StampTool() {
         range,
         filename: source.file.name,
       })
-      emit(bytes, 'stamped')
+      await emit(bytes, 'stamped')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not stamp that PDF.')
     } finally {
@@ -88,7 +86,7 @@ export default function StampTool() {
     setBusy(true)
     setError(null)
     try {
-      emit(await rotatePages(source.bytes, range, turns), 'rotated')
+      await emit(await rotatePages(source.bytes, range, turns), 'rotated')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not rotate that PDF.')
     } finally {
@@ -101,7 +99,7 @@ export default function StampTool() {
     setBusy(true)
     setError(null)
     try {
-      emit(await deletePages(source.bytes, deleteRange.trim()), 'trimmed')
+      await emit(await deletePages(source.bytes, deleteRange.trim()), 'trimmed')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not remove those pages.')
     } finally {

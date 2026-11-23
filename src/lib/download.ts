@@ -1,3 +1,5 @@
+import { askDownloadName } from './downloadName'
+
 export function triggerDownload(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -26,6 +28,14 @@ export async function saveWithPicker(blob: Blob, filename: string): Promise<bool
   await writable.write(blob)
   await writable.close()
   return true
+}
+
+/** Asks for a file name, then downloads. Returns null when the prompt is cancelled. */
+export async function downloadNamed(blob: Blob, suggested: string): Promise<string | null> {
+  const name = await askDownloadName(suggested)
+  if (!name) return null
+  triggerDownload(blob, name)
+  return name
 }
 
 /**

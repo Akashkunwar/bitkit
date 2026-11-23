@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/favicon.svg" width="72" height="72" alt="">
   <h1>BitKit</h1>
-  <p><strong>76 everyday tools that run entirely in your browser.</strong></p>
+  <p><strong>77 everyday tools that run entirely in your browser.</strong></p>
   <p>No account. No server. Nothing you open ever leaves your device.</p>
 </div>
 
@@ -33,7 +33,7 @@ palette — it runs actions too, not just navigation ("compress an image to 450 
 Press <kbd>?</kbd> for every shortcut and <kbd>[</kbd> to hide the sidebar.
 
 Every tool has a chord. Twenty-four keep a single letter (<kbd>G</kbd> <kbd>R</kbd> for
-resize), and all 76 are reachable by category (<kbd>G</kbd> <kbd>4</kbd> <kbd>D</kbd> —
+resize), and all 77 are reachable by category (<kbd>G</kbd> <kbd>4</kbd> <kbd>D</kbd> —
 fourth group, Data table). Digits can never collide with the single-letter chords, which
 is what made room for the rest.
 

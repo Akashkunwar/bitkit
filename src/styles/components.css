@@ -290,6 +290,7 @@
 .field select,
 .field textarea,
 .text-input,
+.date-trigger,
 .lang-select {
   width: 100%;
   min-height: var(--control-h);
@@ -324,7 +325,8 @@ select.text-input,
 .field input:where(:hover:not(:focus, [type='checkbox'], [type='radio'], [type='range'])),
 .field select:hover:not(:focus),
 .field textarea:hover:not(:focus),
-.text-input:hover:not(:focus) {
+.text-input:hover:not(:focus),
+.date-trigger:hover:not(:focus) {
   border-color: color-mix(in srgb, var(--ink) 22%, var(--line-strong));
 }
 
@@ -332,6 +334,8 @@ select.text-input,
 .field select:focus,
 .field textarea:focus,
 .text-input:focus,
+.date-trigger:focus,
+.date-trigger[data-open],
 .lang-select:focus-visible,
 .code-area:focus {
   border-color: var(--accent);

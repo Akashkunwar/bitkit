@@ -14,7 +14,7 @@ import {
 import { ToolLayout } from '../../components/ToolLayout'
 import { Segmented } from '../../components/Segmented'
 import { SendTo } from '../../components/SendTo'
-import { triggerDownload } from '../../lib/download'
+import { downloadNamed, triggerDownload } from '../../lib/download'
 import { formatBytes } from '../../lib/format'
 import { useHandoff } from '../../lib/useHandoff'
 import { useToolSettings } from '../../lib/prefs'
@@ -246,7 +246,7 @@ export default function MarkdownTool() {
       }
       const file = new File([blob], name, { type: 'application/pdf' })
       setOutput(file)
-      triggerDownload(file, name)
+      await downloadNamed(file, name)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'PDF export failed.')
     } finally {

@@ -5,7 +5,7 @@ import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
 import { SendTo } from '../../components/SendTo'
 import { SortableGrid } from '../../components/SortableGrid'
-import { triggerDownload } from '../../lib/download'
+import { downloadNamed, triggerDownload } from '../../lib/download'
 import { formatBytes } from '../../lib/format'
 import { useHandoff } from '../../lib/useHandoff'
 import { usePasteFiles } from '../../lib/usePasteFiles'
@@ -135,7 +135,7 @@ export default function ImagePdfTool() {
       const filename = `${name.trim() || 'images'}.pdf`
       const file = new File([bytes.slice().buffer as ArrayBuffer], filename, { type: 'application/pdf' })
       setResult({ file, url: URL.createObjectURL(file) })
-      triggerDownload(file, filename)
+      await downloadNamed(file, filename)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not build the PDF.')
     } finally {

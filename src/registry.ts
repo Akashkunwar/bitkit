@@ -47,6 +47,7 @@ import {
   Hash,
   HeartPulse,
   Images,
+  Keyboard,
   KeyRound,
   Languages,
   Laugh,
@@ -678,10 +679,23 @@ export const tools: ToolMeta[] = [
     id: 'qr',
     path: '/qr',
     title: 'QR code',
-    blurb: 'Generate or scan links, Wi-Fi, email, or SMS as QR codes.',
+    blurb: 'Generate or scan links, contacts, Wi-Fi, and events. Shapes and colors stay on this device.',
     category: 'Developer',
     icon: QrCode,
-    keywords: ['qr', 'qrcode', 'wifi', 'link', 'scan', 'svg', 'barcode', 'camera'],
+    keywords: [
+      'qr',
+      'qrcode',
+      'wifi',
+      'link',
+      'scan',
+      'svg',
+      'barcode',
+      'camera',
+      'vcard',
+      'contact',
+      'bitcoin',
+      'event',
+    ],
     shortcut: 'G Q',
     aliases: ['G 6 Q'],
     accepts: ['image', 'text'],
@@ -1173,6 +1187,27 @@ export const tools: ToolMeta[] = [
     component: lazy(() => import('./tools/readability/ReadabilityTool')),
   },
   {
+    id: 'typing',
+    path: '/typing',
+    title: 'Typing',
+    blurb: 'Learn the keys one letter at a time, then take a timed speed test.',
+    category: 'Writing',
+    icon: Keyboard,
+    shortcut: 'G 8 T',
+    keywords: [
+      'typing',
+      'keyboard',
+      'wpm',
+      'touch typing',
+      'practice',
+      'lesson',
+      'speed',
+      'accuracy',
+      'words per minute',
+    ],
+    component: lazy(() => import('./tools/typing/TypingTool')),
+  },
+  {
     id: 'boxdraw',
     path: '/boxdraw',
     title: 'Box drawing',
@@ -1283,4 +1318,4 @@ export function toolForPath(pathname: string): ToolMeta | undefined {
 }
 
 /** Pinned count. Sitemap/OG are generated from `tools`; chrome copy and tests must match this. */
-export const TOOL_COUNT = 76
+export const TOOL_COUNT = 77

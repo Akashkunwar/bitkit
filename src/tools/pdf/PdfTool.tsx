@@ -1,10 +1,17 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type DragEvent as ReactDragEvent,
+  type PointerEvent as ReactPointerEvent,
+} from 'react'
 import { pdfjs } from '../../lib/pdfjsRuntime'
 import type { PDFDocumentProxy } from 'pdfjs-dist'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
-import { triggerDownload } from '../../lib/download'
+import { downloadNamed } from '../../lib/download'
 import { annotationId, exportPdf, type Annotation, type PageState, type Point } from '../../lib/pdfEdit'
 import { encryptionWarning, loadPdf } from '../../lib/pdfLoad'
 import { destroyPdfJs, isPdfPasswordError, openPdfJs } from '../../lib/pdfJs'
@@ -72,7 +79,7 @@ function PageCanvas({
     }
   }, [doc, sourceIndex, extraRotation, targetWidth, onViewport])
 
-  return <canvas ref={canvasRef} />
+  return <canvas ref={canvasRef} draggable={false} />
 }
 
 function SignaturePad({ onSave }: { onSave: (dataUrl: string) => void }) {
@@ -244,6 +251,103 @@ export default function PdfTool() {
     setPages(next)
   }
 
+  const listRef = useRef<HTMLDivElement>(null)
+  const draggingId = useRef<string | null>(null)
+  const dropIndexRef = useRef<number | null>(null)
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [dropIndex, setDropIndex] = useState<number | null>(null)
+  const [dragAxis, setDragAxis] = useState<'x' | 'y'>('y')
+  const [binHot, setBinHot] = useState(false)
+
+  const listAxis = (): 'x' | 'y' => {
+    const el = listRef.current
+    if (!el) return 'y'
+    return getComputedStyle(el).flexDirection.startsWith('row') ? 'x' : 'y'
+  }
+
+  const placePage = (id: string, index: number) => {
+    setPages((prev) => {
+      const from = prev.findIndex((page) => page.id === id)
+      if (from < 0) return prev
+      const next = [...prev]
+      const [page] = next.splice(from, 1)
+      const dest = Math.max(0, Math.min(index > from ? index - 1 : index, next.length))
+      if (dest === from) return prev
+      next.splice(dest, 0, page)
+      return next
+    })
+  }
+
+  const removePage = (id: string) => {
+    const index = pages.findIndex((page) => page.id === id)
+    if (index < 0 || pages.length <= 1) return
+    const next = pages.filter((page) => page.id !== id)
+    setPages(next)
+    if (selectedId === id) {
+      setSelectedId(next[Math.max(0, index - 1)]?.id ?? null)
+      setSelectedAnnotation(null)
+    }
+  }
+
+  const markDrop = (index: number | null) => {
+    dropIndexRef.current = index
+    setDropIndex(index)
+  }
+
+  const clearDrag = () => {
+    draggingId.current = null
+    dropIndexRef.current = null
+    setDragId(null)
+    setDropIndex(null)
+    setBinHot(false)
+  }
+
+  const onThumbDragStart = (event: ReactDragEvent<HTMLButtonElement>, id: string) => {
+    draggingId.current = id
+    event.dataTransfer.setData('text/plain', id)
+    event.dataTransfer.effectAllowed = 'move'
+    setDragId(id)
+    setDragAxis(listAxis())
+    setSelectedId(id)
+    setSelectedAnnotation(null)
+  }
+
+  const onThumbDragOver = (event: ReactDragEvent<HTMLButtonElement>, index: number) => {
+    if (!draggingId.current) return
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'move'
+    const rect = event.currentTarget.getBoundingClientRect()
+    const axis = listAxis()
+    const after = axis === 'x' ? event.clientX > rect.left + rect.width / 2 : event.clientY > rect.top + rect.height / 2
+    const next = after ? index + 1 : index
+    setDragAxis(axis)
+    if (dropIndexRef.current !== next) markDrop(next)
+    setBinHot(false)
+  }
+
+  const onThumbDrop = (event: ReactDragEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    const id = event.dataTransfer.getData('text/plain') || draggingId.current
+    const index = dropIndexRef.current
+    if (id != null && index != null) placePage(id, index)
+    clearDrag()
+  }
+
+  const onBinDragOver = (event: ReactDragEvent<HTMLButtonElement>) => {
+    if (!draggingId.current || pages.length <= 1) return
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'move'
+    setBinHot(true)
+    markDrop(null)
+  }
+
+  const onBinDrop = (event: ReactDragEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    const id = event.dataTransfer.getData('text/plain') || draggingId.current
+    if (id) removePage(id)
+    clearDrag()
+  }
+
   const toPoints = (event: { clientX: number; clientY: number; currentTarget: EventTarget }): Point | null => {
     if (!viewport) return null
     const rect = (event.currentTarget as Element).getBoundingClientRect()
@@ -351,7 +455,7 @@ export default function PdfTool() {
     try {
       const bytes = await exportPdf(sourceBytes.current, pages)
       const name = fileName.replace(/\.pdf$/i, '') + '-edited.pdf'
-      triggerDownload(new Blob([bytes.slice().buffer as ArrayBuffer], { type: 'application/pdf' }), name)
+      await downloadNamed(new Blob([bytes.slice().buffer as ArrayBuffer], { type: 'application/pdf' }), name)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Export failed.')
     } finally {
@@ -516,18 +620,34 @@ export default function PdfTool() {
       <div className="pdf-workspace">
         <aside className="panel pdf-pages">
           <span className="field-label">Pages</span>
-          <div className="pdf-thumb-list">
+          <div className="pdf-thumb-list" ref={listRef}>
             {pages.map((page, index) => (
               <button
                 key={page.id}
                 type="button"
                 className="pdf-thumb"
+                draggable
                 data-active={page.id === selectedId}
+                data-dragging={dragId === page.id || undefined}
+                data-axis={dragAxis}
+                data-drop={
+                  dropIndex === index
+                    ? 'before'
+                    : dropIndex === pages.length && index === pages.length - 1
+                      ? 'after'
+                      : undefined
+                }
+                title="Drag to reorder, or drop on the bin to delete"
                 onClick={() => {
                   setSelectedId(page.id)
                   setSelectedAnnotation(null)
                 }}
+                onDragStart={(event) => onThumbDragStart(event, page.id)}
+                onDragOver={(event) => onThumbDragOver(event, index)}
+                onDrop={onThumbDrop}
+                onDragEnd={clearDrag}
               >
+                <span className="pdf-grip" aria-hidden="true" />
                 <PageCanvas doc={doc} sourceIndex={page.sourceIndex} extraRotation={page.rotation} targetWidth={92} />
                 <span className="tool-index">
                   {index + 1}
@@ -536,7 +656,7 @@ export default function PdfTool() {
               </button>
             ))}
           </div>
-          <div className="row" style={{ marginTop: '0.75rem' }}>
+          <div className="row pdf-page-actions" style={{ marginTop: '0.75rem' }}>
             <button
               type="button"
               className="btn"
@@ -592,18 +712,18 @@ export default function PdfTool() {
             <button
               type="button"
               className="btn"
-              disabled={pages.length <= 1 || !selected}
-              title="Delete page"
-              onClick={() => {
-                const next = pages.filter((p) => p.id !== selected?.id)
-                setPages(next)
-                setSelectedId(next[Math.max(0, selectedIndex - 1)]?.id ?? null)
-              }}
+              disabled={pages.length <= 1 || (!selected && !dragId)}
+              title="Delete page, or drop a page here"
+              data-hot={binHot || undefined}
+              onClick={() => selected && removePage(selected.id)}
+              onDragOver={onBinDragOver}
+              onDragLeave={() => setBinHot(false)}
+              onDrop={onBinDrop}
             >
               🗑
             </button>
           </div>
-          <p className="hint">Rotating a page clears its annotations.</p>
+          <p className="hint">Drag a page to move it, or drop it on the bin. Rotating a page clears its annotations.</p>
         </aside>
 
         <section className="panel pdf-stage-wrap">

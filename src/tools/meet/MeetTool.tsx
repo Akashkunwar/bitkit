@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { DateField } from '../../components/DateField'
 import { ToolLayout } from '../../components/ToolLayout'
 import { SendTo } from '../../components/SendTo'
 import { useCopied } from '../../lib/useCopied'
@@ -57,10 +58,10 @@ export default function MeetTool() {
       lede="Line up working hours across time zones and find the overlap. Uses your browser's own zone data."
     >
       <div className="split">
-        <label className="field">
-          <span>Date</span>
-          <input className="text-input" type="date" value={day} onChange={(e) => setDay(e.target.value)} />
-        </label>
+        <div className="field">
+          <span id="meet-date">Date</span>
+          <DateField labelId="meet-date" value={day} onChange={setDay} />
+        </div>
         <label className="field">
           <span>Reference zone — the columns below</span>
           <select className="text-input" value={reference} onChange={(e) => setReference(e.target.value)}>

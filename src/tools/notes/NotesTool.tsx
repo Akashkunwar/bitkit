@@ -13,7 +13,7 @@ import {
 import { useUndo } from '../../lib/undo'
 import { renderMarkdown } from '../../lib/markdown'
 import { markdownHtmlToPdf } from '../../lib/pdf'
-import { triggerDownload } from '../../lib/download'
+import { downloadNamed, triggerDownload } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { SendTo } from '../../components/SendTo'
 
@@ -207,7 +207,7 @@ export default function NotesTool() {
                         header: active.title,
                         footer: 'BitKit',
                       })
-                      triggerDownload(blob, `${active.title || 'note'}.pdf`)
+                      await downloadNamed(blob, `${active.title || 'note'}.pdf`)
                     } finally {
                       setPdfBusy(false)
                     }

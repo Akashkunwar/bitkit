@@ -31,6 +31,18 @@ export function toInput(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
+export type CalendarCell = { iso: string; inMonth: boolean }
+
+/** Six weeks starting on Sunday, so the grid lines up the way a wall calendar does. */
+export function calendarCells(year: number, month: number): CalendarCell[] {
+  const first = new Date(year, month, 1)
+  const start = new Date(year, month, 1 - first.getDay())
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + index)
+    return { iso: toInput(date), inMonth: date.getMonth() === month }
+  })
+}
+
 export function daysInMonth(year: number, month: number): number {
   return new Date(year, month + 1, 0).getDate()
 }

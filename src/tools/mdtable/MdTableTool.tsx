@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { Segmented } from '../../components/Segmented'
 import { SendTo } from '../../components/SendTo'
@@ -15,6 +15,18 @@ const ALIGNS: { value: Align; label: string }[] = [
   { value: 'center', label: 'Center' },
   { value: 'right', label: 'Right' },
 ]
+
+const DEFAULT_COL = 148
+const MIN_COL = 56
+const MAX_COL = 720
+
+function textWidth(value: string, font: string): number {
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return value.length * 8
+  ctx.font = font
+  return ctx.measureText(value).width
+}
 
 const SAMPLE: Table = {
   headers: ['Tool', 'Input', 'Output'],
@@ -93,12 +105,15 @@ export default function MdTableTool() {
   const [aligns, setAligns] = useState<Align[]>(() => SAMPLE.headers.map(() => 'left'))
   const [pad, setPad] = useState(true)
   const [selected, setSelected] = useState(0)
+  const [widths, setWidths] = useState<number[]>(() => SAMPLE.headers.map(() => DEFAULT_COL))
+  const tableRef = useRef<HTMLTableElement>(null)
   const { copied, copy } = useCopied()
   const undo = useUndo()
 
   const adopt = (next: Table, nextAligns?: Align[]) => {
     setTable(next)
     setAligns(nextAligns ?? next.headers.map((_, i) => aligns[i] ?? 'left'))
+    setWidths(next.headers.map(() => DEFAULT_COL))
     setSelected(0)
   }
 
@@ -143,6 +158,7 @@ export default function MdTableTool() {
       rows: c.rows.map((r) => [...r, '']),
     }))
     setAligns((a) => [...a, 'left'])
+    setWidths((w) => [...w, DEFAULT_COL])
   }
   const removeRow = (r: number) => {
     const before = table
@@ -152,20 +168,54 @@ export default function MdTableTool() {
   const removeColumn = (col: number) => {
     const beforeTable = table
     const beforeAligns = aligns
+    const beforeWidths = widths
     const name = table.headers[col]
     setTable((c) => ({
       headers: c.headers.filter((_, i) => i !== col),
       rows: c.rows.map((r) => r.filter((_, i) => i !== col)),
     }))
     setAligns((a) => a.filter((_, i) => i !== col))
+    setWidths((w) => w.filter((_, i) => i !== col))
     setSelected(0)
     undo.push({
       label: `Deleted column “${name}”`,
       undo: () => {
         setTable(beforeTable)
         setAligns(beforeAligns)
+        setWidths(beforeWidths)
       },
     })
+  }
+
+  const resizeColumn = (index: number, event: ReactPointerEvent<HTMLSpanElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    const startX = event.clientX
+    const startW = widths[index] ?? DEFAULT_COL
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId)
+    } catch {
+      /* A drag that starts without an active pointer still resizes from window events. */
+    }
+    const move = (e: PointerEvent) => {
+      const next = Math.min(MAX_COL, Math.max(MIN_COL, Math.round(startW + e.clientX - startX)))
+      setWidths((current) => current.map((width, i) => (i === index ? next : width)))
+    }
+    const stop = () => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', stop)
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', stop)
+  }
+
+  const fitColumn = (index: number) => {
+    const sample = tableRef.current?.querySelector('input')
+    const font = sample ? getComputedStyle(sample).font : '14px sans-serif'
+    const values = [table.headers[index] ?? '', ...table.rows.map((row) => row[index] ?? '')]
+    const widest = values.reduce((max, value) => Math.max(max, textWidth(value, font)), 0)
+    const next = Math.min(MAX_COL, Math.max(MIN_COL, Math.ceil(widest + 28)))
+    setWidths((current) => current.map((width, i) => (i === index ? next : width)))
   }
 
   return (
@@ -187,14 +237,21 @@ export default function MdTableTool() {
       </div>
 
       <div className="table-wrap" style={{ maxHeight: 'none', marginTop: '0.8rem' }}>
-        <table className="data-table">
+        <table className="data-table md-grid" ref={tableRef}>
+          <colgroup>
+            {table.headers.map((_, c) => (
+              <col key={c} style={{ width: widths[c] ?? DEFAULT_COL }} />
+            ))}
+            <col style={{ width: 44 }} />
+          </colgroup>
           <thead>
             <tr>
               {table.headers.map((header, c) => (
-                <th key={c} data-selected={selected === c}>
+                <th key={c} data-col={c} data-selected={selected === c}>
                   <input
                     className="grid-input"
                     value={header}
+                    aria-label={`Header ${c + 1}`}
                     onFocus={() => setSelected(c)}
                     onChange={(e) => setHeader(c, e.target.value)}
                   />
@@ -203,6 +260,15 @@ export default function MdTableTool() {
                       ✕
                     </button>
                   </div>
+                  <span
+                    className="col-resizer"
+                    role="separator"
+                    aria-orientation="vertical"
+                    aria-label={`Resize ${header || `column ${c + 1}`}`}
+                    title="Drag to resize. Double-click to fit the text."
+                    onPointerDown={(event) => resizeColumn(c, event)}
+                    onDoubleClick={() => fitColumn(c)}
+                  />
                 </th>
               ))}
               <th />
@@ -212,10 +278,11 @@ export default function MdTableTool() {
             {table.rows.map((row, r) => (
               <tr key={r}>
                 {table.headers.map((_, c) => (
-                  <td key={c}>
+                  <td key={c} data-col={c}>
                     <input
                       className="grid-input"
                       value={row[c] ?? ''}
+                      aria-label={`${table.headers[c] || `Column ${c + 1}`}, row ${r + 1}`}
                       onFocus={() => setSelected(c)}
                       onChange={(e) => setCell(r, c, e.target.value)}
                     />
@@ -231,6 +298,9 @@ export default function MdTableTool() {
           </tbody>
         </table>
       </div>
+      <p className="hint">
+        Drag the edge of a header to make that column wider or narrower. Double-click the edge to fit the text.
+      </p>
 
       {table.headers[selected] ? (
         <Segmented

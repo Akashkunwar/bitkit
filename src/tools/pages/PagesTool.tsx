@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
-import { triggerDownload } from '../../lib/download'
+import { downloadNamed } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { extractPages, inspectPdf, mergePdfs, parsePageRange, splitPdf } from '../../lib/pdfPages'
 import { encryptionWarning } from '../../lib/pdfLoad'
@@ -44,9 +44,9 @@ export default function PagesTool() {
     try {
       if (kind === 'merge') {
         const bytes = await mergePdfs(items.map((item) => item.bytes))
-        const file = new File([bytes.slice().buffer as ArrayBuffer], 'merged.pdf', { type: 'application/pdf' })
-        setMerged(file)
-        triggerDownload(file, file.name)
+        const bytesBlob = new Blob([bytes.slice().buffer as ArrayBuffer], { type: 'application/pdf' })
+        const name = await downloadNamed(bytesBlob, 'merged.pdf')
+        if (name) setMerged(new File([bytesBlob], name, { type: 'application/pdf' }))
         return
       }
       if (kind === 'extract') {
@@ -54,7 +54,10 @@ export default function PagesTool() {
         const spec = range.replace(/-$/, `-${source.pages}`)
         const indices = parsePageRange(spec, source.pages)
         const bytes = await extractPages(source.bytes, indices)
-        triggerDownload(new Blob([bytes.slice().buffer as ArrayBuffer], { type: 'application/pdf' }), 'extracted.pdf')
+        await downloadNamed(
+          new Blob([bytes.slice().buffer as ArrayBuffer], { type: 'application/pdf' }),
+          'extracted.pdf',
+        )
         return
       }
       const parts = await splitPdf(items[0].bytes)
@@ -64,7 +67,7 @@ export default function PagesTool() {
           data: part.bytes,
         })),
       )
-      triggerDownload(new Blob([zip.slice().buffer as ArrayBuffer], { type: 'application/zip' }), 'pages.zip')
+      await downloadNamed(new Blob([zip.slice().buffer as ArrayBuffer], { type: 'application/zip' }), 'pages.zip')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'PDF operation failed.')
     } finally {

@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Keyboard, Menu, PanelLeftOpen, Search, X } from 'lucide-react'
 import { CommandPalette } from './CommandPalette'
 import { Cheatsheet } from './Cheatsheet'
+import { DownloadNameDialog } from '../components/DownloadNameDialog'
 import { StatusBar } from './StatusBar'
 import { ToolBoundary } from './ToolBoundary'
 import { Logo } from './Brand'
@@ -225,6 +226,7 @@ export function AppShell() {
         onOpenCheatsheet={() => setSheetOpen(true)}
       />
       <Cheatsheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
+      <DownloadNameDialog />
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { DateField } from '../../components/DateField'
 import { ToolLayout } from '../../components/ToolLayout'
 import { Segmented } from '../../components/Segmented'
 import { SendTo } from '../../components/SendTo'
@@ -62,10 +63,10 @@ export default function DeadlineTool() {
       <Segmented label="Mode" value={mode} options={MODES} onChange={setMode} />
 
       <div className="split">
-        <label className="field">
-          <span>{mode === 'add' ? 'Start date' : 'From'}</span>
-          <input className="text-input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
-        </label>
+        <div className="field">
+          <span id="deadline-start">{mode === 'add' ? 'Start date' : 'From'}</span>
+          <DateField labelId="deadline-start" value={start} onChange={setStart} />
+        </div>
         {mode === 'add' ? (
           <label className="field">
             <span>Working days — negative counts backwards</span>
@@ -77,10 +78,10 @@ export default function DeadlineTool() {
             />
           </label>
         ) : (
-          <label className="field">
-            <span>To</span>
-            <input className="text-input" type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
-          </label>
+          <div className="field">
+            <span id="deadline-end">To</span>
+            <DateField labelId="deadline-end" value={end} onChange={setEnd} />
+          </div>
         )}
       </div>
 

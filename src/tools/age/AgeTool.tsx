@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { DateField } from '../../components/DateField'
 import { ToolLayout } from '../../components/ToolLayout'
 import { SendTo } from '../../components/SendTo'
 import { useCopied } from '../../lib/useCopied'
@@ -28,14 +29,14 @@ export default function AgeTool() {
       lede="Exact years, months, and days between two dates — plus every other way to say it."
     >
       <div className="split">
-        <label className="field">
-          <span>From — birthday or start</span>
-          <input className="text-input" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-        </label>
-        <label className="field">
-          <span>To</span>
-          <input className="text-input" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
-        </label>
+        <div className="field">
+          <span id="age-from">From — birthday or start</span>
+          <DateField labelId="age-from" value={from} onChange={setFrom} />
+        </div>
+        <div className="field">
+          <span id="age-to">To</span>
+          <DateField labelId="age-to" value={to} onChange={setTo} />
+        </div>
       </div>
 
       <div className="row" style={{ flexWrap: 'wrap' }}>

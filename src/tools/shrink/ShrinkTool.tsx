@@ -4,7 +4,7 @@ import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
 import { SendTo } from '../../components/SendTo'
-import { saveAs } from '../../lib/download'
+import { downloadNamed } from '../../lib/download'
 import { useToolPreset } from '../../lib/actions'
 import { formatBytes, parseByteLimit } from '../../lib/format'
 import { encryptionWarning, loadPdf } from '../../lib/pdfLoad'
@@ -178,11 +178,15 @@ export default function ShrinkTool() {
             </button>
             {output ? (
               output.withinLimit ? (
-                <button type="button" className="btn" onClick={() => void saveAs(output.blob, output.name)}>
+                <button type="button" className="btn" onClick={() => void downloadNamed(output.blob, output.name)}>
                   Save PDF
                 </button>
               ) : (
-                <button type="button" className="btn-ghost" onClick={() => void saveAs(output.blob, output.name)}>
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  onClick={() => void downloadNamed(output.blob, output.name)}
+                >
                   Download anyway
                 </button>
               )

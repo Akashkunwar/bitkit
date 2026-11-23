@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
+import { DateField } from '../../components/DateField'
 import { ToolLayout } from '../../components/ToolLayout'
 import { SendTo } from '../../components/SendTo'
-import { saveAs } from '../../lib/download'
+import { downloadNamed } from '../../lib/download'
 import { getPref, setPref } from '../../lib/db'
 import { useUndo } from '../../lib/undo'
 import { emptyInvoice, invoicePdf, itemId, money, totalsOf, type Invoice } from '../../lib/invoice'
@@ -27,7 +28,7 @@ export default function InvoiceTool() {
   const download = () => {
     try {
       const blob = invoicePdf(invoice)
-      void saveAs(blob, `${invoice.number || 'invoice'}.pdf`)
+      void downloadNamed(blob, `${invoice.number || 'invoice'}.pdf`)
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not build the PDF.')
@@ -51,24 +52,14 @@ export default function InvoiceTool() {
       </div>
 
       <div className="split">
-        <label className="field">
-          <span>Date</span>
-          <input
-            className="text-input"
-            type="date"
-            value={invoice.date}
-            onChange={(e) => set('date', e.target.value)}
-          />
-        </label>
-        <label className="field">
-          <span>Due date</span>
-          <input
-            className="text-input"
-            type="date"
-            value={invoice.dueDate}
-            onChange={(e) => set('dueDate', e.target.value)}
-          />
-        </label>
+        <div className="field">
+          <span id="invoice-date">Date</span>
+          <DateField labelId="invoice-date" value={invoice.date} onChange={(value) => set('date', value)} />
+        </div>
+        <div className="field">
+          <span id="invoice-due">Due date</span>
+          <DateField labelId="invoice-due" value={invoice.dueDate} onChange={(value) => set('dueDate', value)} />
+        </div>
       </div>
 
       <div className="split">

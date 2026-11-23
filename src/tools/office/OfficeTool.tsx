@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
-import { triggerDownload } from '../../lib/download'
+import { downloadNamed } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import {
   blocksToHtml,
@@ -61,14 +61,15 @@ export default function OfficeTool() {
   const fontWarning = useMemo(() => (doc ? nonLatinWarning(blocksToText(doc.blocks)) : null), [doc])
   const title = doc ? documentTitle(doc.blocks, baseName(doc.name)) : ''
 
-  const savePdf = () => {
+  const savePdf = async () => {
     if (!doc) return
     setError(null)
     try {
       const blob = blocksToPdf(doc.blocks, { pageSize, marginMm, header, footer, title })
-      const file = new File([blob], `${baseName(doc.name)}.pdf`, { type: 'application/pdf' })
-      setOutFile(file)
-      triggerDownload(file, file.name)
+      const suggested = `${baseName(doc.name)}.pdf`
+      const name = await downloadNamed(blob, suggested)
+      if (!name) return
+      setOutFile(new File([blob], name, { type: 'application/pdf' }))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'PDF export failed.')
     }
@@ -77,7 +78,7 @@ export default function OfficeTool() {
   const saveDocx = () => {
     if (!doc) return
     const bytes = buildDocx(doc.blocks)
-    triggerDownload(
+    void downloadNamed(
       new Blob([bytes.slice().buffer as ArrayBuffer], {
         type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       }),
@@ -88,7 +89,7 @@ export default function OfficeTool() {
   const saveText = (kind: 'md' | 'txt') => {
     if (!doc) return
     const body = kind === 'md' ? markdown : blocksToText(doc.blocks)
-    triggerDownload(new Blob([body], { type: 'text/plain;charset=utf-8' }), `${baseName(doc.name)}.${kind}`)
+    void downloadNamed(new Blob([body], { type: 'text/plain;charset=utf-8' }), `${baseName(doc.name)}.${kind}`)
   }
 
   const printDoc = () => {
@@ -135,7 +136,7 @@ export default function OfficeTool() {
               ) : null}
               {fontWarning ? <p className="banner warn">{fontWarning}</p> : null}
               <div className="row" style={{ flexWrap: 'wrap', marginTop: '0.8rem' }}>
-                <button type="button" className="btn btn-primary" onClick={savePdf}>
+                <button type="button" className="btn btn-primary" onClick={() => void savePdf()}>
                   Download PDF
                 </button>
                 <button type="button" className="btn" onClick={printDoc}>

@@ -3,7 +3,7 @@ import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
 import { filesFromBlobs } from '../../lib/handoff'
-import { triggerDownload } from '../../lib/download'
+import { downloadNamed } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { fillForm, listFormFields, type FormFieldView } from '../../lib/pdfForm'
 import { encryptionWarning, loadPdf } from '../../lib/pdfLoad'
@@ -143,7 +143,7 @@ export default function FormsTool() {
               type="button"
               className="btn"
               style={{ marginTop: '0.8rem' }}
-              onClick={() => triggerDownload(filled, file?.name.replace(/\.pdf$/i, '') + '-filled.pdf')}
+              onClick={() => void downloadNamed(filled, file?.name.replace(/\.pdf$/i, '') + '-filled.pdf')}
             >
               Download filled PDF
             </button>
