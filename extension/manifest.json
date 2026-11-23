@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Send to BitKit",
+  "version": "1.0.0",
+  "description": "Send a selection or image to the BitKit address you set. Nothing is sent to anyone else.",
+  "permissions": ["contextMenus", "storage", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "background.js" },
+  "options_page": "options.html",
+  "action": { "default_title": "Send to BitKit" }
+}

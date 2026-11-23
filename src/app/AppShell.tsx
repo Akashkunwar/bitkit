@@ -13,6 +13,9 @@ import { useShellKeys } from './useShellKeys'
 import { toolForPath } from '../registry'
 import { getPref, setPref } from '../lib/db'
 import { setHandoff, suggestPath } from '../lib/handoff'
+import { fileFromPastedText, stageHomeInput } from '../lib/homeStage'
+import { SessionTrayBar } from './SessionTray'
+import { useSessionTray } from './useSessionTray'
 import { recordUse } from '../lib/prefs'
 import { LANGUAGES, useI18n } from '../lib/i18n'
 
@@ -38,6 +41,7 @@ export function AppShell() {
   const [sidebarHidden, setSidebarHidden] = useState(readSidebarHidden)
 
   const activeTool = toolForPath(location.pathname)
+  const tray = useSessionTray()
 
   const toggleSidebar = useCallback(() => {
     // On a narrow screen the sidebar is a drawer, so the same key opens that.
@@ -100,19 +104,21 @@ export function AppShell() {
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
       const files: File[] = []
       for (const item of event.clipboardData?.items ?? []) {
-        if (item.kind === 'file' && item.type.startsWith('image/')) {
+        if (item.kind === 'file') {
           const file = item.getAsFile()
           if (file) files.push(file)
         }
       }
+      const text = event.clipboardData?.getData('text/plain') ?? ''
+      if (!files.length && text.trim()) files.push(fileFromPastedText(text))
       if (!files.length) return
       event.preventDefault()
-      setHandoff({ files, from: 'paste' })
-      navigate('/clipboard')
+      stageHomeInput(files, text)
+      tray.add(files)
     }
     window.addEventListener('paste', onPaste)
     return () => window.removeEventListener('paste', onPaste)
-  }, [location.pathname, navigate])
+  }, [location.pathname, tray])
 
   return (
     <div className="shell" data-sidebar={sidebarHidden ? 'hidden' : 'shown'}>
@@ -197,6 +203,7 @@ export function AppShell() {
         </header>
 
         <main id="main" className="main">
+          <SessionTrayBar />
           <StatusBar />
           <ToolBoundary resetKey={location.pathname} toolTitle={activeTool?.title ?? 'This page'}>
             <Suspense

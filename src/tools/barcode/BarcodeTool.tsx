@@ -1,13 +1,16 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Check, Copy, Download, FileArchive } from 'lucide-react'
 import { ToolLayout } from '../../components/ToolLayout'
+import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
 import { SendTo } from '../../components/SendTo'
+import { LabelSheet } from '../../components/LabelSheet'
 import { triggerDownload } from '../../lib/download'
 import { useToolSettings } from '../../lib/prefs'
 import { useCopied } from '../../lib/useCopied'
 import { zipStore } from '../../lib/zip'
 import { BarcodeError, SYMBOLOGIES, barcodeSvg, encodeBarcode, type Encoded, type Symbology } from '../../lib/barcode'
+import { decodeBarcodeRgba } from '../../lib/barcodeScan'
 
 const DEFAULTS = {
   symbology: 'code128' as Symbology,
@@ -64,6 +67,7 @@ function fileSafe(value: string): string {
 
 export default function BarcodeTool() {
   const { settings, update } = useToolSettings('barcode', DEFAULTS)
+  const [panel, setPanel] = useState<'make' | 'scan'>('make')
   const [batchText, setBatchText] = useState('SKU-0001\nSKU-0002\nSKU-0003')
   const [busy, setBusy] = useState(false)
   const [outputs, setOutputs] = useState<File[]>([])
@@ -130,181 +134,302 @@ export default function BarcodeTool() {
   return (
     <ToolLayout
       title="Barcode generator"
-      lede="Code 128, EAN-13, UPC-A, EAN-8, and Code 39 as sharp SVG or PNG — one at a time or a whole list at once. Check digits are worked out for you."
+      lede="Code 128, EAN, UPC, and Code 39. Make one, or read a code from a picture or the camera."
     >
-      <div className="split">
-        <section className="panel">
-          <Segmented
-            label="Type"
-            value={settings.symbology}
-            onChange={(symbology) => {
-              const next = SYMBOLOGIES.find((s) => s.id === symbology)!
-              update({ symbology, value: next.example })
-            }}
-            options={SYMBOLOGIES.map((s) => ({ value: s.id, label: s.label, title: s.hint }))}
-          />
-          <p className="hint" style={{ marginTop: '-0.5rem' }}>
-            {info.hint}
-          </p>
+      <Segmented
+        label="Mode"
+        value={panel}
+        options={[
+          { value: 'make', label: 'Make' },
+          { value: 'scan', label: 'Scan' },
+        ]}
+        onChange={setPanel}
+      />
+      {panel === 'scan' ? (
+        <BarcodeScan />
+      ) : (
+        <div className="split">
+          <section className="panel">
+            <Segmented
+              label="Type"
+              value={settings.symbology}
+              onChange={(symbology) => {
+                const next = SYMBOLOGIES.find((s) => s.id === symbology)!
+                update({ symbology, value: next.example })
+              }}
+              options={SYMBOLOGIES.map((s) => ({ value: s.id, label: s.label, title: s.hint }))}
+            />
+            <p className="hint" style={{ marginTop: '-0.5rem' }}>
+              {info.hint}
+            </p>
 
-          <label className="switch" style={{ margin: '0.5rem 0 1rem' }}>
-            <input type="checkbox" checked={settings.batch} onChange={(e) => update({ batch: e.target.checked })} />
-            Make many at once (one value per line)
-          </label>
+            <label className="switch" style={{ margin: '0.5rem 0 1rem' }}>
+              <input type="checkbox" checked={settings.batch} onChange={(e) => update({ batch: e.target.checked })} />
+              Make many at once (one value per line)
+            </label>
 
-          {settings.batch ? (
-            <>
-              <label className="field">
-                <span>Values</span>
-                <textarea
-                  className="code-area"
-                  rows={8}
-                  value={batchText}
-                  onChange={(e) => setBatchText(e.target.value)}
-                />
-              </label>
-              <p className="hint">
-                {batch.length} {batch.length === 1 ? 'barcode' : 'barcodes'}
-                {invalid ? ` · ${invalid} invalid (shown below)` : ''}
-              </p>
-              <ul className="barcode-batch">
-                {batch.slice(0, 60).map((row, i) => (
-                  <li key={`${row.line}-${i}`}>
-                    {row.svg ? (
-                      <div className="barcode-mini" dangerouslySetInnerHTML={{ __html: row.svg }} />
-                    ) : (
-                      <p className="status-bad">
-                        {row.line}: {row.error}
-                      </p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-              {batch.length > 60 ? <p className="hint">Showing the first 60; the ZIP includes all.</p> : null}
-            </>
-          ) : (
-            <>
-              <label className="field">
-                <span>Value</span>
-                <input
-                  value={settings.value}
-                  onChange={(e) => update({ value: e.target.value })}
-                  placeholder={info.example}
-                  aria-invalid={!!single.error}
-                  spellCheck={false}
-                />
-              </label>
-              {single.error ? (
-                <p className="status-bad" role="alert">
-                  {single.error}
-                </p>
-              ) : null}
-              <div className="barcode-stage">
-                {single.svg ? (
-                  <div
-                    className="barcode-preview"
-                    role="img"
-                    aria-label={`${info.label} barcode for ${single.text}`}
-                    dangerouslySetInnerHTML={{ __html: single.svg }}
+            {settings.batch ? (
+              <>
+                <label className="field">
+                  <span>Values</span>
+                  <textarea
+                    className="code-area"
+                    rows={8}
+                    value={batchText}
+                    onChange={(e) => setBatchText(e.target.value)}
                   />
-                ) : (
-                  <p className="muted">Fix the value to see the barcode.</p>
-                )}
-              </div>
-            </>
-          )}
-        </section>
+                </label>
+                <p className="hint">
+                  {batch.length} {batch.length === 1 ? 'barcode' : 'barcodes'}
+                  {invalid ? ` · ${invalid} invalid (shown below)` : ''}
+                </p>
+                <ul className="barcode-batch">
+                  {batch.slice(0, 60).map((row, i) => (
+                    <li key={`${row.line}-${i}`}>
+                      {row.svg ? (
+                        <div className="barcode-mini" dangerouslySetInnerHTML={{ __html: row.svg }} />
+                      ) : (
+                        <p className="status-bad">
+                          {row.line}: {row.error}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                {batch.length > 60 ? <p className="hint">Showing the first 60; the ZIP includes all.</p> : null}
+              </>
+            ) : (
+              <>
+                <label className="field">
+                  <span>Value</span>
+                  <input
+                    value={settings.value}
+                    onChange={(e) => update({ value: e.target.value })}
+                    placeholder={info.example}
+                    aria-invalid={!!single.error}
+                    spellCheck={false}
+                  />
+                </label>
+                {single.error ? (
+                  <p className="status-bad" role="alert">
+                    {single.error}
+                  </p>
+                ) : null}
+                <div className="barcode-stage">
+                  {single.svg ? (
+                    <div
+                      className="barcode-preview"
+                      role="img"
+                      aria-label={`${info.label} barcode for ${single.text}`}
+                      dangerouslySetInnerHTML={{ __html: single.svg }}
+                    />
+                  ) : (
+                    <p className="muted">Fix the value to see the barcode.</p>
+                  )}
+                </div>
+              </>
+            )}
+          </section>
 
-        <aside className="panel">
-          <label className="field">
-            <span>Bar width · {settings.moduleWidth}px</span>
-            <input
-              type="range"
-              min={1}
-              max={5}
-              value={settings.moduleWidth}
-              onChange={(e) => update({ moduleWidth: Number(e.target.value) })}
-            />
-          </label>
-          <label className="field">
-            <span>Height · {settings.height}px</span>
-            <input
-              type="range"
-              min={30}
-              max={200}
-              step={5}
-              value={settings.height}
-              onChange={(e) => update({ height: Number(e.target.value) })}
-            />
-          </label>
-          <div className="grid-2">
+          <aside className="panel">
             <label className="field">
-              <span>Bars</span>
+              <span>Bar width · {settings.moduleWidth}px</span>
               <input
-                type="color"
-                value={settings.foreground}
-                onChange={(e) => update({ foreground: e.target.value })}
+                type="range"
+                min={1}
+                max={5}
+                value={settings.moduleWidth}
+                onChange={(e) => update({ moduleWidth: Number(e.target.value) })}
               />
             </label>
             <label className="field">
-              <span>Background</span>
+              <span>Height · {settings.height}px</span>
               <input
-                type="color"
-                value={settings.background}
-                onChange={(e) => update({ background: e.target.value })}
+                type="range"
+                min={30}
+                max={200}
+                step={5}
+                value={settings.height}
+                onChange={(e) => update({ height: Number(e.target.value) })}
               />
             </label>
-          </div>
-          <label className="switch" style={{ marginBottom: '1rem' }}>
-            <input
-              type="checkbox"
-              checked={settings.showText}
-              onChange={(e) => update({ showText: e.target.checked })}
-            />
-            Print the value under the bars
-          </label>
-          <p className="hint">Keep dark bars on a light background — most scanners cannot read inverted barcodes.</p>
+            <div className="grid-2">
+              <label className="field">
+                <span>Bars</span>
+                <input
+                  type="color"
+                  value={settings.foreground}
+                  onChange={(e) => update({ foreground: e.target.value })}
+                />
+              </label>
+              <label className="field">
+                <span>Background</span>
+                <input
+                  type="color"
+                  value={settings.background}
+                  onChange={(e) => update({ background: e.target.value })}
+                />
+              </label>
+            </div>
+            <label className="switch" style={{ marginBottom: '1rem' }}>
+              <input
+                type="checkbox"
+                checked={settings.showText}
+                onChange={(e) => update({ showText: e.target.checked })}
+              />
+              Print the value under the bars
+            </label>
+            <p className="hint">Keep dark bars on a light background — most scanners cannot read inverted barcodes.</p>
 
-          {settings.batch ? (
-            <button
-              type="button"
-              className="btn btn-primary btn-lg btn-block"
-              disabled={busy || !batch.some((row) => row.svg)}
-              onClick={() => void downloadBatch()}
-            >
-              {busy ? <span className="spinner" aria-hidden="true" /> : <FileArchive size={18} aria-hidden="true" />}
-              Download {batch.length - invalid} PNGs (ZIP)
-            </button>
-          ) : (
-            <div className="stack">
+            {settings.batch ? (
               <button
                 type="button"
                 className="btn btn-primary btn-lg btn-block"
-                disabled={!single.svg}
-                onClick={() => void downloadSingle('png')}
+                disabled={busy || !batch.some((row) => row.svg)}
+                onClick={() => void downloadBatch()}
               >
-                <Download size={18} aria-hidden="true" />
-                Download PNG
+                {busy ? <span className="spinner" aria-hidden="true" /> : <FileArchive size={18} aria-hidden="true" />}
+                Download {batch.length - invalid} PNGs (ZIP)
               </button>
-              <div className="grid-2">
-                <button type="button" className="btn" disabled={!single.svg} onClick={() => void downloadSingle('svg')}>
-                  SVG
-                </button>
+            ) : (
+              <div className="stack">
                 <button
                   type="button"
-                  className="btn"
+                  className="btn btn-primary btn-lg btn-block"
                   disabled={!single.svg}
-                  onClick={() => single.svg && void copy(single.svg)}
+                  onClick={() => void downloadSingle('png')}
                 >
-                  {copied ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
-                  {copied ? 'Copied' : 'Copy SVG'}
+                  <Download size={18} aria-hidden="true" />
+                  Download PNG
                 </button>
+                <div className="grid-2">
+                  <button
+                    type="button"
+                    className="btn"
+                    disabled={!single.svg}
+                    onClick={() => void downloadSingle('svg')}
+                  >
+                    SVG
+                  </button>
+                  <button
+                    type="button"
+                    className="btn"
+                    disabled={!single.svg}
+                    onClick={() => single.svg && void copy(single.svg)}
+                  >
+                    {copied ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
+                    {copied ? 'Copied' : 'Copy SVG'}
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-          <SendTo from="barcode" files={outputs} />
-        </aside>
-      </div>
+            )}
+            <LabelSheet
+              sample={settings.value}
+              renderPng={async (value) => {
+                const encoded = encodeBarcode(settings.symbology, value)
+                return svgToPng(renderSvg(encoded, settings))
+              }}
+            />
+            <SendTo from="barcode" files={outputs} />
+          </aside>
+        </div>
+      )}
     </ToolLayout>
+  )
+}
+
+function BarcodeScan() {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [text, setText] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [cameraOn, setCameraOn] = useState(false)
+
+  useEffect(() => {
+    if (!cameraOn) return
+    let stream: MediaStream | null = null
+    let stopped = false
+    const frame = { id: 0 }
+    const tick = () => {
+      const video = videoRef.current
+      if (!stopped && video && video.videoWidth > 0) {
+        const canvas = document.createElement('canvas')
+        const width = Math.min(video.videoWidth, 800)
+        const height = Math.round(video.videoHeight * (width / video.videoWidth))
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, width, height)
+          const found = decodeBarcodeRgba(ctx.getImageData(0, 0, width, height).data, width, height)
+          if (found) setText(found)
+        }
+      }
+      frame.id = window.requestAnimationFrame(tick)
+    }
+    void navigator.mediaDevices
+      .getUserMedia({ video: { facingMode: 'environment' } })
+      .then((next) => {
+        if (stopped) {
+          next.getTracks().forEach((track) => track.stop())
+          return
+        }
+        stream = next
+        if (videoRef.current) videoRef.current.srcObject = next
+        frame.id = window.requestAnimationFrame(tick)
+      })
+      .catch(() => setError('The camera was not allowed.'))
+    return () => {
+      stopped = true
+      window.cancelAnimationFrame(frame.id)
+      stream?.getTracks().forEach((track) => track.stop())
+    }
+  }, [cameraOn])
+
+  const readFile = async (file: File) => {
+    setError(null)
+    const url = URL.createObjectURL(file)
+    try {
+      const image = new Image()
+      await new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve()
+        image.onerror = () => reject(new Error('Could not read that image.'))
+        image.src = url
+      })
+      const width = Math.min(image.naturalWidth, 1200)
+      const height = Math.round(image.naturalHeight * (width / image.naturalWidth))
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d', { willReadFrequently: true })
+      if (!ctx) throw new Error('Canvas is unavailable.')
+      ctx.drawImage(image, 0, 0, width, height)
+      const found = decodeBarcodeRgba(ctx.getImageData(0, 0, width, height).data, width, height)
+      setText(found)
+      if (!found) setError('No barcode in that picture.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not read that image.')
+    } finally {
+      URL.revokeObjectURL(url)
+    }
+  }
+
+  return (
+    <div className="split">
+      <section className="panel">
+        <DropZone
+          accept="image/*"
+          label="Drop a barcode photo."
+          onFiles={(files) => files[0] && void readFile(files[0])}
+        />
+        <video ref={videoRef} autoPlay playsInline muted className="paper-preview" hidden={!cameraOn} />
+        <button type="button" className="btn btn-primary" onClick={() => setCameraOn((on) => !on)}>
+          {cameraOn ? 'Stop camera' : 'Open camera'}
+        </button>
+        {error ? <p className="status-bad">{error}</p> : null}
+      </section>
+      <aside className="panel">
+        <p className="lede">{text ?? 'Nothing read yet.'}</p>
+      </aside>
+    </div>
   )
 }

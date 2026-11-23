@@ -72,7 +72,7 @@ export default function MediaTool() {
     if (media) void take(media)
   })
 
-  const run = async () => {
+  const run = async (override?: { mute?: boolean }) => {
     if (!file || !info) return
     setBusy(true)
     setError(null)
@@ -89,7 +89,7 @@ export default function MediaTool() {
           start,
           end,
           maxEdge: maxEdge || undefined,
-          mute,
+          mute: override?.mute ?? mute,
           audioOnly,
           videoBitsPerSecond: maxBytes ? bitrateForTarget(maxBytes, seconds) : undefined,
           audioBitsPerSecond: 96_000,
@@ -230,6 +230,42 @@ export default function MediaTool() {
             {busy ? (
               <button type="button" className="btn" onClick={() => abortRef.current?.abort()}>
                 Stop
+              </button>
+            ) : null}
+            {info.kind === 'video' && !busy ? (
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  setMute(true)
+                  void run({ mute: true })
+                }}
+              >
+                Silent clip
+              </button>
+            ) : null}
+            {info.kind === 'video' && !busy ? (
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  const video = videoRef.current
+                  if (!video) return
+                  setBusy(true)
+                  setError(null)
+                  void import('../../lib/gif')
+                    .then(async ({ encodeGif, sampleVideoFrames }) => {
+                      const sampled = await sampleVideoFrames(video, { start, end })
+                      const bytes = encodeGif(sampled.frames)
+                      const name = `${file?.name.replace(/\.[^.]+$/, '') ?? 'clip'}.gif`
+                      triggerDownload(new Blob([bytes.slice().buffer as ArrayBuffer], { type: 'image/gif' }), name)
+                      if (sampled.truncated) setError('The GIF uses the first 8 seconds at 10 frames per second.')
+                    })
+                    .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Could not make a GIF.'))
+                    .finally(() => setBusy(false))
+                }}
+              >
+                Export GIF
               </button>
             ) : null}
             {info.kind === 'video' && !busy ? (

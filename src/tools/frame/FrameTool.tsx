@@ -11,6 +11,7 @@ import { usePasteFiles } from '../../lib/usePasteFiles'
 import { useToolSettings } from '../../lib/prefs'
 import { decodeImage } from '../../lib/image/compress'
 import { BACKDROPS, drawFrame, layoutFrame, type Aspect, type Chrome } from '../../lib/frame'
+import { drawCodeCard, drawQuoteCard } from '../../lib/cards'
 
 const DEFAULTS = {
   backdrop: 'indigo',
@@ -21,6 +22,11 @@ const DEFAULTS = {
   aspect: 'auto' as Aspect,
   title: '',
   scale: 2,
+  mode: 'frame' as 'frame' | 'quote' | 'code',
+  quote: 'The work stays on this device.',
+  author: '',
+  code: 'const local = true',
+  filename: 'app.ts',
 }
 
 type Loaded = { name: string; image: ImageBitmap | HTMLImageElement; width: number; height: number }
@@ -67,12 +73,27 @@ export default function FrameTool() {
 
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas || !loaded) return
+    if (!canvas || !loaded || settings.mode !== 'frame') return
     const layout = layoutFrame(loaded.width, loaded.height, settings)
     const preview = Math.min(1, 1000 / Math.max(layout.width, layout.height))
     drawFrame(canvas, loaded.image as CanvasImageSource, loaded, { ...settings, backdrop: backdrop.stops }, preview)
     setOutput(null)
   }, [loaded, settings, backdrop])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas || settings.mode === 'frame') return
+    if (settings.mode === 'quote') {
+      drawQuoteCard(canvas, {
+        quote: settings.quote,
+        author: settings.author,
+        accent: '#5b5bd6',
+        background: '#f6f1ea',
+      })
+    } else {
+      drawCodeCard(canvas, { code: settings.code, filename: settings.filename, theme: 'dark' })
+    }
+  }, [settings])
 
   const render = async (): Promise<File | null> => {
     if (!loaded) return null
@@ -108,9 +129,81 @@ export default function FrameTool() {
   return (
     <ToolLayout
       title="Screenshot frame"
-      lede="Put a screenshot on a gradient backdrop with padding, rounded corners, a soft shadow, and optional window chrome — ready for a post, a README, or a slide."
+      lede="Frame a screenshot, or make a quote card or a code card. The picture is drawn in this tab."
     >
-      {!loaded ? (
+      <Segmented
+        label="Mode"
+        value={settings.mode}
+        options={[
+          { value: 'frame', label: 'Frame' },
+          { value: 'quote', label: 'Quote card' },
+          { value: 'code', label: 'Code card' },
+        ]}
+        onChange={(mode) => update({ mode })}
+      />
+      {settings.mode !== 'frame' ? (
+        <div className="split">
+          <section className="panel">
+            <canvas ref={canvasRef} style={{ width: '100%', height: 'auto' }} />
+          </section>
+          <aside className="panel">
+            {settings.mode === 'quote' ? (
+              <>
+                <label className="field">
+                  <span>Quote</span>
+                  <textarea
+                    className="text-input"
+                    rows={6}
+                    value={settings.quote}
+                    onChange={(e) => update({ quote: e.target.value })}
+                  />
+                </label>
+                <label className="field">
+                  <span>Author</span>
+                  <input
+                    className="text-input"
+                    value={settings.author}
+                    onChange={(e) => update({ author: e.target.value })}
+                  />
+                </label>
+              </>
+            ) : (
+              <>
+                <label className="field">
+                  <span>Filename</span>
+                  <input
+                    className="text-input"
+                    value={settings.filename}
+                    onChange={(e) => update({ filename: e.target.value })}
+                  />
+                </label>
+                <label className="field">
+                  <span>Code</span>
+                  <textarea
+                    className="code-area"
+                    rows={10}
+                    value={settings.code}
+                    onChange={(e) => update({ code: e.target.value })}
+                  />
+                </label>
+              </>
+            )}
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => {
+                const canvas = canvasRef.current
+                if (!canvas) return
+                canvas.toBlob((blob) => {
+                  if (blob) triggerDownload(blob, settings.mode === 'code' ? 'code-card.png' : 'quote-card.png')
+                })
+              }}
+            >
+              Download PNG
+            </button>
+          </aside>
+        </div>
+      ) : !loaded ? (
         <>
           <DropZone
             accept="image/*"

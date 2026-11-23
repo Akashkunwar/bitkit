@@ -72,16 +72,152 @@ function internationalWords(n: number): string {
   return parts.join(' ')
 }
 
-export function integerToWords(n: number, scale: WordScale = 'indian'): string {
+const HINDI = [
+  'शून्य',
+  'एक',
+  'दो',
+  'तीन',
+  'चार',
+  'पाँच',
+  'छह',
+  'सात',
+  'आठ',
+  'नौ',
+  'दस',
+  'ग्यारह',
+  'बारह',
+  'तेरह',
+  'चौदह',
+  'पंद्रह',
+  'सोलह',
+  'सत्रह',
+  'अठारह',
+  'उन्नीस',
+  'बीस',
+  'इक्कीस',
+  'बाईस',
+  'तेईस',
+  'चौबीस',
+  'पच्चीस',
+  'छब्बीस',
+  'सत्ताईस',
+  'अट्ठाईस',
+  'उनतीस',
+  'तीस',
+  'इकतीस',
+  'बत्तीस',
+  'तैंतीस',
+  'चौंतीस',
+  'पैंतीस',
+  'छत्तीस',
+  'सैंतीस',
+  'अड़तीस',
+  'उनतालीस',
+  'चालीस',
+  'इकतालीस',
+  'बयालीस',
+  'तैंतालीस',
+  'चौवालीस',
+  'पैंतालीस',
+  'छियालीस',
+  'सैंतालीस',
+  'अड़तालीस',
+  'उनचास',
+  'पचास',
+  'इक्यावन',
+  'बावन',
+  'तिरपन',
+  'चौवन',
+  'पचपन',
+  'छप्पन',
+  'सत्तावन',
+  'अट्ठावन',
+  'उनसठ',
+  'साठ',
+  'इकसठ',
+  'बासठ',
+  'तिरसठ',
+  'चौंसठ',
+  'पैंसठ',
+  'छियासठ',
+  'सड़सठ',
+  'अड़सठ',
+  'उनहत्तर',
+  'सत्तर',
+  'इकहत्तर',
+  'बहत्तर',
+  'तिहत्तर',
+  'चौहत्तर',
+  'पचहत्तर',
+  'छिहत्तर',
+  'सतहत्तर',
+  'अठहत्तर',
+  'उन्यासी',
+  'अस्सी',
+  'इक्यासी',
+  'बयासी',
+  'तिरासी',
+  'चौरासी',
+  'पचासी',
+  'छियासी',
+  'सत्तासी',
+  'अट्ठासी',
+  'नवासी',
+  'नब्बे',
+  'इक्यानवे',
+  'बानवे',
+  'तिरानवे',
+  'चौरानवे',
+  'पंचानवे',
+  'छियानवे',
+  'सत्तानवे',
+  'अट्ठानवे',
+  'निन्यानवे',
+]
+
+function hindiBelowThousand(n: number): string {
+  if (n < 100) return HINDI[n]
+  const hundred = Math.floor(n / 100)
+  const rest = n % 100
+  const head = `${HINDI[hundred]} सौ`
+  return rest ? `${head} ${HINDI[rest]}` : head
+}
+
+function hindiIndian(n: number): string {
+  if (n === 0) return HINDI[0]
+  const parts: string[] = []
+  const crore = Math.floor(n / 10_000_000)
+  const lakh = Math.floor((n % 10_000_000) / 100_000)
+  const thousand = Math.floor((n % 100_000) / 1000)
+  const rest = n % 1000
+  if (crore) parts.push(`${crore > 99 ? hindiIndian(crore) : hindiBelowThousand(crore)} करोड़`)
+  if (lakh) parts.push(`${hindiBelowThousand(lakh)} लाख`)
+  if (thousand) parts.push(`${hindiBelowThousand(thousand)} हज़ार`)
+  if (rest) parts.push(hindiBelowThousand(rest))
+  return parts.join(' ')
+}
+
+export type WordLanguage = 'en' | 'hi'
+
+export function integerToWords(n: number, scale: WordScale = 'indian', language: WordLanguage = 'en'): string {
   if (!Number.isFinite(n)) throw new Error('That is not a number.')
   const whole = Math.abs(Math.trunc(n))
   if (whole > Number.MAX_SAFE_INTEGER) throw new Error('That number is too large to spell out exactly.')
-  const words = scale === 'indian' ? indianWords(whole) : internationalWords(whole)
+  const words =
+    language === 'hi'
+      ? scale === 'indian'
+        ? hindiIndian(whole)
+        : internationalWords(whole)
+      : scale === 'indian'
+        ? indianWords(whole)
+        : internationalWords(whole)
+  if (language === 'hi' && n < 0) return `ऋण ${words}`
   return n < 0 ? `minus ${words}` : words
 }
 
 export type MoneyOptions = {
   scale?: WordScale
+  language?: WordLanguage
   /** e.g. "rupees" / "paise", "dollars" / "cents". */
   major?: string
   minor?: string
@@ -90,7 +226,9 @@ export type MoneyOptions = {
 }
 
 export function amountToWords(value: number, options: MoneyOptions = {}): string {
-  const { scale = 'indian', major = 'rupees', minor = 'paise', chequeStyle = true } = options
+  const { scale = 'indian', language = 'en', major = 'rupees', minor = 'paise', chequeStyle = true } = options
+  const majorWord = language === 'hi' && major === 'rupees' ? 'रुपये' : major
+  const minorWord = language === 'hi' && minor === 'paise' ? 'पैसे' : minor
   if (!Number.isFinite(value)) throw new Error('That is not a number.')
   const negative = value < 0
   const abs = Math.abs(value)
@@ -102,11 +240,14 @@ export function amountToWords(value: number, options: MoneyOptions = {}): string
   const wholeFinal = carried ? whole + 1 : whole
   const fractionFinal = carried ? 0 : fraction
 
-  const parts = [`${integerToWords(wholeFinal, scale)} ${major}`]
-  if (fractionFinal) parts.push(`and ${integerToWords(fractionFinal, scale)} ${minor}`)
+  const parts = [`${integerToWords(wholeFinal, scale, language)} ${majorWord}`]
+  if (fractionFinal) {
+    const join = language === 'hi' ? 'और' : 'and'
+    parts.push(`${join} ${integerToWords(fractionFinal, scale, language)} ${minorWord}`)
+  }
   let out = parts.join(' ')
-  if (chequeStyle) out += ' only'
-  if (negative) out = `minus ${out}`
+  if (chequeStyle) out += language === 'hi' ? ' मात्र' : ' only'
+  if (negative) out = language === 'hi' ? `ऋण ${out}` : `minus ${out}`
   return out
 }
 

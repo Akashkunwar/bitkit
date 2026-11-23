@@ -30,6 +30,25 @@ type VoiceLike = { default: boolean; localService: boolean }
  * "online" ones send the text to the browser vendor, which is not what a
  * privacy-first tool should do by default.
  */
+/** The word that contains `index`, for follow-along highlighting while audio plays. */
+export function wordAt(text: string, index: number): { start: number; end: number } {
+  if (!text) return { start: 0, end: 0 }
+  let cursor = Math.max(0, Math.min(index, text.length - 1))
+  if (/\s/.test(text[cursor])) {
+    const next = text.slice(cursor).search(/\S/)
+    if (next >= 0) cursor += next
+    else {
+      const prev = text.slice(0, cursor).search(/\S(?=\s*$)/)
+      cursor = prev < 0 ? 0 : prev
+    }
+  }
+  let start = cursor
+  while (start > 0 && !/\s/.test(text[start - 1])) start--
+  let end = cursor
+  while (end < text.length && !/\s/.test(text[end])) end++
+  return { start, end }
+}
+
 export function pickVoice<T extends VoiceLike>(voices: T[]): T | undefined {
   return (
     voices.find((v) => v.default && v.localService) ??

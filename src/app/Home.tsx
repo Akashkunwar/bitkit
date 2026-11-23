@@ -7,6 +7,8 @@ import { readUsage, sortByUsage, type Usage } from '../lib/prefs'
 import { usePins } from '../lib/usePins'
 import { toolsForFiles } from '../lib/fileRoutes'
 import { setHandoff } from '../lib/handoff'
+import { clearHomeInput, peekHomeInput, subscribeHomeInput } from '../lib/homeStage'
+import { useSessionTray } from './useSessionTray'
 import { useI18n } from '../lib/i18n'
 import { DropZone } from '../components/DropZone'
 import { ToolIcon } from '../components/ToolIcon'
@@ -51,8 +53,21 @@ function ToolCard({ tool, showTag }: { tool: ToolMeta; showTag?: boolean }) {
 function SmartDrop() {
   const { t } = useI18n()
   const navigate = useNavigate()
+  const tray = useSessionTray()
   const [files, setFiles] = useState<File[]>([])
   const suggestions = useMemo(() => toolsForFiles(files), [files])
+
+  useEffect(() => {
+    const apply = () => {
+      const staged = peekHomeInput()
+      if (!staged?.files.length) return
+      setFiles(staged.files)
+      tray.add(staged.files)
+      clearHomeInput()
+    }
+    apply()
+    return subscribeHomeInput(apply)
+  }, [tray])
 
   const open = (tool: ToolMeta) => {
     setHandoff({ files, from: 'home' })
@@ -97,7 +112,17 @@ function SmartDrop() {
           )}
         </div>
       ) : (
-        <DropZone accept="*/*" multiple compact label={t('home.drop')} hint={t('home.dropHint')} onFiles={setFiles} />
+        <DropZone
+          accept="*/*"
+          multiple
+          compact
+          label={t('home.drop')}
+          hint={t('home.dropHint')}
+          onFiles={(incoming) => {
+            setFiles(incoming)
+            tray.add(incoming)
+          }}
+        />
       )}
     </section>
   )

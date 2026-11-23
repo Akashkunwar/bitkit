@@ -75,6 +75,19 @@ export async function renderPageImage(
   return blob
 }
 
+/** The rendered page plus the PDF-point → pixel scale, so overlays can be painted on it. */
+export async function renderPageCanvas(
+  doc: PDFDocumentProxy,
+  pageNumber: number,
+  dpi: number,
+): Promise<{ canvas: HTMLCanvasElement; scale: number }> {
+  const page = await doc.getPage(pageNumber)
+  const base = page.getViewport({ scale: 1 })
+  page.cleanup()
+  const scale = scaleForDpi(base.width, base.height, dpi)
+  return { canvas: await renderToCanvas(doc, pageNumber, scale), scale }
+}
+
 /** A small preview of one page, as an object URL the caller must revoke. */
 export async function renderPageThumb(doc: PDFDocumentProxy, pageNumber: number, width = 220): Promise<string> {
   const page = await doc.getPage(pageNumber)

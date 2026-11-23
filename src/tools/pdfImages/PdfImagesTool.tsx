@@ -189,6 +189,39 @@ export default function PdfImagesTool() {
     }
   }
 
+  const extractImages = async () => {
+    if (!loaded) return
+    setBusy(true)
+    setError(null)
+    setProgress(0)
+    try {
+      const { extractEmbeddedImages } = await import('../../lib/pdfExtract')
+      const files = await extractEmbeddedImages(loaded.bytes)
+      if (!files.length) {
+        setError('This PDF has no embedded images. Rendering the pages still works.')
+        return
+      }
+      if (files.length === 1) {
+        triggerDownload(files[0], files[0].name)
+        setOutput({ files, zip: null })
+      } else {
+        const entries = await Promise.all(
+          files.map(async (file) => ({ name: file.name, data: new Uint8Array(await file.arrayBuffer()) })),
+        )
+        const zipBytes = zipStore(entries)
+        const zip = new File([zipBytes.slice().buffer as ArrayBuffer], `${loaded.base}-embedded.zip`, {
+          type: 'application/zip',
+        })
+        triggerDownload(zip, zip.name)
+        setOutput({ files, zip })
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not extract the embedded images.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const reset = () => {
     releaseThumbs()
     setLoaded(null)
@@ -389,6 +422,13 @@ export default function PdfImagesTool() {
                   ? `Convert ${chosen.length} ${chosen.length === 1 ? 'page' : 'pages'}`
                   : 'Select pages to convert'}
             </button>
+            <button type="button" className="btn btn-block" disabled={busy} onClick={() => void extractImages()}>
+              Extract embedded images
+            </button>
+            <p className="hint">
+              Extract pulls pictures stored inside the PDF. Convert draws each page. A scan is usually one picture per
+              page; a text PDF may have neither.
+            </p>
             {busy ? (
               <div className="progress" style={{ marginTop: '0.6rem' }}>
                 <span style={{ width: `${progress * 100}%` }} />

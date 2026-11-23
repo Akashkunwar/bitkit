@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
-import { downloadNamed } from '../../lib/download'
+import { downloadNamed, triggerDownload } from '../../lib/download'
+import { zipStore } from '../../lib/zip'
 import { useHandoff } from '../../lib/useHandoff'
 import { inspectPdf } from '../../lib/pdfPages'
 import { encryptionWarning } from '../../lib/pdfLoad'
@@ -34,9 +35,18 @@ export default function StampTool() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [outFile, setOutFile] = useState<File | null>(null)
+  const [queue, setQueue] = useState<File[]>([])
 
   const take = async (files: File[]) => {
-    const pdf = files.find((f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))
+    const pdfs = files.filter((f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))
+    if (pdfs.length > 1) {
+      setQueue(pdfs)
+      setError(null)
+      setOutFile(null)
+      return
+    }
+    setQueue([])
+    const pdf = pdfs[0]
     if (!pdf) {
       setError('Drop a PDF file.')
       return
@@ -81,6 +91,34 @@ export default function StampTool() {
     }
   }
 
+  const stampQueue = async () => {
+    if (queue.length < 2) return
+    setBusy(true)
+    setError(null)
+    try {
+      const entries: { name: string; data: Uint8Array }[] = []
+      for (const file of queue) {
+        const bytes = new Uint8Array(await file.arrayBuffer())
+        const stamped = await stampPdf(bytes, {
+          watermark: useWatermark ? watermark : null,
+          numbers: useNumbers ? numbers : null,
+          header,
+          footer,
+          margin,
+          range,
+          filename: file.name,
+        })
+        entries.push({ name: `${file.name.replace(/\.pdf$/i, '')}-stamped.pdf`, data: stamped })
+      }
+      const zip = zipStore(entries)
+      triggerDownload(new Blob([zip.slice().buffer as ArrayBuffer], { type: 'application/zip' }), 'stamped-pdfs.zip')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not stamp that batch.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const rotate = async (turns: number) => {
     if (!source) return
     setBusy(true)
@@ -116,6 +154,7 @@ export default function StampTool() {
     >
       <DropZone
         accept="application/pdf,.pdf"
+        multiple
         label="Drop a PDF."
         hint="The marks are drawn over the existing pages, so the original text stays selectable."
         onFiles={(files) => void take(files)}
@@ -297,6 +336,11 @@ export default function StampTool() {
             <button type="button" className="btn btn-primary" disabled={!source || busy} onClick={() => void apply()}>
               {busy ? 'Working…' : 'Apply & download'}
             </button>
+            {queue.length > 1 ? (
+              <button type="button" className="btn" disabled={busy} onClick={() => void stampQueue()}>
+                Stamp {queue.length} PDFs to ZIP
+              </button>
+            ) : null}
             <button type="button" className="btn" disabled={!source || busy} onClick={() => void rotate(1)}>
               Rotate ↻
             </button>

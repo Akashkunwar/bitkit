@@ -4,6 +4,7 @@ import { SendTo } from '../../components/SendTo'
 import { useHandoff } from '../../lib/useHandoff'
 import { useCopied } from '../../lib/useCopied'
 import { amountToWords, CURRENCIES, groupDigits, integerToWords, titleCase, type WordScale } from '../../lib/numwords'
+import { useI18n } from '../../lib/i18n'
 
 export default function NumWordsTool() {
   const [raw, setRaw] = useState('125000.50')
@@ -11,6 +12,8 @@ export default function NumWordsTool() {
   const [scale, setScale] = useState<WordScale>('indian')
   const [chequeStyle, setChequeStyle] = useState(true)
   const { copied, copy } = useCopied()
+  const { language } = useI18n()
+  const wordLanguage = language === 'hi' ? 'hi' : 'en'
 
   useHandoff((payload) => {
     const value = payload.text?.trim().replace(/[^\d.-]/g, '')
@@ -27,17 +30,18 @@ export default function NumWordsTool() {
       return {
         money: amountToWords(value, {
           scale,
+          language: wordLanguage,
           major: currency.major,
           minor: currency.minor,
           chequeStyle,
         }),
-        plain: integerToWords(Math.trunc(value), scale),
+        plain: integerToWords(Math.trunc(value), scale, wordLanguage),
         grouped: groupDigits(value, scale),
       }
     } catch (err) {
       return { error: err instanceof Error ? err.message : 'Could not convert that number.' }
     }
-  }, [value, valid, scale, currency, chequeStyle])
+  }, [value, valid, scale, currency, chequeStyle, wordLanguage])
 
   const rows =
     output && !('error' in output)

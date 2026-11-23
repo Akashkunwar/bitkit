@@ -254,6 +254,13 @@ export default function MarkdownTool() {
     }
   }
 
+  const importHtml = async (files: File[]) => {
+    const file = files[0]
+    if (!file) return
+    const { htmlToMarkdown } = await import('../../lib/codeFormat')
+    setSource(htmlToMarkdown(await file.text()))
+  }
+
   const downloadHtml = () => {
     const html = standaloneHtml(doc.title, doc.html, settings.theme, setup)
     triggerDownload(new Blob([html], { type: 'text/html;charset=utf-8' }), `${safeName(doc.title)}.html`)
@@ -523,6 +530,19 @@ export default function MarkdownTool() {
             <FileCode2 size={16} aria-hidden="true" />
             Download .html
           </button>
+          <label className="btn">
+            Import HTML
+            <input
+              type="file"
+              accept=".html,.htm,text/html"
+              hidden
+              onChange={(event) => {
+                const files = [...(event.target.files ?? [])]
+                event.target.value = ''
+                void importHtml(files)
+              }}
+            />
+          </label>
           <button type="button" className="btn" onClick={downloadMarkdown}>
             <Download size={16} aria-hidden="true" />
             Download .md

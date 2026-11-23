@@ -40,18 +40,25 @@ export default defineConfig({
             title: 'title',
             text: 'text',
             url: 'url',
-            files: [{ name: 'media', accept: ['image/*', 'application/pdf', 'text/*', 'application/json'] }],
+            files: [
+              {
+                name: 'media',
+                accept: ['image/*', 'application/pdf', 'text/*', 'application/json', '.csv', '.docx', '.heic', '.heif'],
+              },
+            ],
           },
         },
         file_handlers: [
           {
             action: '/share',
             accept: {
-              'image/*': ['.png', '.jpg', '.jpeg', '.webp', '.gif'],
+              'image/*': ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.heic', '.heif', '.avif'],
               'application/pdf': ['.pdf'],
-              'text/plain': ['.txt', '.md'],
+              'text/plain': ['.txt', '.md', '.csv'],
               'text/markdown': ['.md'],
+              'text/csv': ['.csv'],
               'application/json': ['.json'],
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
             },
           },
         ],
@@ -69,8 +76,10 @@ export default defineConfig({
           '**/katex*',
           '**/tesseract*',
           '**/pdf.worker*',
+          '**/*heic*',
+          '**/libheif*',
           '**/vision_bundle*',
-          '**/*dagre*',
+          '**/ort-wasm*',
         ],
         runtimeCaching: [
           {
@@ -83,7 +92,7 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/npm\/(?:tesseract|@mediapipe)\//,
+            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/npm\/(?:tesseract|@mediapipe|onnxruntime-web@)/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'kit-cdn-engines',
@@ -92,11 +101,12 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /^https:\/\/(?:tessdata\.projectnaptha\.com|storage\.googleapis\.com\/mediapipe-models)\//,
+            urlPattern:
+              /^https:\/\/(?:tessdata\.projectnaptha\.com|storage\.googleapis\.com\/mediapipe-models|huggingface\.co\/sahilmahendrakar|cdn\.jsdelivr\.net\/gh\/(?:sahilmahendrakar|hexgrad))\//,
             handler: 'CacheFirst',
             options: {
               cacheName: 'kit-cdn-models',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 60 },
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 60 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
@@ -110,5 +120,8 @@ export default defineConfig({
   ],
   worker: {
     format: 'es',
+  },
+  optimizeDeps: {
+    exclude: ['onnxruntime-web'],
   },
 })

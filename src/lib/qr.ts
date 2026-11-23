@@ -193,3 +193,45 @@ export function socialPayload(kind: 'facebook' | 'twitter' | 'youtube', value: s
   if (handle.startsWith('channel/') || handle.includes('/')) return `https://www.youtube.com/${handle}`
   return `https://www.youtube.com/@${handle}`
 }
+
+export type WifiFields = { ssid: string; password: string; encryption: string; hidden: boolean }
+
+function unescapeWifi(value: string): string {
+  return value.replaceAll(/\\([\\;,:"])/g, '$1')
+}
+
+/** Read the network name and password out of a WIFI: payload. */
+export function parseWifiPayload(raw: string): WifiFields | null {
+  const text = raw.trim()
+  if (!text.toUpperCase().startsWith('WIFI:')) return null
+  const fields: Record<string, string> = {}
+  for (const part of text.slice(5).split(/(?<!\\);/)) {
+    const idx = part.indexOf(':')
+    if (idx < 0) continue
+    fields[part.slice(0, idx).toUpperCase()] = unescapeWifi(part.slice(idx + 1))
+  }
+  if (fields.S == null) return null
+  return {
+    ssid: fields.S,
+    password: fields.P ?? '',
+    encryption: fields.T || 'nopass',
+    hidden: fields.H === 'true',
+  }
+}
+
+/** Plain signs about a link. This does not contact the site. */
+export function linkNotes(raw: string): string[] {
+  let url: URL
+  try {
+    url = new URL(raw.trim())
+  } catch {
+    return []
+  }
+  const notes = [`Host: ${url.hostname}`]
+  if (url.protocol === 'http:') notes.push('The link is plain HTTP.')
+  else if (url.protocol !== 'https:') notes.push(`This uses ${url.protocol.replace(':', '')}, not a normal web link.`)
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(url.hostname)) notes.push('The host is a raw IP address.')
+  if (url.hostname.includes('xn--')) notes.push('The host uses punycode. Read the real letters before opening it.')
+  if (url.username || url.password) notes.push('The address hides a username or password.')
+  return notes
+}

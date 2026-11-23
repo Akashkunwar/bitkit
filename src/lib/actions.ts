@@ -184,6 +184,54 @@ export function buildActions(): Action[] {
     }
   }
 
+  const markup = toolById('markup')
+  if (markup) {
+    add({
+      id: 'markup-screenshot',
+      label: 'Mark up a screenshot',
+      hint: 'Arrows, numbers, blur',
+      group: 'Images',
+      keywords: 'annotate markup arrow blur pixelate screenshot',
+      run: go(markup),
+    })
+  }
+
+  const media = toolById('media')
+  if (media) {
+    add({
+      id: 'video-gif',
+      label: 'Turn a short video into a GIF',
+      hint: 'First 8 seconds',
+      group: 'Images',
+      keywords: 'gif video silent clip mute',
+      run: go(media),
+    })
+  }
+
+  const compare = toolById('compare')
+  if (compare) {
+    add({
+      id: 'compare-pdf',
+      label: 'Compare two PDFs',
+      hint: 'Page by page',
+      group: 'Documents',
+      keywords: 'compare diff pdf version redline',
+      run: go(compare),
+    })
+  }
+
+  const pdf = toolById('pdf')
+  if (pdf) {
+    add({
+      id: 'redact-pdf',
+      label: 'Redact a PDF so the text is gone',
+      hint: 'PDF editor',
+      group: 'Documents',
+      keywords: 'redact black out remove text pdf permanent',
+      run: go(pdf),
+    })
+  }
+
   const pages = toolById('pages')
   if (pages) {
     add({
@@ -213,6 +261,30 @@ export function buildActions(): Action[] {
       group: 'Developer',
       keywords: 'uuid guid identifier random token',
       run: go(password, { mode: 'token', tokenFormat: 'uuid' }),
+    })
+  }
+
+  const finance = toolById('finance')
+  if (finance) {
+    add({
+      id: 'income-tax',
+      label: 'Compare old and new income-tax regimes',
+      hint: 'AY 2026-27 estimate',
+      group: 'Daily',
+      keywords: 'income tax hra regime salary india',
+      run: go(finance, { mode: 'tax' }),
+    })
+  }
+
+  const base = toolById('base')
+  if (base) {
+    add({
+      id: 'subnet',
+      label: 'Calculate an IPv4 subnet',
+      hint: 'Number base',
+      group: 'Developer',
+      keywords: 'subnet cidr netmask ip network',
+      run: go(base, { view: 'subnet' }),
     })
   }
 

@@ -20,7 +20,7 @@ type SpeedKind = 'time' | 'words'
 type Run = 'idle' | 'running' | 'done'
 
 const ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm']
-const TIMES = [15, 30, 60] as const
+const TIMES = [15, 30, 60, 300] as const
 const COUNTS = [10, 25, 50] as const
 
 export default function TypingTool() {
@@ -241,7 +241,12 @@ export default function TypingTool() {
     setCount(useCount)
     setPunctuation(usePunctuation)
     setNumbers(useNumbers)
-    setSpeedList(speedWords(useKind === 'time' ? 140 : useCount, { punctuation: usePunctuation, numbers: useNumbers }))
+    setSpeedList(
+      speedWords(useKind === 'time' ? Math.max(140, Math.ceil(useSeconds * 2.5)) : useCount, {
+        punctuation: usePunctuation,
+        numbers: useNumbers,
+      }),
+    )
     setSpeedIndex(0)
     setCompleted([])
     completedRef.current = []
@@ -296,7 +301,7 @@ export default function TypingTool() {
             <Segmented
               label="Seconds"
               value={String(seconds)}
-              options={TIMES.map((value) => ({ value: String(value), label: String(value) }))}
+              options={TIMES.map((value) => ({ value: String(value), label: value === 300 ? '5 min' : String(value) }))}
               onChange={(value) => restartSpeed({ seconds: Number(value) as (typeof TIMES)[number] })}
             />
           ) : (

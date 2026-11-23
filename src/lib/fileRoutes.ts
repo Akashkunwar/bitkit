@@ -53,6 +53,7 @@ const SINGLE: Record<Kind, string[]> = {
     'rotate-flip',
     'image-pdf',
     'finish',
+    'markup',
     'cutout',
     'exif',
     'ocr',
@@ -72,7 +73,7 @@ const SINGLE: Record<Kind, string[]> = {
   json: ['json', 'config', 'table'],
   config: ['config'],
   text: ['counter', 'readability', 'speech', 'text', 'office', 'doc-image'],
-  html: ['office', 'doc-image'],
+  html: ['markdown', 'office', 'doc-image'],
   zip: ['archive'],
   video: ['media'],
   audio: ['media'],
@@ -82,7 +83,7 @@ const SINGLE: Record<Kind, string[]> = {
 const MANY: Partial<Record<Kind, string[]>> = {
   image: ['image-pdf', 'collage', 'image-convert', 'compress', 'rotate-flip'],
   svg: ['image-convert', 'image-pdf', 'collage'],
-  pdf: ['pages', 'shrink'],
+  pdf: ['pages', 'compare', 'shrink'],
 }
 
 /** Tools that accept anything at all, offered after the specific ones. */

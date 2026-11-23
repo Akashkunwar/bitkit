@@ -10,6 +10,7 @@ You can verify this with the browser network panel: after the app shell has load
 
 - **Clipboard read** happens only on paste (or an explicit paste button) while the page is focused. HTTPS is required.
 - **Camera, microphone, and screen capture** are requested only when you use Screen & camera recorder, QR scan, or Sound meter, and only after a click. Captured media stays in this tab.
+- **Device check** reads key, pointer, and gamepad events in the tab, and plays a test tone when you press play. It does not record them. Fullscreen is requested only if you choose it on the screen test. The microphone check stays on Sound meter.
 - **Notifications** are not requested.
 - **Downloads** use the browser download UI. The site cannot silently write to an arbitrary folder.
 - **Directory access** (optional) uses the File System Access API. You pick a folder; permission can be revoked in the browser.
@@ -33,13 +34,17 @@ Paste-to-download therefore requires the BitKit tab to be focused. Auto-download
 
 Very large images (tens of megabytes, huge pixel dimensions) may fail on mobile because of canvas size and RAM limits. The compressor downscales in stages and surfaces a clear error instead of hanging.
 
-HEIC/HEIF support depends on the browser decoder. Animated GIF export is not a first-class path; the first frame may be used.
+HEIC/HEIF uses the browser decoder first. If that fails, the first HEIC file loads a decoder that is bundled with the app (`heic-to`, LGPL-3.0). The photo is converted in the tab. The decoder chunk is not precached for every visitor.
+
+Speech-to-text uses the browser’s recognizer. In Chrome that audio can be sent to the browser vendor. BitKit does not receive or store it, and the tool says so before listening starts. Text-to-speech with a device voice does not send the text. The natural voice downloads its model once; the text stays in the tab.
+
+A short video can be exported as a GIF (about 8 seconds, 10 frames per second). Longer clips are cut.
 
 Canvas re-encoding **strips** most metadata (EXIF, ICC). That is a side effect of re-encoding, not a provenance-evasion feature.
 
 ## Recognition engines (OCR and cutout)
 
-OCR (Tesseract) and background cutout (MediaPipe) fetch their WASM and model files from a CDN the first time you allow them. Your image is not uploaded; only the engine files are downloaded. After that, the service worker can reuse those files offline.
+OCR (Tesseract) and background cutout (MediaPipe) fetch their WASM and model files from a CDN the first time you allow them. The natural voice uses that same permission for its speech model. Your image or text is not uploaded; only the engine files are downloaded. After that, the service worker can reuse those files offline.
 
 ## Provenance and AI watermarks (unsupported)
 
@@ -65,7 +70,9 @@ Word files are laid out in the tab by docx-preview, which reproduces fonts, colo
 
 ## Text to speech
 
-Speech uses the voices the browser provides. Most are on-device, but some browsers also list "online" voices that send the text to the browser vendor's speech service. BitKit labels those, defaults to an on-device voice, and never picks an online one on its own. Pages cannot record synthesised speech, so there is no audio download.
+Device voices are the ones the browser provides. Most are on-device, but some browsers also list "online" voices that send the text to the browser vendor's speech service. BitKit labels those, and it never picks an online one on its own. Those voices often sound flat.
+
+Natural voices run a small speech model in the tab (Paradee, distilled from Kokoro). The first time you allow it, the page downloads the model from Hugging Face, pronunciation files from jsDelivr, and the ONNX runtime from jsDelivr — about 30 MB. English also downloads a pronunciation dictionary. The text is not uploaded. After that the files can be reused offline. English, Hindi, French, and Spanish each have their own voice; other languages stay on the device voices.
 
 ## Office file conversion
 

@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
+import { Segmented } from '../../components/Segmented'
 import { SendTo } from '../../components/SendTo'
+import { toDevanagari, toRoman } from '../../lib/transliterate'
 import { useHandoff } from '../../lib/useHandoff'
 import { useCopied } from '../../lib/useCopied'
 import { applyStyle, STYLES, toPlain } from '../../lib/unicodeStyle'
 
 export default function StylerTool() {
   const [text, setText] = useState('BitKit runs on your device')
+  const [mode, setMode] = useState<'style' | 'script'>('style')
   const { copied, copy } = useCopied()
 
   useHandoff((payload) => {
@@ -18,8 +21,17 @@ export default function StylerTool() {
   return (
     <ToolLayout
       title="Unicode text styler"
-      lede="Bold and italic for places that strip formatting — bios, usernames, post titles."
+      lede="Bold and italic for places that strip formatting, or type between Roman and Devanagari."
     >
+      <Segmented
+        label="Mode"
+        value={mode}
+        options={[
+          { value: 'style', label: 'Style' },
+          { value: 'script', label: 'Transliterate' },
+        ]}
+        onChange={setMode}
+      />
       <label className="field">
         <span>Your text</span>
         <textarea
@@ -35,7 +47,23 @@ export default function StylerTool() {
         <button type="button" className="btn" onClick={() => setText(toPlain(text))}>
           Strip styling back to plain
         </button>
+        {mode === 'script' ? (
+          <>
+            <button type="button" className="btn" onClick={() => setText(toDevanagari(text))}>
+              Roman → Devanagari
+            </button>
+            <button type="button" className="btn" onClick={() => setText(toRoman(text))}>
+              Devanagari → Roman
+            </button>
+          </>
+        ) : null}
       </div>
+      {mode === 'script' ? (
+        <p className="hint">
+          Vowels are written out (aa, ee, oo). A consonant before another consonant gets a halant. Use tt and dd for ट
+          and ड. The last consonant keeps its inherent vowel.
+        </p>
+      ) : null}
 
       <div className="result-list" style={{ marginTop: '1rem' }}>
         {styled.map((style) => (

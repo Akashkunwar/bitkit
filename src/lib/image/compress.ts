@@ -1,5 +1,6 @@
 import { computeTargetSize, nextQualityBounds, type SizeOptions } from './size'
 import { stageDownscale, CANVAS_SAFE_MAX } from './limits'
+import { isHeicLike } from './formatHint'
 
 export type EncodeMime = 'image/jpeg' | 'image/webp' | 'image/png'
 
@@ -26,7 +27,7 @@ export type CompressResult = {
 
 type BitmapLike = ImageBitmap | HTMLImageElement | OffscreenCanvas | HTMLCanvasElement
 
-export async function decodeImage(file: Blob): Promise<ImageBitmap | HTMLImageElement> {
+async function decodeNative(file: Blob): Promise<ImageBitmap | HTMLImageElement> {
   if (typeof createImageBitmap === 'function') {
     try {
       return await createImageBitmap(file, { imageOrientation: 'from-image' })
@@ -38,14 +39,21 @@ export async function decodeImage(file: Blob): Promise<ImageBitmap | HTMLImageEl
       }
     }
   }
+  return loadHtmlImage(file)
+}
+
+export async function decodeImage(file: Blob): Promise<ImageBitmap | HTMLImageElement> {
   try {
-    return await loadHtmlImage(file)
+    return await decodeNative(file)
   } catch (err) {
-    const { isHeicLike } = await import('./formatHint')
-    if (isHeicLike(file)) {
-      throw new Error('This browser cannot decode HEIC/HEIF. Export a JPEG from Photos and drop that instead.')
+    if (!isHeicLike(file)) throw err instanceof Error ? err : new Error('Could not decode this image.')
+    try {
+      const { decodeHeic } = await import('../heic')
+      return await decodeHeic(file)
+    } catch (heicErr) {
+      const detail = heicErr instanceof Error ? heicErr.message : ''
+      throw new Error(detail ? `Could not decode this HEIC file. ${detail}` : 'Could not decode this HEIC file.')
     }
-    throw err
   }
 }
 

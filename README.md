@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/favicon.svg" width="72" height="72" alt="">
   <h1>BitKit</h1>
-  <p><strong>77 everyday tools that run entirely in your browser.</strong></p>
+  <p><strong>108 everyday tools that run entirely in your browser.</strong></p>
   <p>No account. No server. Nothing you open ever leaves your device.</p>
 </div>
 
@@ -16,9 +16,9 @@ first load it works offline.
 
 | Group | Tools |
 | --- | --- |
-| **Daily** | **Calculator** (scientific, typed or tapped), **Unit converter** (16 quantities), **Finance** (EMI, SIP, compound interest, CAGR, discounts), Convert (time, zones, CSS units, percent, GST), Links & cards, Meeting planner, Age & date difference, Deadline calculator, Timers, Random picker, Number to words, Health calculators, Trip cost |
-| **Image** | **Image converter** (JPG/PNG/WebP/AVIF/BMP), **Rotate & flip**, **Image collage**, **Screenshot frame**, Clipboard download, Resize & compress, Image finishing, Image metadata (EXIF/GPS), Favicon set, Passport sheet, Background cutout, SVG convert, Carousel splitter, Meme generator, ASCII from image |
-| **Document** | **Images to PDF** (reorder, rotate, page setup), **PDF to images** (PNG/JPEG/WebP, any DPI), **Word to image** (and exact-look PDF), **Markdown to PDF** (themes, paginated), PDF editor, PDF merge & split, OCR, PDF form fill, Office to PDF, PDF to Word & text, Watermark & page numbers, PDF shrink, Markdown table, Invoice |
+| **Daily** | **Calculator** (scientific, typed or tapped), **Unit converter** (16 quantities), **Finance** (EMI, SIP, compound interest, CAGR, discounts, income tax), Convert (time, zones, CSS units, percent, GST), Links & cards, Meeting planner, Age & date difference, Deadline calculator, Timers, Random picker, Number to words, Health calculators, Trip cost |
+| **Image** | **Image converter** (JPG/PNG/WebP/AVIF/BMP), **Rotate & flip**, **Image collage**, **Screenshot frame** (plus quote and code cards), **Screenshot markup**, Clipboard download, Resize & compress, Image finishing, Image metadata (EXIF/GPS), Favicon set, Passport sheet, Background cutout, SVG convert, Carousel splitter, Meme generator, ASCII from image |
+| **Document** | **Images to PDF** (reorder, rotate, page setup), **PDF to images** (PNG/JPEG/WebP, any DPI, plus embedded images), **Word to image** (and exact-look PDF), **Markdown to PDF** (themes, paginated), PDF editor (including permanent redaction), **PDF compare**, PDF merge & split, OCR, PDF form fill, Office to PDF, PDF to Word & text, Watermark & page numbers, PDF shrink, Markdown table, Invoice |
 | **Data** | Data table (CSV/TSV/JSON/XLSX), Chart maker, ZIP archive |
 | **Media** | Video & audio trim, Screen & camera recorder, Noise generator, Sound meter |
 | **Developer** | **Barcode generator** (Code 128, EAN-13, UPC-A, EAN-8, Code 39), JSON formatter, Text diff, Password generator, QR code, Encode (Base64/JWT/SHA), Text bench, Regex tester, Checksum, JSON·YAML·TOML, Cron builder, Number base |
@@ -33,7 +33,7 @@ palette — it runs actions too, not just navigation ("compress an image to 450 
 Press <kbd>?</kbd> for every shortcut and <kbd>[</kbd> to hide the sidebar.
 
 Every tool has a chord. Twenty-four keep a single letter (<kbd>G</kbd> <kbd>R</kbd> for
-resize), and all 77 are reachable by category (<kbd>G</kbd> <kbd>4</kbd> <kbd>D</kbd> —
+resize), and all 108 are reachable by category (<kbd>G</kbd> <kbd>4</kbd> <kbd>D</kbd> —
 fourth group, Data table). Digits can never collide with the single-letter chords, which
 is what made room for the rest.
 
@@ -59,8 +59,9 @@ is what made room for the rest.
   directory, writing results to a subfolder. Elsewhere it falls back to multi-select.
 - **Offline and updates.** The app says when you are offline and when a new version is
   ready, instead of leaving a stale service worker in place.
-- **Hindi.** The shell, home page, command palette, and navigation are translated. Tool interiors are
-  still English — see [`src/lib/i18n.ts`](src/lib/i18n.ts) for why that line is drawn there.
+- **Hindi.** The shell is translated, and so are finance, invoices, GST, and number-to-words.
+  Other tool interiors stay English — see [`src/lib/i18n.ts`](src/lib/i18n.ts).
+- **A click-to-send extension.** Load `extension/` unpacked, set your BitKit address, then right-click a selection or image. It does not watch the clipboard.
 - **One tool crashing cannot blank the app.** Each route is wrapped in a boundary that
   keeps navigation alive and offers a pre-filled issue link.
 
@@ -73,8 +74,8 @@ is what made room for the rest.
   processing path starts making network calls.
 - Shareable links encode tool *settings* only. File contents are filtered out before
   anything reaches the URL, and a test asserts it.
-- Two engines (Tesseract OCR and MediaPipe segmentation) fetch their model files from a
-  CDN the first time you use them. Your image still never leaves the tab — see
+- Two engines (Tesseract OCR and MediaPipe segmentation) and the natural voice fetch their model
+  files from a CDN the first time you use them. Your image or text still never leaves the tab — see
   [docs/PRIVACY_AND_LIMITATIONS.md](docs/PRIVACY_AND_LIMITATIONS.md).
 
 ## Develop

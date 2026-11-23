@@ -17,9 +17,14 @@ import {
   encodeUriComponentSafe,
 } from '../../lib/encode'
 import { formatInZone } from '../../lib/time'
+import { decodeEntities, encodeEntities } from '../../lib/entities'
+import { aesDecrypt, aesEncrypt } from '../../lib/aesText'
+import { signJwt, verifyJwt } from '../../lib/jwtSign'
+import { md5Hex } from '../../lib/md5'
+import { sha224Hex } from '../../lib/sha224'
 
-type Mode = 'base64' | 'url' | 'jwt' | 'hash'
-type Algo = 'SHA-1' | 'SHA-256' | 'SHA-384' | 'SHA-512'
+type Mode = 'base64' | 'url' | 'html' | 'jwt' | 'hash' | 'aes'
+type Algo = 'MD5' | 'SHA-224' | 'SHA-1' | 'SHA-256' | 'SHA-384' | 'SHA-512'
 
 const JWT_SAMPLE =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJraXQiLCJuYW1lIjoiTG9jYWwiLCJpYXQiOjE3MTAwMDAwMDB9.signature'
@@ -30,6 +35,8 @@ export default function EncodeTool() {
   const [output, setOutput] = useState('')
   const [urlSafe, setUrlSafe] = useState(false)
   const [algo, setAlgo] = useState<Algo>('SHA-256')
+  const [password, setPassword] = useState('')
+  const [jwtSecret, setJwtSecret] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const { copied, copy } = useCopied()
@@ -76,7 +83,9 @@ export default function EncodeTool() {
     setBusy(true)
     setError(null)
     try {
-      setOutput(await digestHex(new TextEncoder().encode(input), algo))
+      if (algo === 'MD5') setOutput(md5Hex(input))
+      else if (algo === 'SHA-224') setOutput(sha224Hex(input))
+      else setOutput(await digestHex(new TextEncoder().encode(input), algo))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Hash failed.')
     } finally {
@@ -89,7 +98,10 @@ export default function EncodeTool() {
     setError(null)
     try {
       setInput(`(file) ${file.name} · ${file.size.toLocaleString()} bytes`)
-      setOutput(await digestHex(await file.arrayBuffer(), algo))
+      const bytes = new Uint8Array(await file.arrayBuffer())
+      if (algo === 'MD5') setOutput(md5Hex(bytes))
+      else if (algo === 'SHA-224') setOutput(sha224Hex(bytes))
+      else setOutput(await digestHex(bytes, algo))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Hash failed.')
     } finally {
@@ -100,7 +112,7 @@ export default function EncodeTool() {
   return (
     <ToolLayout
       title="Encode"
-      lede="Base64, URL encoding, JWT inspect, and SHA hashes. Nothing is uploaded. JWTs are decoded, not verified."
+      lede="Base64, URL, HTML entities, JWT, hashes, and AES. Nothing is uploaded. JWTs are decoded, not verified."
     >
       <Segmented
         label="Mode"
@@ -108,8 +120,10 @@ export default function EncodeTool() {
         options={[
           { value: 'base64', label: 'Base64' },
           { value: 'url', label: 'URL' },
+          { value: 'html', label: 'HTML' },
           { value: 'jwt', label: 'JWT' },
           { value: 'hash', label: 'Hash' },
+          { value: 'aes', label: 'AES' },
         ]}
         onChange={(next) => {
           setMode(next)
@@ -210,6 +224,66 @@ export default function EncodeTool() {
               </button>
             </>
           ) : null}
+          {mode === 'html' ? (
+            <div className="row" style={{ marginBottom: '1rem' }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={!input}
+                onClick={() => run(() => encodeEntities(input))}
+              >
+                Encode
+              </button>
+              <button type="button" className="btn" disabled={!input} onClick={() => run(() => decodeEntities(input))}>
+                Decode
+              </button>
+            </div>
+          ) : null}
+          {mode === 'aes' ? (
+            <>
+              <label className="field">
+                <span>Password</span>
+                <input
+                  className="text-input"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </label>
+              <div className="row">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={!input || busy}
+                  onClick={() => {
+                    setBusy(true)
+                    setError(null)
+                    void aesEncrypt(input, password)
+                      .then(setOutput)
+                      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Encrypt failed.'))
+                      .finally(() => setBusy(false))
+                  }}
+                >
+                  Encrypt
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={!input || busy}
+                  onClick={() => {
+                    setBusy(true)
+                    setError(null)
+                    void aesDecrypt(input, password)
+                      .then(setOutput)
+                      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Decrypt failed.'))
+                      .finally(() => setBusy(false))
+                  }}
+                >
+                  Decrypt
+                </button>
+              </div>
+            </>
+          ) : null}
           {mode === 'url' ? (
             <div className="row" style={{ marginBottom: '1rem' }}>
               <button
@@ -233,8 +307,59 @@ export default function EncodeTool() {
           {mode === 'jwt' ? (
             <>
               <p className="banner warn">
-                Inspect only. Signatures are not checked. Do not treat this payload as authentic.
+                Decoding does not check the signature. Sign and verify use HMAC-SHA256. The secret stays in this tab.
               </p>
+              <label className="field">
+                <span>Secret</span>
+                <input
+                  className="text-input"
+                  type="password"
+                  value={jwtSecret}
+                  onChange={(e) => setJwtSecret(e.target.value)}
+                />
+              </label>
+              <div className="row" style={{ marginBottom: '1rem' }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={!input.trim() || !jwtSecret}
+                  onClick={() => {
+                    void (async () => {
+                      try {
+                        setError(null)
+                        const trimmed = input.trim()
+                        const payload =
+                          trimmed.startsWith('{') || trimmed.startsWith('[')
+                            ? (JSON.parse(trimmed) as unknown)
+                            : { sub: trimmed }
+                        setOutput(await signJwt(payload, jwtSecret))
+                      } catch (err) {
+                        setError(err instanceof Error ? err.message : 'Could not sign.')
+                      }
+                    })()
+                  }}
+                >
+                  Sign
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={!input.trim() || !jwtSecret}
+                  onClick={() => {
+                    void (async () => {
+                      try {
+                        setError(null)
+                        const result = await verifyJwt(input, jwtSecret)
+                        setOutput(result.ok ? 'Signature matches.' : 'The signature does not match that secret.')
+                      } catch (err) {
+                        setError(err instanceof Error ? err.message : 'Could not verify.')
+                      }
+                    })()
+                  }}
+                >
+                  Verify
+                </button>
+              </div>
               {jwt?.error ? <p className="status-bad">{jwt.error}</p> : null}
               {jwt?.view ? (
                 <>
@@ -276,6 +401,8 @@ export default function EncodeTool() {
                 label="Algorithm"
                 value={algo}
                 options={[
+                  { value: 'MD5', label: 'MD5' },
+                  { value: 'SHA-224', label: 'SHA-224' },
                   { value: 'SHA-1', label: 'SHA-1' },
                   { value: 'SHA-256', label: 'SHA-256' },
                   { value: 'SHA-384', label: 'SHA-384' },

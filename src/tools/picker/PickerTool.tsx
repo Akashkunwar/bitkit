@@ -5,11 +5,13 @@ import { SendTo } from '../../components/SendTo'
 import { useHandoff } from '../../lib/useHandoff'
 import { useCopied } from '../../lib/useCopied'
 import { formatColor, sampleCanvas } from '../../lib/colorPick'
+import { paletteFromPixels, swatchHex } from '../../lib/palette'
 import { type Rgb } from '../../lib/contrast'
 
 export default function PickerTool() {
   const [url, setUrl] = useState<string | null>(null)
   const [rgb, setRgb] = useState<Rgb | null>(null)
+  const [palette, setPalette] = useState<string[]>([])
   const imgRef = useRef<HTMLImageElement>(null)
   const { copied, copy } = useCopied()
 
@@ -63,8 +65,39 @@ export default function PickerTool() {
                 src={url}
                 alt="Sample"
                 onClick={pick}
+                onLoad={(event) => {
+                  const img = event.currentTarget
+                  const canvas = document.createElement('canvas')
+                  const edge = 160
+                  const scale = Math.min(1, edge / Math.max(img.naturalWidth || 1, img.naturalHeight || 1))
+                  canvas.width = Math.max(1, Math.round((img.naturalWidth || 1) * scale))
+                  canvas.height = Math.max(1, Math.round((img.naturalHeight || 1) * scale))
+                  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+                  if (!ctx) return
+                  ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+                  const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data
+                  setPalette(paletteFromPixels(data, 6).map(swatchHex))
+                }}
                 style={{ maxWidth: '100%', cursor: 'crosshair', borderRadius: 'var(--radius-sm)' }}
               />
+              {palette.length ? (
+                <div className="row" style={{ marginTop: '0.6rem' }}>
+                  {palette.map((hex) => (
+                    <button
+                      key={hex}
+                      type="button"
+                      className="btn btn-sm"
+                      style={{ background: hex }}
+                      onClick={() => {
+                        const n = parseInt(hex.slice(1), 16)
+                        setRgb({ r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 })
+                      }}
+                    >
+                      {hex}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               <button
                 type="button"
                 className="btn-ghost"

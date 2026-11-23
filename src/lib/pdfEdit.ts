@@ -16,7 +16,8 @@ export type TextAnnotation = {
 type RectBase = { id: string; x: number; y: number; w: number; h: number; color: string; opacity: number }
 export type WhiteoutAnnotation = RectBase & { kind: 'whiteout' }
 export type HighlightAnnotation = RectBase & { kind: 'highlight' }
-export type RectAnnotation = WhiteoutAnnotation | HighlightAnnotation
+export type RedactAnnotation = RectBase & { kind: 'redact' }
+export type RectAnnotation = WhiteoutAnnotation | HighlightAnnotation | RedactAnnotation
 export type ImageAnnotation = { id: string; kind: 'image'; x: number; y: number; w: number; h: number; dataUrl: string }
 
 export type Annotation = PenAnnotation | TextAnnotation | RectAnnotation | ImageAnnotation
@@ -98,7 +99,7 @@ export async function exportPdf(sourceBytes: Uint8Array, pages: PageState[]): Pr
     const map = (v: Point) => viewToPdf(effective, W, H, v)
 
     for (const ann of state.annotations) {
-      if (ann.kind === 'whiteout' || ann.kind === 'highlight') {
+      if (ann.kind === 'whiteout' || ann.kind === 'highlight' || ann.kind === 'redact') {
         const a = map({ x: ann.x, y: ann.y })
         const b = map({ x: ann.x + ann.w, y: ann.y + ann.h })
         page.drawRectangle({

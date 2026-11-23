@@ -17,7 +17,11 @@ function walk(dir: string): string[] {
   })
 }
 
-const NETWORK_ALLOWLIST = new Set([join(srcRoot, 'lib/ocr.ts'), join(srcRoot, 'lib/cutout.ts')])
+const NETWORK_ALLOWLIST = new Set([
+  join(srcRoot, 'lib/ocr.ts'),
+  join(srcRoot, 'lib/cutout.ts'),
+  join(srcRoot, 'lib/naturalSpeech/engine.ts'),
+])
 
 describe('privacy: processors do not upload', () => {
   it('lib modules never call fetch or XMLHttpRequest except allowlisted engines', () => {
@@ -34,7 +38,7 @@ describe('privacy: processors do not upload', () => {
   it('allowlisted engines fetch models, not user files', () => {
     for (const file of NETWORK_ALLOWLIST) {
       const text = readFileSync(file, 'utf8')
-      expect(text).toMatch(/cdn\.jsdelivr\.net|storage\.googleapis\.com|tessdata/)
+      expect(text).toMatch(/cdn\.jsdelivr\.net|storage\.googleapis\.com|tessdata|huggingface\.co/)
       expect(text).not.toMatch(/fetch\s*\(\s*file/)
     }
   })

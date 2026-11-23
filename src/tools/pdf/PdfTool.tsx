@@ -19,7 +19,7 @@ import { PdfPassword } from '../../components/PdfPassword'
 import { useHandoff } from '../../lib/useHandoff'
 import { SendTo } from '../../components/SendTo'
 
-type ToolMode = 'select' | 'pen' | 'text' | 'whiteout' | 'highlight' | 'sign'
+type ToolMode = 'select' | 'pen' | 'text' | 'whiteout' | 'highlight' | 'redact' | 'sign'
 
 type Viewport = { width: number; height: number; scale: number }
 
@@ -363,7 +363,7 @@ export default function PdfTool() {
     event.currentTarget.setPointerCapture(event.pointerId)
     if (tool === 'pen') {
       setDraft({ id: annotationId(), kind: 'pen', points: [p], color: penColor, width: penWidth })
-    } else if (tool === 'whiteout' || tool === 'highlight') {
+    } else if (tool === 'whiteout' || tool === 'highlight' || tool === 'redact') {
       dragStart.current = p
       setDraft({
         id: annotationId(),
@@ -372,8 +372,8 @@ export default function PdfTool() {
         y: p.y,
         w: 0,
         h: 0,
-        color: tool === 'whiteout' ? '#ffffff' : highlightColor,
-        opacity: tool === 'whiteout' ? 1 : 0.45,
+        color: tool === 'whiteout' ? '#ffffff' : tool === 'redact' ? '#111111' : highlightColor,
+        opacity: tool === 'highlight' ? 0.45 : 1,
       })
     } else if (tool === 'sign' && signature) {
       const img = new Image()
@@ -392,7 +392,10 @@ export default function PdfTool() {
     if (!p) return
     if (draft.kind === 'pen') {
       setDraft({ ...draft, points: [...draft.points, p] })
-    } else if ((draft.kind === 'whiteout' || draft.kind === 'highlight') && dragStart.current) {
+    } else if (
+      (draft.kind === 'whiteout' || draft.kind === 'highlight' || draft.kind === 'redact') &&
+      dragStart.current
+    ) {
       const start = dragStart.current
       setDraft({
         ...draft,
@@ -409,7 +412,7 @@ export default function PdfTool() {
     const keep =
       draft.kind === 'pen'
         ? draft.points.length > 1
-        : draft.kind === 'whiteout' || draft.kind === 'highlight'
+        : draft.kind === 'whiteout' || draft.kind === 'highlight' || draft.kind === 'redact'
           ? draft.w > 2 && draft.h > 2
           : true
     if (keep) addAnnotation(draft)
@@ -463,6 +466,32 @@ export default function PdfTool() {
     }
   }
 
+  const downloadRedacted = async () => {
+    if (!sourceBytes.current || !pages.length) return
+    const plan = pages.map((page) => ({
+      sourceIndex: page.sourceIndex,
+      boxes: page.annotations
+        .filter((ann) => ann.kind === 'redact')
+        .map((ann) => ({ x: ann.x, y: ann.y, w: ann.w, h: ann.h })),
+    }))
+    if (!plan.some((page) => page.boxes.length)) {
+      setError('Draw a redact box first. Whiteout only covers the words; it does not delete them.')
+      return
+    }
+    setBusy(true)
+    setError(null)
+    try {
+      const { redactPdfLocal } = await import('../../lib/pdfRedact')
+      const bytes = await redactPdfLocal(sourceBytes.current, plan)
+      const name = fileName.replace(/\.pdf$/i, '') + '-redacted.pdf'
+      await downloadNamed(new Blob([bytes.slice().buffer as ArrayBuffer], { type: 'application/pdf' }), name)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Redaction failed.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const renderAnnotation = (ann: Annotation, scale: number, isDraft = false) => {
     const common = {
       key: ann.id,
@@ -493,7 +522,7 @@ export default function PdfTool() {
         />
       )
     }
-    if (ann.kind === 'whiteout' || ann.kind === 'highlight') {
+    if (ann.kind === 'whiteout' || ann.kind === 'highlight' || ann.kind === 'redact') {
       return (
         <rect
           {...common}
@@ -503,7 +532,7 @@ export default function PdfTool() {
           height={ann.h * scale}
           fill={ann.color}
           fillOpacity={ann.opacity}
-          stroke={ann.kind === 'whiteout' ? 'rgba(0,0,0,0.15)' : 'none'}
+          stroke={ann.kind === 'highlight' ? 'none' : 'rgba(0,0,0,0.35)'}
           className="ann"
         />
       )
@@ -582,6 +611,9 @@ export default function PdfTool() {
         <>
           <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void download()}>
             {busy ? 'Working…' : 'Download edited PDF'}
+          </button>
+          <button type="button" className="btn" disabled={busy} onClick={() => void downloadRedacted()}>
+            Download redacted PDF
           </button>
           <button
             type="button"
@@ -792,6 +824,7 @@ export default function PdfTool() {
               { value: 'pen', label: 'Pen' },
               { value: 'text', label: 'Text' },
               { value: 'whiteout', label: 'Whiteout' },
+              { value: 'redact', label: 'Redact' },
               { value: 'highlight', label: 'Highlight' },
               { value: 'sign', label: 'Sign' },
             ]}
@@ -846,7 +879,15 @@ export default function PdfTool() {
             </label>
           ) : null}
           {tool === 'whiteout' ? (
-            <p className="hint">Drag over content to cover it with an opaque white block.</p>
+            <p className="hint">
+              Drag over content to cover it with an opaque white block. The words are still in the file.
+            </p>
+          ) : null}
+          {tool === 'redact' ? (
+            <p className="hint">
+              Drag over the words to remove. Download redacted PDF turns every marked page into a picture, so that text
+              cannot be copied. Unmarked pages stay selectable. Pen, text, and signatures are not included in that file.
+            </p>
           ) : null}
           {tool === 'sign' ? (
             <>

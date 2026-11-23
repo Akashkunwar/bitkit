@@ -1,8 +1,12 @@
-import { useMemo, type ReactNode } from 'react'
+import { useCallback, useMemo, type ReactNode } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { Segmented } from '../../components/Segmented'
 import { NumberSlider } from '../../components/NumberSlider'
+import { PresetBar } from '../../components/PresetBar'
 import { useToolSettings } from '../../lib/prefs'
+import { useToolPreset } from '../../lib/actions'
+import { useI18n } from '../../lib/i18n'
+import { TAX_YEAR, compareTax, type AgeBand } from '../../lib/tax'
 import {
   COMPOUNDING,
   amountInWords,
@@ -17,7 +21,7 @@ import {
   type MoneyFormat,
 } from '../../lib/finance'
 
-type Mode = 'emi' | 'sip' | 'compound' | 'cagr' | 'discount'
+type Mode = 'emi' | 'sip' | 'compound' | 'cagr' | 'discount' | 'tax'
 
 const CURRENCIES: Record<string, MoneyFormat & { symbol: string; label: string }> = {
   INR: { locale: 'en-IN', currency: 'INR', symbol: '₹', label: '₹ Rupee' },
@@ -51,6 +55,15 @@ const DEFAULTS = {
   price: 2_000,
   off1: 20,
   off2: 0,
+  gross: 1_275_000,
+  basic: 600_000,
+  hra: 0,
+  rent: 0,
+  metro: true,
+  oldDeductions: 150_000,
+  age: 'below60' as AgeBand,
+  resident: true,
+  salaried: true,
 }
 
 /** Two-part share as a ring: accent for the first value, a lighter tint for the second. */
@@ -167,10 +180,34 @@ function Layout({ inputs, results }: { inputs: ReactNode; results: ReactNode }) 
 }
 
 export default function FinanceTool() {
+  const { language } = useI18n()
+  const L = (en: string, hi: string) => (language === 'hi' ? hi : en)
   const { settings: s, update } = useToolSettings('finance', DEFAULTS)
+  const applyPreset = useCallback(
+    (preset: { mode?: unknown }) => {
+      if (preset.mode === 'tax') update({ mode: 'tax' })
+    },
+    [update],
+  )
+  useToolPreset('finance', applyPreset)
   const money = CURRENCIES[s.currency] ?? CURRENCIES.USD
   const fmt = (n: number, digits = 0) => formatMoney(n, money, digits)
   const words = (n: number) => amountInWords(n, money.locale)
+  const tax = useMemo(
+    () =>
+      compareTax({
+        gross: s.gross,
+        salaried: s.salaried,
+        age: s.age,
+        resident: s.resident,
+        basic: s.basic,
+        hraReceived: s.hra,
+        rentPaid: s.rent,
+        metro: s.metro,
+        oldDeductions: s.oldDeductions,
+      }),
+    [s.gross, s.salaried, s.age, s.resident, s.basic, s.hra, s.rent, s.metro, s.oldDeductions],
+  )
 
   const loan = useMemo(() => {
     try {
@@ -210,8 +247,11 @@ export default function FinanceTool() {
 
   return (
     <ToolLayout
-      title="Finance calculators"
-      lede="Loan EMI with a yearly schedule, SIP returns, compound interest, CAGR, and stacked discounts — the numbers banks and shops quote, worked out on your device."
+      title={L('Finance calculators', 'वित्त कैलकुलेटर')}
+      lede={L(
+        'Loan EMI, SIP, compound interest, CAGR, discounts, and an AY 2026-27 income-tax estimate. Worked out on your device.',
+        'ईएमआई, एसआईपी, चक्रवृद्धि, सीएजीआर, छूट, और आयकर का अनुमान। गणना इसी डिवाइस पर होती है।',
+      )}
     >
       <div className="toolbar">
         <Segmented
@@ -220,11 +260,12 @@ export default function FinanceTool() {
           value={s.mode}
           onChange={(mode) => update({ mode })}
           options={[
-            { value: 'emi', label: 'Loan EMI' },
-            { value: 'sip', label: 'SIP' },
-            { value: 'compound', label: 'Compound interest' },
-            { value: 'cagr', label: 'CAGR' },
-            { value: 'discount', label: 'Discount' },
+            { value: 'emi', label: L('Loan EMI', 'लोन ईएमआई') },
+            { value: 'sip', label: L('SIP', 'एसआईपी') },
+            { value: 'compound', label: L('Compound interest', 'चक्रवृद्धि ब्याज') },
+            { value: 'cagr', label: L('CAGR', 'सीएजीआर') },
+            { value: 'discount', label: L('Discount', 'छूट') },
+            { value: 'tax', label: L('Income tax', 'आयकर') },
           ]}
         />
         <label className="row" style={{ gap: '0.5rem' }}>
@@ -238,6 +279,7 @@ export default function FinanceTool() {
           </select>
         </label>
       </div>
+      <PresetBar toolId="finance" snapshot={s} onApply={(value) => update(value as Partial<typeof s>)} />
 
       {s.mode === 'emi' ? (
         <Layout
@@ -542,6 +584,121 @@ export default function FinanceTool() {
             ) : (
               <p className="muted">Enter a price.</p>
             )
+          }
+        />
+      ) : null}
+
+      {s.mode === 'tax' ? (
+        <Layout
+          inputs={
+            <>
+              <NumberSlider
+                label={L('Gross income', 'कुल आय')}
+                prefix="₹"
+                value={s.gross}
+                onChange={(gross) => update({ gross })}
+                min={0}
+                max={5_000_000}
+                step={10_000}
+                typedMax={1e9}
+              />
+              <NumberSlider
+                label={L('Basic + DA', 'मूल वेतन + महँगाई')}
+                prefix="₹"
+                value={s.basic}
+                onChange={(basic) => update({ basic })}
+                min={0}
+                max={5_000_000}
+                step={10_000}
+                typedMax={1e9}
+              />
+              <NumberSlider
+                label={L('HRA received', 'मिला एचआरए')}
+                prefix="₹"
+                value={s.hra}
+                onChange={(hra) => update({ hra })}
+                min={0}
+                max={2_000_000}
+                step={5_000}
+                typedMax={1e9}
+              />
+              <NumberSlider
+                label={L('Rent paid', 'दिया गया किराया')}
+                prefix="₹"
+                value={s.rent}
+                onChange={(rent) => update({ rent })}
+                min={0}
+                max={2_000_000}
+                step={5_000}
+                typedMax={1e9}
+              />
+              <NumberSlider
+                label={L('Other old-regime deductions', 'पुरानी व्यवस्था की अन्य कटौती')}
+                prefix="₹"
+                value={s.oldDeductions}
+                onChange={(oldDeductions) => update({ oldDeductions })}
+                min={0}
+                max={1_500_000}
+                step={5_000}
+                typedMax={1e9}
+              />
+              <label className="field">
+                <span>{L('Age', 'आयु')}</span>
+                <select
+                  className="text-input"
+                  value={s.age}
+                  onChange={(e) => update({ age: e.target.value as AgeBand })}
+                >
+                  <option value="below60">{L('Under 60', '60 से कम')}</option>
+                  <option value="senior">{L('60 to 79', '60 से 79')}</option>
+                  <option value="super">{L('80 or older', '80 या अधिक')}</option>
+                </select>
+              </label>
+              <label className="row">
+                <input type="checkbox" checked={s.salaried} onChange={(e) => update({ salaried: e.target.checked })} />
+                {L('Salaried (standard deduction)', 'वेतनभोगी (मानक कटौती)')}
+              </label>
+              <label className="row">
+                <input type="checkbox" checked={s.resident} onChange={(e) => update({ resident: e.target.checked })} />
+                {L('Resident (section 87A rebate)', 'निवासी (धारा 87A की छूट)')}
+              </label>
+              <label className="row">
+                <input type="checkbox" checked={s.metro} onChange={(e) => update({ metro: e.target.checked })} />
+                {L(
+                  'Metro for HRA: Mumbai, Delhi, Kolkata, Chennai',
+                  'एचआरए के लिए मेट्रो: मुंबई, दिल्ली, कोलकाता, चेन्नई',
+                )}
+              </label>
+            </>
+          }
+          results={
+            <>
+              <div className="stat-grid">
+                <Stat label={L('New regime', 'नई व्यवस्था')} value={fmt(tax.new.total, 0)} tone="accent" />
+                <Stat label={L('Old regime', 'पुरानी व्यवस्था')} value={fmt(tax.old.total, 0)} />
+                <Stat
+                  label={L('Lower tax', 'कम कर')}
+                  value={
+                    tax.better === 'tie'
+                      ? L('Same', 'बराबर')
+                      : tax.better === 'new'
+                        ? L('New', 'नई')
+                        : L('Old', 'पुरानी')
+                  }
+                />
+              </div>
+              <p className="hint">
+                {L(
+                  `${TAX_YEAR} slabs from the Income Tax Department. Cess is 4%. Surcharge marginal relief is not computed. This is an estimate, not a return.`,
+                  `${TAX_YEAR} की स्लैब आयकर विभाग के अनुसार हैं। उपकर 4% है। सरचार्ज की सीमांत राहत नहीं जोड़ी गई। यह अनुमान है, रिटर्न नहीं।`,
+                )}
+              </p>
+              <p className="hint">
+                {L('New taxable', 'नई कर योग्य')} {fmt(tax.new.taxable, 0)} · {L('old taxable', 'पुरानी कर योग्य')}{' '}
+                {fmt(tax.old.taxable, 0)} · {L('HRA exemption (old only)', 'एचआरए छूट (केवल पुरानी)')}{' '}
+                {fmt(tax.old.hraExemption, 0)}
+              </p>
+            </>
           }
         />
       ) : null}

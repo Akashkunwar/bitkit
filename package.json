@@ -27,6 +27,7 @@
     "dexie": "^4.0.11",
     "docx-preview": "^0.4.1",
     "dompurify": "^3.2.6",
+    "heic-to": "^1.6.7",
     "js-yaml": "^5.3.0",
     "jspdf": "^3.0.1",
     "jsqr": "^1.4.0",
@@ -34,6 +35,7 @@
     "lucide-react": "^1.48.0",
     "marked": "^15.0.12",
     "mermaid": "^11.16.1",
+    "onnxruntime-web": "^1.31.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.2.108",
     "qrcode": "^1.5.4",
@@ -67,7 +69,7 @@
     "vitest": "^3.2.4",
     "wrangler": "^4.123.0"
   },
-  "description": "77 privacy-first browser tools. Images, PDFs, documents, calculators, data, media, and code utilities that run entirely on your device.",
+  "description": "108 privacy-first browser tools. Images, PDFs, documents, calculators, data, media, and code utilities that run entirely on your device.",
   "license": "MIT",
   "engines": {
     "node": ">=20"

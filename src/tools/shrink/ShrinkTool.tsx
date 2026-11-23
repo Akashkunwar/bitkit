@@ -4,7 +4,8 @@ import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
 import { SendTo } from '../../components/SendTo'
-import { downloadNamed } from '../../lib/download'
+import { downloadNamed, triggerDownload } from '../../lib/download'
+import { zipStore } from '../../lib/zip'
 import { useToolPreset } from '../../lib/actions'
 import { formatBytes, parseByteLimit } from '../../lib/format'
 import { encryptionWarning, loadPdf } from '../../lib/pdfLoad'
@@ -35,6 +36,7 @@ export default function ShrinkTool() {
   const [encrypted, setEncrypted] = useState(false)
   const [password, setPassword] = useState('')
   const [needsPassword, setNeedsPassword] = useState(false)
+  const [queue, setQueue] = useState<File[]>([])
 
   const take = (next: File) => {
     setFile(next)
@@ -111,6 +113,33 @@ export default function ShrinkTool() {
     }
   }
 
+  const shrinkQueue = async () => {
+    if (queue.length < 2) return
+    setBusy(true)
+    setError(null)
+    try {
+      const entries: { name: string; data: Uint8Array }[] = []
+      for (const next of queue) {
+        setStatus(next.name)
+        const source = new Uint8Array(await next.arrayBuffer())
+        const doc = await openPdfJs(pdfjs, source)
+        try {
+          const result = await shrinkPdf(doc, { preset, maxBytes: parseByteLimit(limit), grayscale })
+          entries.push({ name: `${next.name.replace(/\.pdf$/i, '')}-smaller.pdf`, data: result.bytes })
+        } finally {
+          await destroyPdfJs(doc)
+        }
+      }
+      const zip = zipStore(entries)
+      triggerDownload(new Blob([zip.slice().buffer as ArrayBuffer], { type: 'application/zip' }), 'smaller-pdfs.zip')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not shrink that batch.')
+    } finally {
+      setBusy(false)
+      setStatus(null)
+    }
+  }
+
   const saved = file && output ? file.size - output.blob.size : 0
   const percent = file && output && file.size ? Math.round((saved / file.size) * 100) : 0
 
@@ -123,17 +152,30 @@ export default function ShrinkTool() {
         accept="application/pdf,.pdf"
         label="Drop a PDF to shrink."
         hint="Large scans benefit most. Text stops being selectable unless you pick lossless."
+        multiple
         onFiles={(files) => {
-          const pdf = files.find((f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))
-          if (pdf) take(pdf)
+          const pdfs = files.filter((f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))
+          if (pdfs.length > 1) {
+            setQueue(pdfs)
+            setFile(null)
+            setOutput(null)
+            setError(null)
+            return
+          }
+          setQueue([])
+          if (pdfs[0]) take(pdfs[0])
           else setError('That is not a PDF.')
         }}
       />
 
-      {file ? (
+      {file || queue.length > 1 ? (
         <div className="panel" style={{ marginTop: '1rem' }}>
           <p className="hint">
-            {file.name} · {formatBytes(file.size)}
+            {queue.length > 1
+              ? `${queue.length} PDFs · ${formatBytes(queue.reduce((sum, item) => sum + item.size, 0))}`
+              : file
+                ? `${file.name} · ${formatBytes(file.size)}`
+                : ''}
           </p>
           {encryptionWarning(encrypted, 'pdfjs') ? (
             <p className="banner warn">{encryptionWarning(encrypted, 'pdfjs')}</p>
@@ -173,8 +215,13 @@ export default function ShrinkTool() {
           ) : null}
 
           <div className="row" style={{ marginTop: '0.9rem' }}>
-            <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void run()}>
-              {busy ? 'Working…' : 'Shrink PDF'}
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={busy}
+              onClick={() => void (queue.length > 1 ? shrinkQueue() : run())}
+            >
+              {busy ? 'Working…' : queue.length > 1 ? 'Shrink all to ZIP' : 'Shrink PDF'}
             </button>
             {output ? (
               output.withinLimit ? (
@@ -196,7 +243,7 @@ export default function ShrinkTool() {
           {status ? <p className="hint">{status}</p> : null}
           {error ? <p className="status-bad">{error}</p> : null}
 
-          {output ? (
+          {output && file ? (
             <>
               <div className="pill-row" style={{ marginTop: '0.9rem' }}>
                 <span className="pill">Was {formatBytes(file.size)}</span>

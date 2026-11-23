@@ -1,6 +1,6 @@
 const KEY = 'bitkit-cdn-engines'
 
-/** OCR and cutout fetch WASM/models from a CDN on first use. Consent is local. */
+/** OCR, cutout, and the natural voice fetch WASM/models from a CDN on first use. Consent is local. */
 export function hasEngineConsent(): boolean {
   try {
     return localStorage.getItem(KEY) === '1'

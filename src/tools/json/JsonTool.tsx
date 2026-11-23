@@ -13,6 +13,8 @@ import {
 } from '../../lib/json'
 import { useHandoff } from '../../lib/useHandoff'
 import { SendTo } from '../../components/SendTo'
+import { jsonToTypeScript, jsonToZod } from '../../lib/jsonTypes'
+import { jsonToXml } from '../../lib/xml'
 
 const SAMPLE = `{
   "name": "kit",
@@ -134,6 +136,45 @@ export default function JsonTool() {
             </button>
             <button type="button" className="btn" disabled={!input.trim()} onClick={() => run(() => minifyJson(input))}>
               Minify
+            </button>
+            <button
+              type="button"
+              className="btn"
+              disabled={!input.trim()}
+              onClick={() =>
+                run(() => {
+                  const value = JSON.parse(input) as unknown
+                  return jsonToTypeScript(value)
+                })
+              }
+            >
+              TypeScript
+            </button>
+            <button
+              type="button"
+              className="btn"
+              disabled={!input.trim()}
+              onClick={() =>
+                run(() => {
+                  const value = JSON.parse(input) as unknown
+                  return jsonToZod(value)
+                })
+              }
+            >
+              Zod
+            </button>
+            <button
+              type="button"
+              className="btn"
+              disabled={!input.trim()}
+              onClick={() =>
+                run(() => {
+                  const value = JSON.parse(input) as unknown
+                  return jsonToXml(value)
+                })
+              }
+            >
+              XML
             </button>
           </div>
           <div className="row" style={{ marginBottom: '1rem' }}>

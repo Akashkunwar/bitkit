@@ -4,6 +4,7 @@ import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
 import { SendTo } from '../../components/SendTo'
+import { LabelSheet } from '../../components/LabelSheet'
 import { triggerDownload } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { decodeQrFromBlob, decodeQrFromCanvas } from '../../lib/qrDecode'
@@ -19,6 +20,8 @@ import {
   urlPayload,
   vcardPayload,
   wifiPayload,
+  linkNotes,
+  parseWifiPayload,
   type ContactFields,
   type QrMode,
 } from '../../lib/qr'
@@ -454,9 +457,25 @@ export default function QrTool() {
             <video ref={videoRef} playsInline muted className="qr-video" hidden={!cameraOn} />
             <canvas ref={scanCanvasRef} className="visually-hidden" />
             {decoded ? (
-              <p className="status-ok wrap-code" style={{ whiteSpace: 'pre-wrap' }}>
-                {decoded}
-              </p>
+              <>
+                <p className="status-ok wrap-code" style={{ whiteSpace: 'pre-wrap' }}>
+                  {decoded}
+                </p>
+                {parseWifiPayload(decoded) ? (
+                  <ul className="hint">
+                    <li>Network: {parseWifiPayload(decoded)?.ssid}</li>
+                    <li>Password: {parseWifiPayload(decoded)?.password || '(none)'}</li>
+                    <li>Encryption: {parseWifiPayload(decoded)?.encryption}</li>
+                  </ul>
+                ) : null}
+                {linkNotes(decoded).length ? (
+                  <ul className="hint">
+                    {linkNotes(decoded).map((note) => (
+                      <li key={note}>{note}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </>
             ) : (
               <p className="muted">Point the camera at a code, or drop a screenshot.</p>
             )}
@@ -892,6 +911,28 @@ export default function QrTool() {
                 ? 'White border follows the logo shape. Drag it down for a thin edge, or to off for none. Error correction stays on H so the code can still be scanned.'
                 : 'Square modules scan most reliably. Rounded and cut shapes raise error correction so a phone can still read them.'}
             </p>
+            <LabelSheet
+              sample={payload}
+              renderPng={async (value) => {
+                const code = renderStyledQr(value, {
+                  body,
+                  eye,
+                  ball,
+                  dark,
+                  light,
+                  transparent,
+                  gradient,
+                  gradientTo,
+                  gradientOnEyes,
+                  customEyes,
+                  eyeFrameColors,
+                  eyeBallColors,
+                  margin,
+                  ecLevel,
+                })
+                return svgToPng(code, 512)
+              }}
+            />
             <SendTo from="qr" text={payload || undefined} />
           </aside>
         </div>

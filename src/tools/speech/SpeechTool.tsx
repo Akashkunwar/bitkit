@@ -1,16 +1,31 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Pause, Play, Square, Volume2 } from 'lucide-react'
 import { ToolLayout } from '../../components/ToolLayout'
+import { Segmented } from '../../components/Segmented'
 import { useToolSettings } from '../../lib/prefs'
 import { useHandoff } from '../../lib/useHandoff'
-import { chunkText, pickVoice } from '../../lib/speech'
+import { grantEngineConsent, hasEngineConsent } from '../../lib/cdnConsent'
+import { NATURAL_VOICES } from '../../lib/naturalSpeech/voices'
+import { encodeWav } from '../../lib/naturalSpeech/wav'
+import { chunkText, pickVoice, wordAt } from '../../lib/speech'
 
-const DEFAULTS = { voice: '', lang: '', rate: 1, pitch: 1, volume: 1 }
+const DEFAULTS = {
+  voice: '',
+  lang: '',
+  rate: 1,
+  pitch: 1,
+  volume: 1,
+  engine: 'natural' as 'natural' | 'device',
+  naturalVoice: 'af_heart',
+}
+
+/** Unlocks audio playback during the click, before the model download yields. */
+const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA='
 
 const SAMPLE =
   'BitKit reads this aloud with the voices on your device, so with an on-device voice it even works offline. Paste an article, a draft email, or notes you want to hear back.'
 
-type Status = 'idle' | 'speaking' | 'paused'
+type Status = 'idle' | 'preparing' | 'speaking' | 'paused'
 
 function languageName(code: string): string {
   try {
@@ -26,13 +41,37 @@ export default function SpeechTool() {
   const [text, setText] = useState(SAMPLE)
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
   const [status, setStatus] = useState<Status>('idle')
+  const [mode, setMode] = useState<'speak' | 'listen'>('speak')
+  const [listening, setListening] = useState(false)
+  const [interim, setInterim] = useState('')
+  const [listenError, setListenError] = useState<string | null>(null)
+  const [listenArmed, setListenArmed] = useState(false)
+  const dictation = useRef<{ stop: () => void } | null>(null)
   const [spoken, setSpoken] = useState<{ start: number; end: number } | null>(null)
+  const [allowed, setAllowed] = useState(() => hasEngineConsent())
+  const [note, setNote] = useState<string | null>(null)
   const queue = useRef<{ chunks: string[]; offsets: number[]; index: number } | null>(null)
+  const player = useRef<HTMLAudioElement | null>(null)
+  const clipUrl = useRef<string | null>(null)
+  const runId = useRef(0)
+  const finishClip = useRef<((outcome: 'ended' | 'stopped') => void) | null>(null)
 
   useHandoff((payload) => {
     if (payload.text) setText(payload.text)
     else if (payload.files?.[0]) void payload.files[0].text().then(setText)
   })
+
+  useEffect(() => {
+    if (player.current) player.current.volume = settings.volume
+  }, [settings.volume])
+
+  useEffect(() => {
+    return () => {
+      runId.current += 1
+      player.current?.pause()
+      if (clipUrl.current) URL.revokeObjectURL(clipUrl.current)
+    }
+  }, [])
 
   useEffect(() => {
     if (!supported) return
@@ -93,8 +132,113 @@ export default function SpeechTool() {
     window.speechSynthesis.speak(utterance)
   }, [voice, settings.rate, settings.pitch, settings.volume])
 
+  const audio = () => {
+    if (!player.current) player.current = new Audio()
+    player.current.volume = settings.volume
+    return player.current
+  }
+
+  const stopNatural = () => {
+    runId.current += 1
+    finishClip.current?.('stopped')
+    finishClip.current = null
+    const element = player.current
+    if (!element) return
+    element.onended = null
+    element.ontimeupdate = null
+    element.pause()
+    element.removeAttribute('src')
+    element.load()
+    if (clipUrl.current) URL.revokeObjectURL(clipUrl.current)
+    clipUrl.current = null
+  }
+
+  const playNatural = async () => {
+    if (!text.trim() || !allowed) return
+    stopNatural()
+    window.speechSynthesis.cancel()
+    const run = runId.current
+    const element = audio()
+    element.src = SILENT_WAV
+    try {
+      await element.play()
+      element.pause()
+    } catch {
+      /* a later play() reports this if the browser still blocks it */
+    }
+    const normalised = text.replace(/\s+/g, ' ').trim()
+    const chunks = chunkText(normalised, 280)
+    const offsets: number[] = []
+    let cursor = 0
+    for (const chunk of chunks) {
+      const at = normalised.indexOf(chunk, cursor)
+      offsets.push(at < 0 ? cursor : at)
+      cursor = (at < 0 ? cursor : at) + chunk.length
+    }
+    setStatus('preparing')
+    setNote('Loading the natural voice…')
+    setSpoken(null)
+    try {
+      const { synthesize } = await import('../../lib/naturalSpeech/engine')
+      if (runId.current !== run) return
+      let upcoming = synthesize(chunks[0] ?? '', settings.naturalVoice, settings.rate, (message) => {
+        if (runId.current === run) setNote(message)
+      })
+      for (let index = 0; index < chunks.length; index++) {
+        const pcm = await upcoming
+        if (runId.current !== run) return
+        if (index + 1 < chunks.length) {
+          upcoming = synthesize(chunks[index + 1], settings.naturalVoice, settings.rate)
+        }
+        if (!pcm.length) continue
+        const url = URL.createObjectURL(encodeWav(pcm))
+        if (clipUrl.current) URL.revokeObjectURL(clipUrl.current)
+        clipUrl.current = url
+        element.src = url
+        const chunk = chunks[index]
+        const offset = offsets[index]
+        element.ontimeupdate = () => {
+          if (!Number.isFinite(element.duration) || element.duration === 0) return
+          const at = Math.min(chunk.length - 1, Math.floor((element.currentTime / element.duration) * chunk.length))
+          const word = wordAt(chunk, at)
+          setSpoken({ start: offset + word.start, end: offset + word.end })
+        }
+        setStatus('speaking')
+        setNote(null)
+        const outcome = await new Promise<'ended' | 'stopped'>((resolve) => {
+          finishClip.current = resolve
+          element.onended = () => resolve('ended')
+          void element.play().catch(() => resolve('stopped'))
+        })
+        finishClip.current = null
+        if (outcome === 'stopped' || runId.current !== run) return
+      }
+      if (runId.current === run) {
+        setStatus('idle')
+        setSpoken(null)
+        setNote(null)
+      }
+    } catch (err) {
+      if (runId.current !== run) return
+      setStatus('idle')
+      setSpoken(null)
+      setNote(err instanceof Error ? err.message : 'The natural voice could not start.')
+    }
+  }
+
   const play = () => {
-    if (!supported || !text.trim()) return
+    if (!text.trim()) return
+    if (settings.engine === 'natural') {
+      if (status === 'paused') {
+        void audio().play()
+        setStatus('speaking')
+        return
+      }
+      void playNatural()
+      return
+    }
+    stopNatural()
+    if (!supported) return
     if (status === 'paused') {
       window.speechSynthesis.resume()
       setStatus('speaking')
@@ -116,15 +260,63 @@ export default function SpeechTool() {
   }
 
   const pause = () => {
+    if (settings.engine === 'natural') {
+      player.current?.pause()
+      setStatus('paused')
+      return
+    }
     window.speechSynthesis.pause()
     setStatus('paused')
   }
 
   const stop = () => {
     queue.current = null
+    stopNatural()
     window.speechSynthesis.cancel()
     setStatus('idle')
     setSpoken(null)
+    setNote(null)
+  }
+
+  const stopListening = () => {
+    dictation.current?.stop()
+    dictation.current = null
+    setListening(false)
+    setInterim('')
+  }
+
+  const startListening = async () => {
+    if (!listenArmed) {
+      setListenArmed(true)
+      setListenError('Press Start again. Chrome may send the audio to the browser vendor. BitKit does not receive it.')
+      return
+    }
+    const { canDictate, startDictation } = await import('../../lib/speechListen')
+    if (!canDictate()) {
+      setListenError('This browser has no speech recognizer.')
+      return
+    }
+    stopListening()
+    setListenError(null)
+    dictation.current = startDictation({
+      lang: settings.lang || navigator.language || 'en',
+      onText: (value, final) => {
+        if (final) {
+          setText((prev) => `${prev.trim()} ${value.trim()}`.trim())
+          setInterim('')
+        } else setInterim(value)
+      },
+      onEnd: () => {
+        dictation.current = null
+        setListening(false)
+        setInterim('')
+      },
+      onError: (message) => {
+        setListenError(message)
+        setListening(false)
+      },
+    })
+    setListening(true)
   }
 
   const words = text.trim() ? text.trim().split(/\s+/).length : 0
@@ -134,12 +326,46 @@ export default function SpeechTool() {
   return (
     <ToolLayout
       title="Text to speech"
-      lede="Hear any text read aloud with the voices built into your device — pick a voice, set the speed, and follow along word by word."
+      lede="Hear text in a natural voice that runs in this tab, or with the voices built into your device. Follow along word by word."
     >
-      {!supported ? (
+      {settings.engine === 'device' && !supported ? (
         <p className="banner warn">
           This browser has no speech synthesis. Try a current Chrome, Edge, Safari, or Firefox.
         </p>
+      ) : null}
+      <Segmented
+        label="Mode"
+        value={mode}
+        options={[
+          { value: 'speak', label: 'Speak' },
+          { value: 'listen', label: 'Listen' },
+        ]}
+        onChange={(value) => {
+          if (value === 'speak') stopListening()
+          setMode(value)
+        }}
+      />
+      {mode === 'listen' ? (
+        <section className="panel">
+          <p className="banner warn">
+            Dictation uses the browser’s recognizer. In Chrome that audio can be sent to the browser vendor. BitKit
+            never sees it, and it is not saved here.
+          </p>
+          <div className="row">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => void (listening ? stopListening() : startListening())}
+            >
+              {listening ? 'Stop listening' : 'Start listening'}
+            </button>
+          </div>
+          {interim ? <p className="hint">{interim}</p> : null}
+          {listenError ? <p className="status-bad">{listenError}</p> : null}
+          <p className="hint">
+            Final words are added to the text box. Speak mode can read them back with an on-device voice.
+          </p>
+        </section>
       ) : null}
       <div className="split">
         <section className="panel">
@@ -176,45 +402,99 @@ export default function SpeechTool() {
         </section>
 
         <aside className="panel">
+          <Segmented
+            label="Voice engine"
+            value={settings.engine}
+            options={[
+              { value: 'natural', label: 'Natural' },
+              { value: 'device', label: 'Device' },
+            ]}
+            onChange={(value) => {
+              if (value !== settings.engine) stop()
+              update({ engine: value })
+            }}
+          />
+          {settings.engine === 'natural' && !allowed ? (
+            <div className="panel" style={{ marginBottom: '1rem' }}>
+              <p>
+                The natural voice downloads about 30 MB once (a small speech model, an English pronunciation dictionary,
+                and its runtime). Your text stays in this tab and is not uploaded. After that it works offline.
+              </p>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  grantEngineConsent()
+                  setAllowed(true)
+                }}
+              >
+                Allow voice download
+              </button>
+            </div>
+          ) : null}
           <div className="speech-controls">
             <button
               type="button"
               className="btn btn-primary btn-lg"
-              disabled={!supported || !text.trim()}
+              disabled={
+                !text.trim() || status === 'preparing' || (settings.engine === 'natural' ? !allowed : !supported)
+              }
               onClick={status === 'speaking' ? pause : play}
             >
               {status === 'speaking' ? <Pause size={18} aria-hidden="true" /> : <Play size={18} aria-hidden="true" />}
-              {status === 'speaking' ? 'Pause' : status === 'paused' ? 'Resume' : 'Read aloud'}
+              {status === 'preparing'
+                ? 'Preparing…'
+                : status === 'speaking'
+                  ? 'Pause'
+                  : status === 'paused'
+                    ? 'Resume'
+                    : 'Read aloud'}
             </button>
             <button type="button" className="btn btn-lg" disabled={status === 'idle'} onClick={stop}>
               <Square size={16} aria-hidden="true" />
               Stop
             </button>
           </div>
+          {note ? <p className={status === 'idle' ? 'status-bad' : 'hint'}>{note}</p> : null}
 
-          <label className="field">
-            <span>Language</span>
-            <select value={settings.lang} onChange={(e) => update({ lang: e.target.value, voice: '' })}>
-              <option value="">All languages ({voices.length} voices)</option>
-              {languages.map((lang) => (
-                <option key={lang.code} value={lang.code}>
-                  {lang.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
-            <span>Voice</span>
-            <select value={voice?.voiceURI ?? ''} onChange={(e) => update({ voice: e.target.value })}>
-              {filtered.length ? null : <option value="">No voices installed</option>}
-              {filtered.map((v) => (
-                <option key={v.voiceURI} value={v.voiceURI}>
-                  {v.name} · {v.lang}
-                  {v.localService ? '' : ' (online)'}
-                </option>
-              ))}
-            </select>
-          </label>
+          {settings.engine === 'natural' ? (
+            <label className="field">
+              <span>Voice</span>
+              <select value={settings.naturalVoice} onChange={(e) => update({ naturalVoice: e.target.value })}>
+                {NATURAL_VOICES.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label} · {item.detail}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <>
+              <label className="field">
+                <span>Language</span>
+                <select value={settings.lang} onChange={(e) => update({ lang: e.target.value, voice: '' })}>
+                  <option value="">All languages ({voices.length} voices)</option>
+                  {languages.map((lang) => (
+                    <option key={lang.code} value={lang.code}>
+                      {lang.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                <span>Voice</span>
+                <select value={voice?.voiceURI ?? ''} onChange={(e) => update({ voice: e.target.value })}>
+                  {filtered.length ? null : <option value="">No voices installed</option>}
+                  {filtered.map((v) => (
+                    <option key={v.voiceURI} value={v.voiceURI}>
+                      {v.name} · {v.lang}
+                      {v.localService ? '' : ' (online)'}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
+          )}
           <label className="field">
             <span>Speed · {settings.rate.toFixed(1)}×</span>
             <input
@@ -226,17 +506,19 @@ export default function SpeechTool() {
               onChange={(e) => update({ rate: Number(e.target.value) })}
             />
           </label>
-          <label className="field">
-            <span>Pitch · {settings.pitch.toFixed(1)}</span>
-            <input
-              type="range"
-              min={0.5}
-              max={1.5}
-              step={0.1}
-              value={settings.pitch}
-              onChange={(e) => update({ pitch: Number(e.target.value) })}
-            />
-          </label>
+          {settings.engine === 'device' ? (
+            <label className="field">
+              <span>Pitch · {settings.pitch.toFixed(1)}</span>
+              <input
+                type="range"
+                min={0.5}
+                max={1.5}
+                step={0.1}
+                value={settings.pitch}
+                onChange={(e) => update({ pitch: Number(e.target.value) })}
+              />
+            </label>
+          ) : null}
           <label className="field">
             <span>
               <Volume2 size={13} aria-hidden="true" style={{ verticalAlign: '-2px' }} /> Volume ·{' '}
@@ -252,8 +534,9 @@ export default function SpeechTool() {
             />
           </label>
           <p className="hint">
-            Voices marked “online” are provided by your browser vendor and send the text to their service. Every other
-            voice runs on this device. Browsers do not let a page record speech, so there is no audio download.
+            {settings.engine === 'natural'
+              ? 'Heart, Puck, Isabella, and Fable read English. Alpha and Omega read Hindi, Siwis reads French, and Alex reads Spanish. The voice is Paradee, distilled from Kokoro, and it runs in this tab.'
+              : 'Voices marked “online” are provided by your browser vendor and send the text to their service. Every other voice runs on this device. These are the system voices, which are clearer than they are natural.'}
           </p>
         </aside>
       </div>

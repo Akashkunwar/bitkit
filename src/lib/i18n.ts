@@ -4,10 +4,10 @@ import { createContext, useContext } from 'react'
  * A deliberately small translation layer.
  *
  * Scope: the shell, home page, and every tool's title and blurb — everything
- * you need to find your way around. Tool interiors stay in English for now;
- * translating 76 tools' worth of copy is a separate project, and shipping a
- * half-translated tool reads worse than an untranslated one. The language
- * switcher says so rather than pretending otherwise.
+ * you need to find your way around. Most tool interiors stay in English.
+ * Finance, invoices, GST, and number-to-words switch with the language,
+ * because those are the screens where the words are the calculation.
+ * A half-translated tool reads worse than an untranslated one.
  */
 
 export type Language = 'en' | 'hi'
@@ -69,6 +69,7 @@ const EN: Dict = {
   'category.Document': 'Document',
   'category.Data': 'Data',
   'category.Media': 'Media',
+  'category.Social': 'Social',
   'category.Developer': 'Developer',
   'category.Design': 'Design',
   'category.Writing': 'Writing',
@@ -90,6 +91,9 @@ const EN: Dict = {
   'home.clear': 'Clear',
   'home.new': 'New in BitKit',
   'home.noSuggestion': 'No tool opens this kind of file yet.',
+  'tray.label': 'Files in this tab',
+  'tray.clear': 'Clear tray',
+  'tray.remove': 'Remove',
 
   'palette.placeholder': 'Search tools, or type what you want to do…',
   'palette.tools': 'Tools',
@@ -104,7 +108,7 @@ const EN: Dict = {
   'categoryBlurb.Image': 'Resize, convert, rotate, and edit pictures.',
   'categoryBlurb.Document': 'PDF, Word, and Markdown in every direction.',
   'categoryBlurb.Data': 'Spreadsheets, charts, and archives.',
-  'categoryBlurb.Media': 'Trim, record, and measure audio and video.',
+  'categoryBlurb.Media': 'Audio, video, and the devices that play them.',
   'categoryBlurb.Developer': 'Formatters, encoders, and generators.',
   'categoryBlurb.Design': 'Colour, contrast, gradients, and diagrams.',
   'categoryBlurb.Writing': 'Counters, styling, emoji, and speech.',
@@ -159,6 +163,7 @@ const HI: Dict = {
   'category.Document': 'दस्तावेज़',
   'category.Data': 'डेटा',
   'category.Media': 'मीडिया',
+  'category.Social': 'सोशल',
   'category.Developer': 'डेवलपर',
   'category.Design': 'डिज़ाइन',
   'category.Writing': 'लेखन',
@@ -180,6 +185,9 @@ const HI: Dict = {
   'home.clear': 'साफ़ करें',
   'home.new': 'BitKit में नया',
   'home.noSuggestion': 'इस तरह की फ़ाइल के लिए अभी कोई उपकरण नहीं है।',
+  'tray.label': 'इस टैब की फ़ाइलें',
+  'tray.clear': 'ट्रे साफ़ करें',
+  'tray.remove': 'हटाएँ',
 
   'palette.placeholder': 'उपकरण खोजें, या लिखें कि क्या करना है…',
   'palette.tools': 'उपकरण',
@@ -194,7 +202,7 @@ const HI: Dict = {
   'categoryBlurb.Image': 'तस्वीरों का आकार, फ़ॉर्मैट, घुमाव और संपादन।',
   'categoryBlurb.Document': 'PDF, Word और Markdown — हर दिशा में।',
   'categoryBlurb.Data': 'स्प्रेडशीट, चार्ट और आर्काइव।',
-  'categoryBlurb.Media': 'ऑडियो-वीडियो काटें, रिकॉर्ड करें, मापें।',
+  'categoryBlurb.Media': 'ऑडियो, वीडियो, और उन्हें चलाने वाले डिवाइस।',
   'categoryBlurb.Developer': 'फ़ॉर्मैटर, एनकोडर और जनरेटर।',
   'categoryBlurb.Design': 'रंग, कंट्रास्ट, ग्रेडिएंट और डायग्राम।',
   'categoryBlurb.Writing': 'गिनती, स्टाइल, इमोजी और आवाज़।',

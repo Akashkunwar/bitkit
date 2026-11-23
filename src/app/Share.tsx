@@ -7,6 +7,16 @@ import { SEND_TARGETS } from '../lib/handoff'
 
 const SHARE_CACHE = 'kit-share'
 
+function fileFromDataUrl(dataUrl: string, name: string): File {
+  const [header, body = ''] = dataUrl.split(',')
+  const mime = /data:([^;,]+)/.exec(header)?.[1] ?? 'application/octet-stream'
+  const binary = atob(body)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i)
+  const ext = mime === 'image/png' ? 'png' : mime === 'image/jpeg' ? 'jpg' : 'bin'
+  return new File([bytes], name.includes('.') ? name : `${name}.${ext}`, { type: mime })
+}
+
 async function filesFromShareCache(): Promise<{ files: File[]; text: string }> {
   if (!('caches' in window)) return { files: [], text: '' }
   const cache = await caches.open(SHARE_CACHE)
@@ -42,7 +52,7 @@ export default function SharePage() {
         setHandoff({ files: incoming, text: incomingText || undefined, from: 'share' })
         navigate(path, { replace: true })
       } else {
-        setStatus('Drop a file here, or share one to BitKit from another app after install.')
+        setStatus('Drop a file here, share one from another app, or use the unpacked extension in extension/.')
       }
     }
 
@@ -59,6 +69,24 @@ export default function SharePage() {
     return () => {
       cancelled = true
     }
+  }, [navigate])
+
+  useEffect(() => {
+    const onMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return
+      const data = event.data as { source?: string; text?: string; dataUrl?: string; name?: string } | null
+      if (!data || data.source !== 'bitkit-extension') return
+      const incoming: File[] = []
+      if (data.dataUrl?.startsWith('data:')) incoming.push(fileFromDataUrl(data.dataUrl, data.name || 'image'))
+      const incomingText = data.text ?? ''
+      if (!incoming.length && !incomingText) return
+      setFiles(incoming)
+      setText(incomingText)
+      setHandoff({ files: incoming, text: incomingText || undefined, from: 'share' })
+      navigate(suggestPath(incoming, incomingText))
+    }
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
   }, [navigate])
 
   return (

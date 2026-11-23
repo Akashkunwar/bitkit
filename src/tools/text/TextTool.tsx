@@ -15,8 +15,22 @@ import {
   textStats,
   type CaseMode,
 } from '../../lib/textbench'
+import { findReplace, transformLines, type LineOp } from '../../lib/lines'
+import { formatCss, formatHtml, formatJs, formatSql, minifyCss, minifyHtml, minifyJs } from '../../lib/codeFormat'
+import { krutiToUnicode, unicodeToKruti } from '../../lib/kruti'
+import {
+  binaryToText,
+  bionicPieces,
+  codesToText,
+  ipv4ToBinary,
+  repeatText,
+  reverseText,
+  textToBinary,
+  textToCodes,
+} from '../../lib/shape'
 
-type Mode = 'case' | 'count' | 'csv' | 'dummy'
+type Mode = 'case' | 'count' | 'csv' | 'dummy' | 'lines' | 'format' | 'shape'
+type ShapeOp = 'bionic' | 'repeat' | 'reverse' | 'binary' | 'codes' | 'ip' | 'kruti' | 'unicode'
 
 const CASES: { value: CaseMode; label: string }[] = [
   { value: 'lower', label: 'lower' },
@@ -39,6 +53,12 @@ export default function TextTool() {
   const [csvDir, setCsvDir] = useState<'csv' | 'json'>('csv')
   const [paras, setParas] = useState(2)
   const [people, setPeople] = useState(5)
+  const [find, setFind] = useState('')
+  const [replace, setReplace] = useState('')
+  const [useRegex, setUseRegex] = useState(false)
+  const [formatKind, setFormatKind] = useState<'sql' | 'css' | 'html' | 'js'>('sql')
+  const [shape, setShape] = useState<ShapeOp>('bionic')
+  const [repeat, setRepeat] = useState(3)
   const { copied, copy } = useCopied()
 
   useHandoff((payload) => {
@@ -70,7 +90,7 @@ export default function TextTool() {
   const peopleRows = useMemo(() => dummyPeople(people), [people])
 
   return (
-    <ToolLayout title="Text bench" lede="Case and slugs, a live word count, CSV ↔ JSON, and dummy copy. All local.">
+    <ToolLayout title="Text bench" lede="Case, lines, bionic reading, KrutiDev, binary, and dummy copy. All local.">
       <Segmented
         label="Mode"
         value={mode}
@@ -78,6 +98,9 @@ export default function TextTool() {
           { value: 'case', label: 'Case' },
           { value: 'count', label: 'Count' },
           { value: 'csv', label: 'CSV ↔ JSON' },
+          { value: 'lines', label: 'Lines' },
+          { value: 'shape', label: 'Shape' },
+          { value: 'format', label: 'Format' },
           { value: 'dummy', label: 'Dummy' },
         ]}
         onChange={setMode}
@@ -168,6 +191,185 @@ export default function TextTool() {
                 <button type="button" className="btn btn-primary" disabled={!input.trim()} onClick={runCsv}>
                   Convert
                 </button>
+              </>
+            ) : null}
+            {mode === 'lines' ? (
+              <>
+                <div className="row" style={{ flexWrap: 'wrap' }}>
+                  {(
+                    [
+                      ['sort', 'Sort'],
+                      ['sort-desc', 'Sort Z–A'],
+                      ['unique', 'Unique'],
+                      ['trim', 'Trim'],
+                      ['reverse', 'Reverse'],
+                      ['shuffle', 'Shuffle'],
+                      ['number', 'Number'],
+                      ['blank', 'Drop blanks'],
+                    ] as [LineOp, string][]
+                  ).map(([op, label]) => (
+                    <button
+                      key={op}
+                      type="button"
+                      className="btn"
+                      disabled={!input.trim()}
+                      onClick={() => {
+                        setError(null)
+                        setOutput(transformLines(input, op, op === 'shuffle' ? Date.now() : 1))
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <label className="field">
+                  <span>Find</span>
+                  <input className="text-input" value={find} onChange={(e) => setFind(e.target.value)} />
+                </label>
+                <label className="field">
+                  <span>Replace</span>
+                  <input className="text-input" value={replace} onChange={(e) => setReplace(e.target.value)} />
+                </label>
+                <label className="row">
+                  <input type="checkbox" checked={useRegex} onChange={(e) => setUseRegex(e.target.checked)} />
+                  Regular expression
+                </label>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={!input || !find}
+                  onClick={() => {
+                    try {
+                      setError(null)
+                      setOutput(findReplace(input, find, replace, { regex: useRegex }))
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'Could not replace that.')
+                    }
+                  }}
+                >
+                  Replace
+                </button>
+              </>
+            ) : null}
+            {mode === 'shape' ? (
+              <>
+                <Segmented
+                  label="Transform"
+                  value={shape}
+                  options={[
+                    { value: 'bionic', label: 'Bionic' },
+                    { value: 'repeat', label: 'Repeat' },
+                    { value: 'reverse', label: 'Reverse' },
+                    { value: 'binary', label: 'Binary' },
+                    { value: 'codes', label: 'Codes' },
+                    { value: 'ip', label: 'IP bits' },
+                    { value: 'kruti', label: 'Kruti → Unicode' },
+                    { value: 'unicode', label: 'Unicode → Kruti' },
+                  ]}
+                  onChange={setShape}
+                />
+                {shape === 'repeat' ? (
+                  <label className="field">
+                    <span>Times · {repeat}</span>
+                    <input
+                      type="range"
+                      min={1}
+                      max={50}
+                      value={repeat}
+                      onChange={(e) => setRepeat(Number(e.target.value))}
+                    />
+                  </label>
+                ) : null}
+                {shape === 'bionic' ? (
+                  <p className="bionic-preview" aria-label="Bionic reading preview">
+                    {bionicPieces(input || 'Bionic reading bolds the start of each word.').map((piece, index) =>
+                      piece.bold ? <strong key={index}>{piece.text}</strong> : <span key={index}>{piece.text}</span>,
+                    )}
+                  </p>
+                ) : null}
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={!input.trim()}
+                  onClick={() => {
+                    try {
+                      setError(null)
+                      if (shape === 'bionic') {
+                        setOutput(
+                          bionicPieces(input)
+                            .map((piece) => (piece.bold ? `**${piece.text}**` : piece.text))
+                            .join(''),
+                        )
+                      } else if (shape === 'repeat')
+                        setOutput(repeatText(input, repeat, input.includes('\n') ? '\n' : ''))
+                      else if (shape === 'reverse') setOutput(reverseText(input))
+                      else if (shape === 'binary') {
+                        setOutput(/^[01\s]+$/.test(input.trim()) ? binaryToText(input) : textToBinary(input))
+                      } else if (shape === 'codes') {
+                        setOutput(/^\d[\d\s,]*$/.test(input.trim()) ? codesToText(input) : textToCodes(input))
+                      } else if (shape === 'ip') setOutput(ipv4ToBinary(input))
+                      else if (shape === 'kruti') setOutput(krutiToUnicode(input))
+                      else setOutput(unicodeToKruti(input))
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'Could not transform that.')
+                    }
+                  }}
+                >
+                  {shape === 'binary' && /^[01\s]+$/.test(input.trim()) ? 'Binary to text' : 'Apply'}
+                </button>
+              </>
+            ) : null}
+            {mode === 'format' ? (
+              <>
+                <Segmented
+                  label="Language"
+                  value={formatKind}
+                  options={[
+                    { value: 'sql', label: 'SQL' },
+                    { value: 'css', label: 'CSS' },
+                    { value: 'html', label: 'HTML' },
+                    { value: 'js', label: 'JavaScript' },
+                  ]}
+                  onChange={setFormatKind}
+                />
+                <div className="row">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={!input.trim()}
+                    onClick={() => {
+                      setError(null)
+                      const next =
+                        formatKind === 'sql'
+                          ? formatSql(input)
+                          : formatKind === 'css'
+                            ? formatCss(input)
+                            : formatKind === 'js'
+                              ? formatJs(input)
+                              : formatHtml(input)
+                      setOutput(next)
+                    }}
+                  >
+                    Format
+                  </button>
+                  <button
+                    type="button"
+                    className="btn"
+                    disabled={!input.trim() || formatKind === 'sql'}
+                    onClick={() => {
+                      setError(null)
+                      setOutput(
+                        formatKind === 'css'
+                          ? minifyCss(input)
+                          : formatKind === 'js'
+                            ? minifyJs(input)
+                            : minifyHtml(input),
+                      )
+                    }}
+                  >
+                    Minify
+                  </button>
+                </div>
               </>
             ) : null}
             <div className="row" style={{ marginTop: '1rem' }}>

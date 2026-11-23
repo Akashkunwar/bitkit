@@ -16,6 +16,7 @@ export default function ExifTool() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [stripped, setStripped] = useState<File | null>(null)
+  const [stripMethod, setStripMethod] = useState<'lossless' | 'reencode' | null>(null)
 
   const load = async (next: File) => {
     setError(null)
@@ -52,6 +53,7 @@ export default function ExifTool() {
       })
       const out = new File([result.blob], name, { type: result.blob.type })
       setStripped(out)
+      setStripMethod(result.method)
       triggerDownload(out, name)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not strip metadata.')
@@ -65,7 +67,7 @@ export default function ExifTool() {
   return (
     <ToolLayout
       title="Image metadata"
-      lede="Read EXIF, IPTC, and GPS in this tab. Strip tags before you send a photo onward. This does not hide AI watermarks."
+      lede="Read EXIF, IPTC, and GPS in this tab. JPEG and PNG are stripped without re-encoding. Other formats are re-encoded, which also drops tags. This does not remove a watermark baked into the pixels."
     >
       <DropZone
         onFiles={(files) => files[0] && void load(files[0])}
@@ -108,6 +110,13 @@ export default function ExifTool() {
                 disabled={!file || busy}
                 onClick={() => void strip()}
               />
+              {stripMethod ? (
+                <p className="status-ok">
+                  {stripMethod === 'lossless'
+                    ? 'Removed the tag segments. The pixels were not re-encoded, and a watermark drawn into the picture is still there.'
+                    : 'Re-encoded the pixels, which drops metadata. A watermark drawn into the picture is still there.'}
+                </p>
+              ) : null}
               <p className="hint">
                 {meta.stripKind === 'reencode'
                   ? 'This format is stripped by re-encoding pixels. JPEG/PNG keep the original bytes minus tag segments.'

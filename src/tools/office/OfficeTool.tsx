@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
-import { downloadNamed } from '../../lib/download'
+import { downloadNamed, triggerDownload } from '../../lib/download'
+import { zipStore } from '../../lib/zip'
 import { useHandoff } from '../../lib/useHandoff'
 import {
   blocksToHtml,
@@ -34,6 +35,31 @@ export default function OfficeTool() {
   const [outFile, setOutFile] = useState<File | null>(null)
 
   const load = async (files: File[]) => {
+    if (files.length > 1) {
+      setBusy(true)
+      setError(null)
+      try {
+        const entries: { name: string; data: Uint8Array }[] = []
+        for (const file of files) {
+          const { blocks } = await fileToBlocks(file)
+          const blob = blocksToPdf(blocks, {
+            pageSize,
+            marginMm,
+            header,
+            footer,
+            title: documentTitle(blocks, baseName(file.name)),
+          })
+          entries.push({ name: `${baseName(file.name)}.pdf`, data: new Uint8Array(await blob.arrayBuffer()) })
+        }
+        const zip = zipStore(entries)
+        triggerDownload(new Blob([zip.slice().buffer as ArrayBuffer], { type: 'application/zip' }), 'documents.zip')
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Could not convert that batch.')
+      } finally {
+        setBusy(false)
+      }
+      return
+    }
     const file = files[0]
     if (!file) return
     setBusy(true)
@@ -106,6 +132,7 @@ export default function OfficeTool() {
       <div className="no-print">
         <DropZone
           accept={OFFICE_ACCEPT}
+          multiple
           label="Drop a .docx, .pptx, .xlsx, .csv, .md, .html, .rtf, or .txt file."
           hint="Text, headings, lists, and tables come across. Images, columns, and exact page layout do not."
           onFiles={(files) => void load(files)}

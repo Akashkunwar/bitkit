@@ -4,6 +4,7 @@ import { ToolLayout } from '../../components/ToolLayout'
 import { Segmented } from '../../components/Segmented'
 import { SendTo } from '../../components/SendTo'
 import { useCopied } from '../../lib/useCopied'
+import { useI18n } from '../../lib/i18n'
 import { COMMON_ZONES, formatInZone, parseInstant, zoneOffset } from '../../lib/time'
 import {
   FAMILIES,
@@ -22,6 +23,8 @@ type Mode = 'time' | 'units' | 'percent'
 export default function ConvertTool() {
   const [mode, setMode] = useState<Mode>('time')
   const { copied, copy } = useCopied()
+  const { language } = useI18n()
+  const L = (en: string, hi: string) => (language === 'hi' ? hi : en)
 
   const [timeInput, setTimeInput] = useState('')
   const [homeZone, setHomeZone] = useState(() => {
@@ -363,11 +366,16 @@ export default function ConvertTool() {
             <p className="status-ok">{money.change == null ? '—' : `${fmt(money.change)}%`}</p>
           </section>
           <aside className="panel">
-            <h3>GST / tax</h3>
-            <p className="hint">Uses the percent and amount from the left. Default 18% is a common GST rate.</p>
+            <h3>{L('GST / tax', 'जीएसटी / कर')}</h3>
+            <p className="hint">
+              {L(
+                'Uses the percent and amount from the left. Default 18% is a common GST rate.',
+                'बाएँ का प्रतिशत और राशि इस्तेमाल होती है। 18% आम जीएसटी दर है।',
+              )}
+            </p>
             <label className="row">
               <input type="checkbox" checked={taxInclusive} onChange={(e) => setTaxInclusive(e.target.checked)} />
-              Amount already includes tax (reverse GST)
+              {L('Amount already includes tax (reverse GST)', 'राशि में कर शामिल है (रिवर्स जीएसटी)')}
             </label>
             {money.tax ? (
               <p className="status-ok">

@@ -19,6 +19,7 @@ import {
   type Symbology,
 } from '../lib/barcode'
 import { chunkText, pickVoice } from '../lib/speech'
+import { decodeBarcodeRgba } from '../lib/barcodeScan'
 
 const FORMATS: Record<Symbology, BarcodeFormat> = {
   code128: BarcodeFormat.CODE_128,
@@ -131,6 +132,29 @@ describe('barcodes scan back to what was encoded', () => {
       const encoded = encodeBarcode(symbology, input)
       expect(encoded.widths.length % 2).toBe(1) // starts and ends with a bar
       expect(decode(symbology, encoded.widths)).toBe(expected)
+      if (symbology === 'code128' && input === 'BitKit-2026') {
+        const scale = 3
+        const quiet = 12
+        const modules = encoded.widths.reduce((a, b) => a + b, 0)
+        const width = (modules + quiet * 2) * scale
+        const height = 40
+        const rgba = new Uint8ClampedArray(width * height * 4).fill(255)
+        let x = quiet * scale
+        encoded.widths.forEach((w, i) => {
+          if (i % 2 === 0) {
+            for (let yy = 0; yy < height; yy += 1) {
+              for (let xx = x; xx < x + w * scale; xx += 1) {
+                const p = (yy * width + xx) * 4
+                rgba[p] = 0
+                rgba[p + 1] = 0
+                rgba[p + 2] = 0
+              }
+            }
+          }
+          x += w * scale
+        })
+        expect(decodeBarcodeRgba(rgba, width, height)).toBe(expected)
+      }
     })
   }
 })

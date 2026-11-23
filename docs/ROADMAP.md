@@ -47,10 +47,18 @@ A new interface, and the conversions people ask for by name.
 - **More.** Barcode generator, Text to speech.
 - **Engineering.** ESLint and Prettier in CI, pdf.js on its legacy build for browser coverage, send-to targets derived from the registry, and a ranked token search.
 
+## Phase 8 — Jobs people still left the site for (shipped)
+
+Modes on existing tools, plus two screens that did not fit: screenshot markup and PDF compare.
+
+- Named presets, a tab file tray, and home paste that routes like a drop.
+- Permanent PDF redaction, embedded-image extract, label sheets, quote and code cards, a photo palette, video to GIF, speech to text (with the browser-vendor warning), income tax, subnet, Roman ↔ Devanagari, line cleanup, JSON to TypeScript/Zod, HTML to Markdown, and SQL/CSS/HTML formatting.
+- A click-to-send unpacked extension in `extension/`. It does not watch the clipboard.
+
 ## Non-goals (do not schedule)
 
 - SynthID / watermark / detector evasion
 - Cloud sync or accounts in the frontend-only product
-- System-wide clipboard daemon (would need a native app or extension)
+- A silent clipboard watcher. The unpacked extension sends only what you right-click.
 - PDF encryption or password removal — pdf-lib cannot encrypt, and cracking a password is not something this app should do
 - Pixel-identical Word or PowerPoint rendering. Word to image renders a close layout through docx-preview and says plainly where it can differ (substituted fonts, pagination for files not saved by Word); matching Word exactly needs Word's own layout engine.
