@@ -3,11 +3,12 @@ import { createContext, useContext } from 'react'
 /**
  * A deliberately small translation layer.
  *
- * Scope: the shell, home page, and every tool's title and blurb — everything
- * you need to find your way around. Most tool interiors stay in English.
- * Finance, invoices, GST, and number-to-words switch with the language,
- * because those are the screens where the words are the calculation.
- * A half-translated tool reads worse than an untranslated one.
+ * Scope: the shell, home page, and every tool's title and blurb — the heading
+ * you see inside a tool follows the language. Finance, invoices, GST,
+ * number-to-words, and the tools added with them (exchange, authenticator,
+ * strip, image compare, JSON query, hex, captions, batch rename, and the
+ * archive screen) translate their controls too. Other tool controls stay
+ * English, because a half-translated form reads worse than an English one.
  */
 
 export type Language = 'en' | 'hi'
@@ -78,6 +79,11 @@ const EN: Dict = {
   'category.Writing': 'Writing',
   'category.Notes': 'Notes',
 
+  'nav.pin': 'Pin to sidebar',
+  'nav.unpin': 'Unpin from sidebar',
+  'nav.copyLink': 'Copy link to this tool',
+  'nav.linkCopied': 'Link copied',
+  'nav.new': 'New',
   'nav.search': 'Search tools and actions…',
   'nav.hideSidebar': 'Hide sidebar',
   'nav.showSidebar': 'Show sidebar',
@@ -175,6 +181,11 @@ const HI: Dict = {
   'category.Writing': 'लेखन',
   'category.Notes': 'नोट्स',
 
+  'nav.pin': 'साइडबार पर पिन करें',
+  'nav.unpin': 'साइडबार से हटाएँ',
+  'nav.copyLink': 'इस उपकरण की लिंक कॉपी करें',
+  'nav.linkCopied': 'लिंक कॉपी हो गई',
+  'nav.new': 'नया',
   'nav.search': 'उपकरण और क्रियाएँ खोजें…',
   'nav.hideSidebar': 'साइडबार छिपाएँ',
   'nav.showSidebar': 'साइडबार दिखाएँ',

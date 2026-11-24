@@ -130,7 +130,12 @@ export default function PlayTool() {
         <button
           type="button"
           className="btn btn-primary"
-          style={{ minHeight: 160, width: '100%', background: wait === 'go' ? '#2f7d55' : undefined }}
+          style={{
+            minHeight: 160,
+            width: '100%',
+            background: wait === 'go' ? '#2f7d55' : undefined,
+            color: wait === 'go' ? '#f7f4ea' : undefined,
+          }}
           onClick={() => (wait === 'idle' || wait === 'done' ? startReaction() : tapReaction())}
         >
           {wait === 'idle'

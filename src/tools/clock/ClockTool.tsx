@@ -49,24 +49,22 @@ export default function ClockTool() {
         <span>Minutes each · {minutes}</span>
         <input type="range" min={1} max={30} value={minutes} onChange={(e) => apply(Number(e.target.value))} />
       </label>
-      <div className="split">
+      <div className="clock-faces">
         {([0, 1] as const).map((side) => (
           <button
             key={side}
             type="button"
-            className="btn btn-primary"
-            style={{
-              minHeight: 160,
-              background: left[side] === 0 ? '#8a2b2b' : active === side ? undefined : 'var(--bg-mute)',
-            }}
+            className="clock-face"
+            data-side={side === 0 ? 'white' : 'black'}
+            data-running={active === side ? 'true' : 'false'}
+            data-flag={left[side] === 0 ? 'true' : 'false'}
             onClick={() => {
               const next = side === 0 ? 1 : 0
               if (left[next] === 0) return
               setActive(next)
             }}
           >
-            {side === 0 ? 'White' : 'Black'}
-            <br />
+            <small>{side === 0 ? 'White' : 'Black'}</small>
             {left[side] === 0 ? 'Flag' : format(left[side])}
           </button>
         ))}

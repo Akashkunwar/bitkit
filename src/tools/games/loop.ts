@@ -18,11 +18,11 @@ export function useHeld(keys: readonly string[]) {
       held.current.delete(event.key)
     }
     const clear = () => held.current.clear()
-    window.addEventListener('keydown', down)
+    window.addEventListener('keydown', down, true)
     window.addEventListener('keyup', up)
     window.addEventListener('blur', clear)
     return () => {
-      window.removeEventListener('keydown', down)
+      window.removeEventListener('keydown', down, true)
       window.removeEventListener('keyup', up)
       window.removeEventListener('blur', clear)
     }

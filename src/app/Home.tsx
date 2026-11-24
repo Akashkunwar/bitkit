@@ -10,6 +10,7 @@ import { setHandoff } from '../lib/handoff'
 import { clearHomeInput, peekHomeInput, subscribeHomeInput } from '../lib/homeStage'
 import { useSessionTray } from './useSessionTray'
 import { useI18n } from '../lib/i18n'
+import { toolText } from '../lib/hiTools'
 import { DropZone } from '../components/DropZone'
 import { ToolIcon } from '../components/ToolIcon'
 
@@ -21,7 +22,8 @@ function isCategory(value: string | null): value is ToolCategory {
 
 function ToolCard({ tool, showTag }: { tool: ToolMeta; showTag?: boolean }) {
   const { isPinned, toggle } = usePins()
-  const { t } = useI18n()
+  const { t, language } = useI18n()
+  const copy = toolText(language, tool)
   const pinned = isPinned(tool.id)
   return (
     <div className="tool-card" style={{ '--cat': CATEGORY_META[tool.category].color } as CSSProperties}>
@@ -29,10 +31,10 @@ function ToolCard({ tool, showTag }: { tool: ToolMeta; showTag?: boolean }) {
         <ToolIcon icon={tool.icon} category={tool.category} />
         <span className="tool-card-text">
           <h3>
-            {tool.title}
-            {tool.isNew ? <span className="badge badge-new">New</span> : null}
+            {copy.title}
+            {tool.isNew ? <span className="badge badge-new">{t('nav.new')}</span> : null}
           </h3>
-          <p>{tool.blurb}</p>
+          <p>{copy.blurb}</p>
           {showTag ? <span className="tool-tag">{t(`category.${tool.category}`)}</span> : null}
         </span>
       </Link>
@@ -40,7 +42,7 @@ function ToolCard({ tool, showTag }: { tool: ToolMeta; showTag?: boolean }) {
         type="button"
         className="pin-btn"
         aria-pressed={pinned}
-        aria-label={pinned ? `Unpin ${tool.title}` : `Pin ${tool.title}`}
+        aria-label={pinned ? `${t('nav.unpin')} ${copy.title}` : `${t('nav.pin')} ${copy.title}`}
         onClick={() => toggle(tool.id)}
       >
         <Star size={15} aria-hidden="true" />
@@ -51,7 +53,7 @@ function ToolCard({ tool, showTag }: { tool: ToolMeta; showTag?: boolean }) {
 
 /** Drop any file on Home and get the tools that can open it. */
 function SmartDrop() {
-  const { t } = useI18n()
+  const { t, language } = useI18n()
   const navigate = useNavigate()
   const tray = useSessionTray()
   const [files, setFiles] = useState<File[]>([])
@@ -101,8 +103,8 @@ function SmartDrop() {
                 >
                   <ToolIcon icon={tool.icon} category={tool.category} size="sm" />
                   <span>
-                    <strong>{tool.title}</strong>
-                    <span>{tool.blurb}</span>
+                    <strong>{toolText(language, tool).title}</strong>
+                    <span>{toolText(language, tool).blurb}</span>
                   </span>
                 </button>
               ))}
@@ -136,7 +138,7 @@ export function Home() {
   const [filter, setFilterState] = useState<Filter>(isCategory(initial) ? initial : 'All')
   const [usage, setUsage] = useState<Usage>({})
   const { pins } = usePins()
-  const { t } = useI18n()
+  const { t, language } = useI18n()
 
   useEffect(() => {
     void (async () => {
@@ -271,7 +273,7 @@ export function Home() {
               return (
                 <Link key={tool.id} className="chip" to={tool.path}>
                   <Icon size={14} aria-hidden="true" />
-                  {tool.title}
+                  {toolText(language, tool).title}
                 </Link>
               )
             })}

@@ -144,7 +144,7 @@ describe('smart drop routing', () => {
 
   it('always ends with tools that take any file, without duplicates', () => {
     const ids = toolsForFiles([file('blob.bin')]).map((t) => t.id)
-    expect(ids).toEqual(['archive', 'checksum'])
+    expect(ids).toEqual(['archive', 'checksum', 'hex'])
     const pdfIds = toolsForFiles([file('a.pdf')]).map((t) => t.id)
     expect(new Set(pdfIds).size).toBe(pdfIds.length)
   })

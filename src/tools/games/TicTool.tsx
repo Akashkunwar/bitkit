@@ -33,7 +33,7 @@ export default function TicTool() {
         <div className="arcade-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', maxWidth: 280 }}>
           {board.map((mark, index) => (
             <button key={index} type="button" className="arcade-cell" onClick={() => play(index)}>
-              {mark}
+              {mark ? <span className={mark === 'X' ? 'mark-you' : 'mark-them'}>{mark}</span> : ''}
             </button>
           ))}
         </div>

@@ -5,6 +5,7 @@ import { Logo } from './Brand'
 import { CATEGORIES, CATEGORY_META, tools, type ToolCategory, type ToolMeta } from '../registry'
 import { usePins } from '../lib/usePins'
 import { useI18n } from '../lib/i18n'
+import { toolText } from '../lib/hiTools'
 
 const OPEN_SECTIONS_KEY = 'bitkit-open-sections'
 
@@ -34,11 +35,13 @@ type Props = {
 
 function ToolLink({ tool }: { tool: ToolMeta }) {
   const Icon = tool.icon
+  const { t, language } = useI18n()
+  const copy = toolText(language, tool)
   return (
-    <NavLink className="rail-link" to={tool.path} title={tool.blurb}>
+    <NavLink className="rail-link" to={tool.path} title={copy.blurb}>
       <Icon size={16} aria-hidden="true" />
-      <span className="rail-label">{tool.title}</span>
-      {tool.isNew ? <span className="rail-new">New</span> : null}
+      <span className="rail-label">{copy.title}</span>
+      {tool.isNew ? <span className="rail-new">{t('nav.new')}</span> : null}
       {tool.shortcut && !tool.isNew ? <kbd>{tool.shortcut}</kbd> : null}
     </NavLink>
   )

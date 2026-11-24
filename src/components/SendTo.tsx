@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fileKind, SEND_TARGETS, setHandoff, type HandoffKind } from '../lib/handoff'
 import { reportPipelineOutput } from '../lib/pipelines'
+import { useI18n } from '../lib/i18n'
+import { toolText } from '../lib/hiTools'
 
 type Props = {
   from: string
@@ -21,6 +23,7 @@ function payloadKinds(files: File[] | undefined, text: string | undefined): Hand
 
 export function SendTo({ from, files, text }: Props) {
   const navigate = useNavigate()
+  const { language } = useI18n()
   const kinds = payloadKinds(files, text)
 
   useEffect(() => {
@@ -46,7 +49,7 @@ export function SendTo({ from, files, text }: Props) {
               navigate(tool.path, { state: { handoff: Date.now() } })
             }}
           >
-            {tool.title}
+            {toolText(language, { ...tool, blurb: '' }).title}
           </button>
         ))}
       </div>

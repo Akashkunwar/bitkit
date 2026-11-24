@@ -40,17 +40,18 @@ export default function DraughtsTool() {
     >
       <div className="arcade-grid" style={{ gridTemplateColumns: 'repeat(8, 1fr)', maxWidth: 380 }}>
         {state.cells.map((cell, index) => {
-          const dark = (Math.floor(index / 8) + (index % 8)) % 2 === 0
+          const dark = (Math.floor(index / 8) + (index % 8)) % 2 === 1
           const mark = cell === 1 ? '●' : cell === 2 ? '♛' : cell === -1 ? '○' : cell === -2 ? '♕' : ''
+          const side = cell > 0 ? 'mark-you' : cell < 0 ? 'mark-them' : ''
           return (
             <button
               key={index}
               type="button"
               className={from === index ? 'arcade-cell arcade-tile' : 'arcade-cell'}
-              style={{ background: dark ? undefined : 'transparent', borderColor: dark ? undefined : 'transparent' }}
+              style={{ background: dark ? '#6d5438' : '#e6d3b0', borderColor: 'transparent' }}
               onClick={() => play(index)}
             >
-              {mark}
+              {mark ? <span className={side}>{mark}</span> : ''}
             </button>
           )
         })}

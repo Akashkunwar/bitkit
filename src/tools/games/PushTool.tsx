@@ -19,8 +19,8 @@ export default function PushTool() {
       event.preventDefault()
       setState((current) => stepPush(current, step[0], step[1]))
     }
-    window.addEventListener('keydown', down)
-    return () => window.removeEventListener('keydown', down)
+    window.addEventListener('keydown', down, true)
+    return () => window.removeEventListener('keydown', down, true)
   }, [])
   return (
     <Arcade

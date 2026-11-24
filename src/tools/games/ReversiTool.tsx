@@ -26,7 +26,7 @@ export default function ReversiTool() {
       <div className="arcade-grid" style={{ gridTemplateColumns: 'repeat(8, 1fr)', maxWidth: 380 }}>
         {state.cells.map((cell, index) => (
           <button key={index} type="button" className="arcade-cell" onClick={() => play(index)}>
-            {cell === 1 ? '●' : cell === -1 ? '○' : ''}
+            {cell === 1 ? <span className="mark-you">●</span> : cell === -1 ? <span className="mark-them">○</span> : ''}
           </button>
         ))}
       </div>

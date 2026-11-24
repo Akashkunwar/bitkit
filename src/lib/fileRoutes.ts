@@ -56,6 +56,8 @@ const SINGLE: Record<Kind, string[]> = {
     'markup',
     'cutout',
     'exif',
+    'strip',
+    'imagediff',
     'ocr',
     'picker',
     'meme',
@@ -70,7 +72,7 @@ const SINGLE: Record<Kind, string[]> = {
   office: ['office', 'doc-image'],
   sheet: ['table', 'chart', 'office', 'doc-image'],
   markdown: ['markdown', 'doc-image', 'office', 'readability', 'counter'],
-  json: ['json', 'config', 'table'],
+  json: ['json', 'jsonquery', 'config', 'table'],
   config: ['config'],
   text: ['counter', 'readability', 'speech', 'text', 'office', 'doc-image'],
   html: ['markdown', 'office', 'doc-image'],
@@ -87,7 +89,7 @@ const MANY: Partial<Record<Kind, string[]>> = {
 }
 
 /** Tools that accept anything at all, offered after the specific ones. */
-const ANY = ['archive', 'checksum']
+const ANY = ['archive', 'checksum', 'hex']
 
 export function toolsForFiles(files: File[]): ToolMeta[] {
   if (!files.length) return []
@@ -103,6 +105,8 @@ export function toolsForFiles(files: File[]): ToolMeta[] {
   } else {
     ids = []
   }
+  if (files.length > 1) ids = [...ids, 'rename']
+  if (files.length === 1 && /\.(srt|vtt)$/i.test(files[0].name)) ids = ['captions', ...ids]
   const seen = new Set<string>()
   return [...ids, ...ANY]
     .filter((id) => (seen.has(id) ? false : (seen.add(id), true)))

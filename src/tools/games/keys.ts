@@ -10,7 +10,7 @@ export function useArrows(onKey: (key: string) => void) {
       event.preventDefault()
       onKey(event.key)
     }
-    window.addEventListener('keydown', onDown)
-    return () => window.removeEventListener('keydown', onDown)
+    window.addEventListener('keydown', onDown, true)
+    return () => window.removeEventListener('keydown', onDown, true)
   }, [onKey])
 }

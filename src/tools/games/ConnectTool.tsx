@@ -27,7 +27,7 @@ export default function ConnectTool() {
       <div className="arcade-grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)', maxWidth: 360 }}>
         {state.cells.map((cell, index) => (
           <div key={index} className="arcade-cell">
-            {cell === 1 ? '●' : cell === 2 ? '○' : ''}
+            {cell === 1 ? <span className="mark-you">●</span> : cell === 2 ? <span className="mark-them">○</span> : ''}
           </div>
         ))}
       </div>

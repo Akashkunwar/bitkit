@@ -3080,9 +3080,105 @@ audio.media-preview {
   width: min(100%, 480px);
 }
 
+.arcade-play {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.arcade-next {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: center;
+}
+
+.arcade-next span {
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.arcade-preview {
+  width: 5.5rem;
+  height: 5.5rem;
+  background: #14160f;
+  border-radius: var(--radius);
+}
+
+/* Two sides must stay distinct in every theme, so these colors are fixed. */
+.mark-you {
+  color: #161613;
+  text-shadow:
+    0 1px 0 #f7f4ea,
+    0 -1px 0 #f7f4ea,
+    1px 0 0 #f7f4ea,
+    -1px 0 0 #f7f4ea;
+}
+
+.mark-them {
+  color: #f7f4ea;
+  text-shadow:
+    0 1px 0 #161613,
+    0 -1px 0 #161613,
+    1px 0 0 #161613,
+    -1px 0 0 #161613;
+}
+
+.clock-faces {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.clock-face {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.35rem;
+  min-height: 160px;
+  border-radius: var(--radius);
+  border: 3px solid transparent;
+  font: 700 clamp(2rem, 6vw, 3rem) / 1 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.clock-face small {
+  font: 650 0.78rem / 1 var(--font-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clock-face[data-side='white'] {
+  background: #f7f4ea;
+  color: #161613;
+}
+
+.clock-face[data-side='black'] {
+  background: #161613;
+  color: #f4f1e4;
+}
+
+.clock-face[data-running='true'] {
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+
+.clock-face[data-flag='true'] {
+  background: #8a2b2b;
+  color: #ffffff;
+}
+
 .arcade-canvas {
-  width: min(100%, 480px);
+  /* Keep the bitmap's own aspect ratio. A fixed width turned the tall
+     Blocks board into a 960px image and pushed the bottom off screen. */
+  display: block;
+  width: auto;
   height: auto;
+  max-width: min(100%, 480px);
+  max-height: calc(100dvh - 22rem);
   background: #14160f;
   border-radius: var(--radius);
   touch-action: none;

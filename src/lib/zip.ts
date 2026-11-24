@@ -113,3 +113,93 @@ function concat(...parts: Uint8Array[]): Uint8Array {
   }
   return out
 }
+
+async function deflateRaw(data: Uint8Array): Promise<Uint8Array> {
+  if (typeof CompressionStream === 'undefined') {
+    throw new Error(
+      'This browser cannot compress a ZIP. Choose Stored, or use a current Chrome, Edge, Safari, or Firefox.',
+    )
+  }
+  const stream = new CompressionStream('deflate-raw')
+  const writer = stream.writable.getWriter()
+  await writer.write(data.slice())
+  await writer.close()
+  const chunks: Uint8Array[] = []
+  const reader = stream.readable.getReader()
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    if (value) chunks.push(value)
+  }
+  return concat(...chunks)
+}
+
+/**
+ * Deflated ZIP (method 8). An entry that does not shrink is stored instead,
+ * which is the usual case for JPEG, PNG, and PDF.
+ */
+export async function zipDeflate(entries: ZipEntry[]): Promise<Uint8Array> {
+  const locals: Uint8Array[] = []
+  const centrals: Uint8Array[] = []
+  let offset = 0
+
+  for (const entry of entries) {
+    const name = new TextEncoder().encode(entry.name.replaceAll('\\', '/'))
+    const crc = crc32(entry.data)
+    const deflated = await deflateRaw(entry.data)
+    const store = deflated.length >= entry.data.length
+    const payload = store ? entry.data : deflated
+    const method = store ? 0 : 8
+    const local = concat(
+      u32(0x04034b50),
+      u16(20),
+      u16(UTF8_FLAG),
+      u16(method),
+      u16(0),
+      u16(0),
+      u32(crc),
+      u32(payload.length),
+      u32(entry.data.length),
+      u16(name.length),
+      u16(0),
+      name,
+      payload,
+    )
+    const central = concat(
+      u32(0x02014b50),
+      u16(20),
+      u16(20),
+      u16(UTF8_FLAG),
+      u16(method),
+      u16(0),
+      u16(0),
+      u32(crc),
+      u32(payload.length),
+      u32(entry.data.length),
+      u16(name.length),
+      u16(0),
+      u16(0),
+      u16(0),
+      u16(0),
+      u32(0),
+      u32(offset),
+      name,
+    )
+    locals.push(local)
+    centrals.push(central)
+    offset += local.length
+  }
+
+  const centralDir = concat(...centrals)
+  const eocd = concat(
+    u32(0x06054b50),
+    u16(0),
+    u16(0),
+    u16(entries.length),
+    u16(entries.length),
+    u32(centralDir.length),
+    u32(offset),
+    u16(0),
+  )
+  return concat(...locals, centralDir, eocd)
+}

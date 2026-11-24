@@ -100,9 +100,9 @@ Every tool that draws PDF pages (PDF editor, PDF to images, PDF shrink, PDF to W
 
 ## ZIP archives
 
-Archives are written **stored**, not deflated. For the usual payload — JPEGs, PNGs, PDFs, MP4s — that costs nothing, because those are already compressed. A folder of text files will not shrink.
+A ZIP can be stored or deflated. Stored costs nothing for JPEGs, PNGs, PDFs, and MP4s, because those are already compressed. Deflate shrinks text and code. A `.tar.gz` is the same idea for people who need that container.
 
-Reading handles standard stored and deflated entries. Encrypted ZIPs and other archive formats (`.rar`, `.7z`, `.tar.gz`) are not supported.
+Reading handles stored and deflated ZIPs, and gzip-compressed tar. Encrypted ZIPs, `.rar`, and `.7z` are not supported. Tar names longer than 100 bytes are refused rather than truncated.
 
 ## Offline
 

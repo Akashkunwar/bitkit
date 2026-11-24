@@ -14,8 +14,8 @@ export default function FlapTool() {
       event.preventDefault()
       tap.tap()
     }
-    window.addEventListener('keydown', down)
-    return () => window.removeEventListener('keydown', down)
+    window.addEventListener('keydown', down, true)
+    return () => window.removeEventListener('keydown', down, true)
   }, [tap])
 
   useTick(() => setState((current) => stepFlap(current, tap.take())), 16)

@@ -26,7 +26,7 @@ export default function FiveTool() {
             style={{ fontSize: 12 }}
             onClick={() => play(index)}
           >
-            {cell === 1 ? '●' : cell === 2 ? '○' : ''}
+            {cell === 1 ? <span className="mark-you">●</span> : cell === 2 ? <span className="mark-them">○</span> : ''}
           </button>
         ))}
       </div>

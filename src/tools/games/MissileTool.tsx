@@ -19,8 +19,8 @@ export default function MissileTool() {
       event.preventDefault()
       fire.tap()
     }
-    window.addEventListener('keydown', down)
-    return () => window.removeEventListener('keydown', down)
+    window.addEventListener('keydown', down, true)
+    return () => window.removeEventListener('keydown', down, true)
   }, [fire])
 
   useTick(() => setState((current) => stepMissile(current)), 16)

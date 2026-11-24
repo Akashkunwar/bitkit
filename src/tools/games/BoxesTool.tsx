@@ -60,7 +60,17 @@ export default function BoxesTool() {
                         className={state.v[index] ? 'edge vert on' : 'edge vert'}
                         onClick={() => play('v', index)}
                       />
-                      {col < 4 && <i>{owner === 1 ? '●' : owner === 2 ? '○' : ''}</i>}
+                      {col < 4 && (
+                        <i>
+                          {owner === 1 ? (
+                            <span className="mark-you">●</span>
+                          ) : owner === 2 ? (
+                            <span className="mark-them">○</span>
+                          ) : (
+                            ''
+                          )}
+                        </i>
+                      )}
                     </span>
                   )
                 })}

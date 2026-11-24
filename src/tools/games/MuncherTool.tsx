@@ -40,7 +40,11 @@ export default function MuncherTool() {
               <div
                 key={`${x}-${y}`}
                 className="arcade-cell"
-                style={{ fontSize: 12, background: cell === '#' ? '#24281c' : undefined }}
+                style={{
+                  fontSize: 12,
+                  background: cell === '#' ? '#24281c' : undefined,
+                  color: cell === '#' ? '#f4f1e4' : undefined,
+                }}
               >
                 {here ? '●' : ghost ? '▲' : dot ? '·' : ''}
               </div>

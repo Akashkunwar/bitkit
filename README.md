@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/favicon.svg" width="72" height="72" alt="">
   <h1>BitKit</h1>
-  <p><strong>155 everyday tools that run entirely in your browser.</strong></p>
+  <p><strong>173 everyday tools that run entirely in your browser.</strong></p>
   <p>No account. No server. Nothing you open ever leaves your device.</p>
 </div>
 
@@ -16,12 +16,12 @@ first load it works offline.
 
 | Group | Tools |
 | --- | --- |
-| **Daily** | **Calculator** (scientific, typed or tapped), **Unit converter** (16 quantities), **Finance** (EMI, SIP, compound interest, CAGR, discounts, income tax), Convert (time, zones, CSS units, percent, GST), Links & cards, Meeting planner, Age & date difference, Deadline calculator, Timers, Random picker, Number to words, Health calculators, Trip cost |
-| **Image** | **Image converter** (JPG/PNG/WebP/AVIF/BMP), **Rotate & flip**, **Image collage**, **Screenshot frame** (plus quote and code cards), **Screenshot markup**, Clipboard download, Resize & compress, Image finishing, Image metadata (EXIF/GPS), Favicon set, Passport sheet, Background cutout, SVG convert, Carousel splitter, Meme generator, ASCII from image |
+| **Daily** | **Calculator** (scientific, typed or tapped), **Unit converter** (16 quantities), **Finance** (EMI, SIP, compound interest, CAGR, discounts, income tax), **Exchange rate** (a rate you type), **Authenticator** (TOTP), Convert (time, zones, CSS units, percent, GST), Links & cards, Meeting planner, Age & date difference, Deadline calculator, Timers, Random picker, Number to words, Health calculators, Trip cost |
+| **Image** | **Image converter** (JPG/PNG/WebP/AVIF/BMP), **Rotate & flip**, **Image collage**, **Screenshot frame** (plus quote and code cards), **Screenshot markup**, **Strip metadata**, **Image compare**, Clipboard download, Resize & compress, Image finishing, Image metadata (EXIF/GPS), Favicon set, Passport sheet, Background cutout, SVG convert, Carousel splitter, Meme generator, ASCII from image |
 | **Document** | **Images to PDF** (reorder, rotate, page setup), **PDF to images** (PNG/JPEG/WebP, any DPI, plus embedded images), **Word to image** (and exact-look PDF), **Markdown to PDF** (themes, paginated), PDF editor (including permanent redaction), **PDF compare**, PDF merge & split, OCR, PDF form fill, Office to PDF, PDF to Word & text, Watermark & page numbers, PDF shrink, Markdown table, Invoice |
-| **Data** | Data table (CSV/TSV/JSON/XLSX), Chart maker, ZIP archive |
-| **Media** | Video & audio trim, Screen & camera recorder, Noise generator, Sound meter |
-| **Developer** | **Barcode generator** (Code 128, EAN-13, UPC-A, EAN-8, Code 39), JSON formatter, Text diff, Password generator, QR code, Encode (Base64/JWT/SHA), Text bench, Regex tester, Checksum, JSON·YAML·TOML, Cron builder, Number base |
+| **Data** | Data table (CSV/TSV/JSON/XLSX), Chart maker, ZIP archive (stored, deflated, or .tar.gz), **Batch rename** |
+| **Media** | Video & audio trim, **Captions** (SRT/VTT shift and merge), Screen & camera recorder, Noise generator, Sound meter |
+| **Developer** | **Barcode generator** (Code 128, EAN-13, UPC-A, EAN-8, Code 39), JSON formatter, **JSON query**, Text diff, Password generator, QR code, Encode (Base64/JWT/SHA), Text bench, Regex tester, Checksum, **Hex view**, JSON·YAML·TOML, Cron builder, Number base |
 | **Design** | Gradient builder, Tailwind theme builder, Contrast checker, Colour picker, Diagram (Mermaid), Colour vision |
 | **Writing** | **Text to speech**, Unicode text styler, Emoji search, Platform counter, Readability, Box drawing |
 | **Notes** | Local notes, Data & settings, Pipelines |
@@ -33,7 +33,7 @@ palette — it runs actions too, not just navigation ("compress an image to 450 
 Press <kbd>?</kbd> for every shortcut and <kbd>[</kbd> to hide the sidebar.
 
 Every tool has a chord. Twenty-four keep a single letter (<kbd>G</kbd> <kbd>R</kbd> for
-resize), and all 155 are reachable by category (<kbd>G</kbd> <kbd>4</kbd> <kbd>D</kbd> —
+resize), and all 173 are reachable by category (<kbd>G</kbd> <kbd>4</kbd> <kbd>D</kbd> —
 fourth group, Data table). Digits can never collide with the single-letter chords, which
 is what made room for the rest.
 
@@ -59,8 +59,7 @@ is what made room for the rest.
   directory, writing results to a subfolder. Elsewhere it falls back to multi-select.
 - **Offline and updates.** The app says when you are offline and when a new version is
   ready, instead of leaving a stale service worker in place.
-- **Hindi.** The shell is translated, and so are finance, invoices, GST, and number-to-words.
-  Other tool interiors stay English — see [`src/lib/i18n.ts`](src/lib/i18n.ts).
+- **Hindi.** The shell is translated, and so is every tool's title and blurb, including the heading on the tool page. Finance, invoices, GST, number-to-words, and the newest tools translate their controls too. Other tool controls stay English — see [`src/lib/i18n.ts`](src/lib/i18n.ts).
 - **A click-to-send extension.** Load `extension/` unpacked, set your BitKit address, then right-click a selection or image. It does not watch the clipboard.
 - **One tool crashing cannot blank the app.** Each route is wrapped in a boundary that
   keeps navigation alive and offers a pre-filled issue link.

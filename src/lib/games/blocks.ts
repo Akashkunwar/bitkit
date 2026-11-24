@@ -93,17 +93,17 @@ export function clearLines(board: Grid): { board: Grid; cleared: number } {
   return { board: [...blank, ...kept], cleared }
 }
 
-/** Drop one row, or lock the piece when it cannot. A locked spawn that still collides is the end. */
+/** Drop one row, or lock the piece and bring in `nextId`. `spawned` is true only when a new piece entered. */
 export function drop(
   board: Grid,
   piece: Piece,
   nextId: number,
-): { board: Grid; piece: Piece; cleared: number; dead: boolean } {
+): { board: Grid; piece: Piece; cleared: number; dead: boolean; spawned: boolean } {
   const fallen = nudge(board, piece, 0, 1)
-  if (fallen) return { board, piece: fallen, cleared: 0, dead: false }
+  if (fallen) return { board, piece: fallen, cleared: 0, dead: false, spawned: false }
   const locked = clearLines(lockPiece(board, piece))
   const spawned = spawn(nextId)
   if (collides(locked.board, spawned))
-    return { board: locked.board, piece: spawned, cleared: locked.cleared, dead: true }
-  return { board: locked.board, piece: spawned, cleared: locked.cleared, dead: false }
+    return { board: locked.board, piece: spawned, cleared: locked.cleared, dead: true, spawned: true }
+  return { board: locked.board, piece: spawned, cleared: locked.cleared, dead: false, spawned: true }
 }

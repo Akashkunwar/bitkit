@@ -7,6 +7,7 @@ import { toolForPath, tools, type ToolMeta } from '../registry'
 import { usePins } from '../lib/usePins'
 import { useCopied } from '../lib/useCopied'
 import { useI18n } from '../lib/i18n'
+import { toolText } from '../lib/hiTools'
 
 type Props = {
   title: string
@@ -32,9 +33,12 @@ export function ToolLayout({ title, lede, actions, children }: Props) {
   const tool = toolForPath(pathname)
   const { isPinned, toggle } = usePins()
   const { copied, copy } = useCopied(1600)
-  const { t } = useI18n()
+  const { t, language } = useI18n()
   const pinned = tool ? isPinned(tool.id) : false
   const related = tool ? relatedTools(tool) : []
+  const heading = tool ? toolText(language, tool) : null
+  const shownTitle = heading?.title ?? title
+  const shownLede = language === 'hi' && heading ? heading.blurb : lede
 
   return (
     <article className="tool-layout">
@@ -49,8 +53,8 @@ export function ToolLayout({ title, lede, actions, children }: Props) {
         <div className="tool-hero-row">
           {tool ? <ToolIcon icon={tool.icon} category={tool.category} size="lg" /> : null}
           <div className="tool-hero-text">
-            <h1>{title}</h1>
-            {lede ? <p className="lede">{lede}</p> : null}
+            <h1>{shownTitle}</h1>
+            {shownLede ? <p className="lede">{shownLede}</p> : null}
           </div>
           {tool ? (
             <div className="tool-hero-actions">
@@ -59,8 +63,8 @@ export function ToolLayout({ title, lede, actions, children }: Props) {
                 type="button"
                 className="icon-btn"
                 aria-pressed={pinned}
-                aria-label={pinned ? `Unpin ${tool.title}` : `Pin ${tool.title}`}
-                title={pinned ? 'Unpin from sidebar' : 'Pin to sidebar'}
+                aria-label={pinned ? `${t('nav.unpin')} ${shownTitle}` : `${t('nav.pin')} ${shownTitle}`}
+                title={pinned ? t('nav.unpin') : t('nav.pin')}
                 onClick={() => toggle(tool.id)}
               >
                 <Star size={17} fill={pinned ? 'currentColor' : 'none'} aria-hidden="true" />
@@ -68,8 +72,8 @@ export function ToolLayout({ title, lede, actions, children }: Props) {
               <button
                 type="button"
                 className="icon-btn"
-                aria-label={copied ? 'Link copied' : 'Copy link to this tool'}
-                title={copied ? 'Link copied' : 'Copy link'}
+                aria-label={copied ? t('nav.linkCopied') : t('nav.copyLink')}
+                title={copied ? t('nav.linkCopied') : t('nav.copyLink')}
                 onClick={() => void copy(window.location.href)}
               >
                 {copied ? <Check size={17} aria-hidden="true" /> : <Link2 size={17} aria-hidden="true" />}
@@ -90,8 +94,8 @@ export function ToolLayout({ title, lede, actions, children }: Props) {
                 <Link className="tool-card-link" to={other.path}>
                   <ToolIcon icon={other.icon} category={other.category} />
                   <span className="tool-card-text">
-                    <h3>{other.title}</h3>
-                    <p>{other.blurb}</p>
+                    <h3>{toolText(language, other).title}</h3>
+                    <p>{toolText(language, other).blurb}</p>
                   </span>
                 </Link>
               </div>

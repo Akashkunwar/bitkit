@@ -103,8 +103,14 @@ import {
   WandSparkles,
   Webcam,
   Workflow,
+  Coins,
+  Eraser,
+  FolderPen,
+  RectangleEllipsis,
+  Subtitles,
 } from 'lucide-react'
 import type { HandoffKind } from './lib/handoff'
+import { HI_TOOLS } from './lib/hiTools'
 
 export type ToolCategory =
   | 'Daily'
@@ -455,6 +461,32 @@ export const tools: ToolMeta[] = [
     component: lazy(() => import('./tools/exif/ExifTool')),
   },
   {
+    id: 'strip',
+    path: '/strip',
+    title: 'Strip metadata',
+    blurb: 'Download a photo with EXIF and GPS removed. Pixels are not rewritten for JPEG and PNG.',
+    category: 'Image',
+    icon: Eraser,
+    isNew: true,
+    keywords: ['strip exif', 'remove gps', 'remove metadata', 'privacy', 'location'],
+    shortcut: 'G 2 X',
+    accepts: ['image'],
+    component: lazy(() => import('./tools/strip/StripTool')),
+  },
+  {
+    id: 'imagediff',
+    path: '/image-diff',
+    title: 'Image compare',
+    blurb: 'Slide between two pictures, or mark the pixels that changed.',
+    category: 'Image',
+    icon: Columns2,
+    isNew: true,
+    keywords: ['image diff', 'screenshot compare', 'pixel diff', 'before after', 'visual diff'],
+    shortcut: 'G 2 Y',
+    accepts: ['image'],
+    component: lazy(() => import('./tools/imagediff/ImageDiffTool')),
+  },
+  {
     id: 'favicon',
     path: '/favicon',
     title: 'Favicon set',
@@ -758,6 +790,19 @@ export const tools: ToolMeta[] = [
     component: lazy(() => import('./tools/json/JsonTool')),
   },
   {
+    id: 'jsonquery',
+    path: '/json-query',
+    title: 'JSON query',
+    blurb: 'Pull fields out of JSON with a short path, including a filter.',
+    category: 'Developer',
+    icon: Braces,
+    isNew: true,
+    keywords: ['jsonpath', 'jq', 'query json', 'filter json', 'json path'],
+    shortcut: 'G 6 K',
+    accepts: ['text'],
+    component: lazy(() => import('./tools/jsonquery/JsonQueryTool')),
+  },
+  {
     id: 'diff',
     path: '/diff',
     title: 'Text diff',
@@ -1055,13 +1100,25 @@ export const tools: ToolMeta[] = [
     id: 'archive',
     path: '/archive',
     title: 'ZIP archive',
-    blurb: 'Bundle files into one .zip, or open one and pull files back out.',
+    blurb: 'Bundle files into a stored ZIP, a compressed ZIP, or a .tar.gz, or open one.',
     category: 'Data',
     icon: FileArchive,
     shortcut: 'G 4 Z',
-    keywords: ['zip', 'archive', 'bundle', 'extract', 'unzip', 'attach', 'package', 'folder'],
+    keywords: ['zip', 'archive', 'bundle', 'extract', 'unzip', 'deflate', 'tar.gz', 'gzip', 'compress'],
     accepts: ['image', 'pdf', 'text'],
     component: lazy(() => import('./tools/archive/ArchiveTool')),
+  },
+  {
+    id: 'rename',
+    path: '/rename',
+    title: 'Batch rename',
+    blurb: 'Preview new names, download a ZIP of copies, or rename inside a folder.',
+    category: 'Data',
+    icon: FolderPen,
+    isNew: true,
+    keywords: ['rename', 'batch rename', 'file names', 'pattern', 'folder'],
+    shortcut: 'G 4 R',
+    component: lazy(() => import('./tools/rename/RenameTool')),
   },
   {
     id: 'media',
@@ -1092,6 +1149,19 @@ export const tools: ToolMeta[] = [
     component: lazy(() => import('./tools/media/MediaTool')),
   },
   {
+    id: 'captions',
+    path: '/captions',
+    title: 'Captions',
+    blurb: 'Shift SRT or VTT times, or merge two subtitle files.',
+    category: 'Media',
+    icon: Subtitles,
+    isNew: true,
+    keywords: ['srt', 'vtt', 'subtitles', 'captions', 'shift', 'offset', 'merge'],
+    shortcut: 'G 5 T',
+    accepts: ['text'],
+    component: lazy(() => import('./tools/captions/CaptionsTool')),
+  },
+  {
     id: 'record',
     path: '/record',
     title: 'Screen & camera recorder',
@@ -1112,6 +1182,18 @@ export const tools: ToolMeta[] = [
     shortcut: 'G 6 C',
     keywords: ['hash', 'checksum', 'sha256', 'sha1', 'sha512', 'crc32', 'verify', 'digest', 'fingerprint', 'integrity'],
     component: lazy(() => import('./tools/checksum/ChecksumTool')),
+  },
+  {
+    id: 'hex',
+    path: '/hex',
+    title: 'Hex view',
+    blurb: 'The first 64 KB of a file as hex and ASCII, with a type from the opening bytes.',
+    category: 'Developer',
+    icon: Binary,
+    isNew: true,
+    keywords: ['hex', 'hex dump', 'hex editor', 'bytes', 'magic', 'binary view'],
+    shortcut: 'G 6 X',
+    component: lazy(() => import('./tools/hex/HexTool')),
   },
   {
     id: 'config',
@@ -1299,6 +1381,30 @@ export const tools: ToolMeta[] = [
     shortcut: 'G 1 I',
     keywords: ['fuel', 'petrol', 'mileage', 'trip', 'travel', 'split', 'road trip', 'toll', 'cost'],
     component: lazy(() => import('./tools/trip/TripTool')),
+  },
+  {
+    id: 'exchange',
+    path: '/exchange',
+    title: 'Exchange rate',
+    blurb: 'Convert an amount with a rate you type. No live lookup.',
+    category: 'Daily',
+    icon: Coins,
+    isNew: true,
+    keywords: ['exchange', 'currency', 'forex', 'rate', 'inr', 'usd', 'convert money'],
+    shortcut: 'G 1 X',
+    component: lazy(() => import('./tools/exchange/ExchangeTool')),
+  },
+  {
+    id: 'totp',
+    path: '/authenticator',
+    title: 'Authenticator',
+    blurb: 'Six-digit codes from a Base32 secret, stored only in this browser.',
+    category: 'Daily',
+    icon: RectangleEllipsis,
+    isNew: true,
+    keywords: ['totp', 'otp', '2fa', 'authenticator', 'one time password', 'base32'],
+    shortcut: 'G 1 O',
+    component: lazy(() => import('./tools/totp/TotpTool')),
   },
   {
     id: 'carousel',
@@ -2426,6 +2532,126 @@ export const tools: ToolMeta[] = [
     component: lazy(() => import('./tools/games/MuncherTool')),
   },
   {
+    id: 'ledge',
+    path: '/ledge',
+    title: 'Ledge',
+    blurb: 'Run, jump, stomp, and reach the flag.',
+    category: 'Games',
+    icon: Gamepad2,
+    isNew: true,
+    keywords: ['mario', 'platform', 'platformer', 'jump', 'ledge', 'retro', 'arcade', 'game'],
+    shortcut: 'G 9 J',
+    component: lazy(() => import('./tools/games/LedgeTool')),
+  },
+  {
+    id: 'raid',
+    path: '/raid',
+    title: 'Raid',
+    blurb: 'Run, jump, and shoot through four waves.',
+    category: 'Games',
+    icon: Gamepad2,
+    isNew: true,
+    keywords: ['contra', 'run and gun', 'raid', 'shooter', 'commando', 'retro', 'arcade', 'game'],
+    shortcut: 'G 9 R',
+    component: lazy(() => import('./tools/games/RaidTool')),
+  },
+  {
+    id: 'rally',
+    path: '/rally',
+    title: 'Rally',
+    blurb: 'Steer the bends, pass the field, and shove a rival.',
+    category: 'Games',
+    icon: Gamepad2,
+    isNew: true,
+    keywords: ['road rash', 'outrun', 'rally', 'racing', 'motorcycle', 'bike', 'retro', 'arcade', 'game'],
+    shortcut: 'G 9 A',
+    component: lazy(() => import('./tools/games/RallyTool')),
+  },
+  {
+    id: 'tanks',
+    path: '/tanks',
+    title: 'Tanks',
+    blurb: 'Guard the base. Bricks break. Steel does not.',
+    category: 'Games',
+    icon: Gamepad2,
+    isNew: true,
+    keywords: ['battle city', 'tanks', 'tank', 'base', 'retro', 'arcade', 'game'],
+    shortcut: 'G 9 T',
+    component: lazy(() => import('./tools/games/TanksTool')),
+  },
+  {
+    id: 'blast',
+    path: '/blast',
+    title: 'Blast',
+    blurb: 'Drop a bomb, step clear, and empty the floor.',
+    category: 'Games',
+    icon: Gamepad2,
+    isNew: true,
+    keywords: ['bomberman', 'bomb', 'blast', 'retro', 'arcade', 'game'],
+    shortcut: 'G 9 C',
+    component: lazy(() => import('./tools/games/BlastTool')),
+  },
+  {
+    id: 'brawl',
+    path: '/brawl',
+    title: 'Brawl',
+    blurb: 'Punch and kick through three waves.',
+    category: 'Games',
+    icon: Gamepad2,
+    isNew: true,
+    keywords: ['double dragon', 'beat em up', 'brawl', 'kung fu', 'fight', 'retro', 'arcade', 'game'],
+    shortcut: 'G 9 F',
+    component: lazy(() => import('./tools/games/BrawlTool')),
+  },
+  {
+    id: 'squadron',
+    path: '/squadron',
+    title: 'Squadron',
+    blurb: 'Fly the lane and shoot the formation.',
+    category: 'Games',
+    icon: Gamepad2,
+    isNew: true,
+    keywords: ['1942', 'shmup', 'squadron', 'plane', 'shooter', 'retro', 'arcade', 'game'],
+    shortcut: 'G 9 Q',
+    component: lazy(() => import('./tools/games/SquadronTool')),
+  },
+  {
+    id: 'climb',
+    path: '/climb',
+    title: 'Climb',
+    blurb: 'Climb the ladders and reach the top.',
+    category: 'Games',
+    icon: Gamepad2,
+    isNew: true,
+    keywords: ['donkey kong', 'climb', 'ladders', 'barrels', 'retro', 'arcade', 'game'],
+    shortcut: 'G 9 H',
+    component: lazy(() => import('./tools/games/ClimbTool')),
+  },
+  {
+    id: 'pins',
+    path: '/pins',
+    title: 'Pins',
+    blurb: 'Keep the ball up with the flippers.',
+    category: 'Games',
+    icon: Gamepad2,
+    isNew: true,
+    keywords: ['pinball', 'pins', 'flippers', 'retro', 'arcade', 'game'],
+    shortcut: 'G 9 I',
+    component: lazy(() => import('./tools/games/PinsTool')),
+  },
+  {
+    id: 'ring',
+    path: '/ring',
+    title: 'Ring',
+    blurb: 'Dodge the punch, then hit the open side.',
+    category: 'Games',
+    icon: Gamepad2,
+    isNew: true,
+    keywords: ['punch out', 'boxing', 'ring', 'fight', 'retro', 'arcade', 'game'],
+    shortcut: 'G 9 Y',
+    component: lazy(() => import('./tools/games/RingTool')),
+  },
+  {
     id: 'textlab',
     path: '/textlab',
     title: 'Text lab',
@@ -2558,13 +2784,22 @@ export function scoreTool(tool: ToolMeta, query: string): number {
   const q = query.trim().toLowerCase()
   if (!q) return 1
   const title = tool.title.toLowerCase()
+  const hi = HI_TOOLS[tool.id]
+  const hiTitle = hi?.title.toLowerCase() ?? ''
   const keywords = tool.keywords.map((k) => k.toLowerCase())
-  const hay = [title, tool.blurb.toLowerCase(), tool.category.toLowerCase(), ...keywords].join(' ')
+  const hay = [
+    title,
+    hiTitle,
+    tool.blurb.toLowerCase(),
+    hi?.blurb.toLowerCase() ?? '',
+    tool.category.toLowerCase(),
+    ...keywords,
+  ].join(' ')
 
   let score = 0
-  if (title === q) score += 120
-  else if (title.startsWith(q)) score += 80
-  else if (title.includes(q)) score += 50
+  if (title === q || (hiTitle && hiTitle === q)) score += 120
+  else if (title.startsWith(q) || (hiTitle && hiTitle.startsWith(q))) score += 80
+  else if (title.includes(q) || (hiTitle && hiTitle.includes(q))) score += 50
   if (keywords.includes(q)) score += 45
   else if (keywords.some((k) => k.includes(q))) score += 25
   if (hay.includes(q)) score += 10
@@ -2573,7 +2808,7 @@ export function scoreTool(tool: ToolMeta, query: string): number {
   if (!words.length) return score
   for (const word of words) {
     if (!hay.includes(word)) return score >= 10 ? score : 0
-    if (title.includes(word)) score += 8
+    if (title.includes(word) || (hiTitle && hiTitle.includes(word))) score += 8
     else if (keywords.some((k) => k.includes(word))) score += 5
     else score += 2
   }
@@ -2599,4 +2834,4 @@ export function toolForPath(pathname: string): ToolMeta | undefined {
 }
 
 /** Pinned count. Sitemap/OG are generated from `tools`; chrome copy and tests must match this. */
-export const TOOL_COUNT = 155
+export const TOOL_COUNT = 173

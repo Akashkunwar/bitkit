@@ -32,6 +32,10 @@ describe('classic games', () => {
     const locked = lockPiece(emptyBoard(), { ...spawn(1), y: 18 })
     const fallen = drop(locked, spawn(0), 1)
     expect(fallen.board).toHaveLength(20)
+    expect(fallen.spawned).toBe(false)
+    const landed = drop(emptyBoard(), { ...spawn(1), y: 18 }, 4)
+    expect(landed.spawned).toBe(true)
+    expect(landed.piece.id).toBe(4)
   })
 
   it('merges a row of 2048 to the left', () => {

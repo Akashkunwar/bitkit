@@ -7,6 +7,7 @@ import { getPref } from '../lib/db'
 import { ToolIcon } from '../components/ToolIcon'
 import { useTheme } from './useTheme'
 import { useI18n } from '../lib/i18n'
+import { toolText } from '../lib/hiTools'
 
 type Props = {
   open: boolean
@@ -33,7 +34,7 @@ export function CommandPalette({ open, onClose, onOpenCheatsheet }: Props) {
   const restoreRef = useRef<Element | null>(null)
   const navigate = useNavigate()
   const { theme, setMode } = useTheme()
-  const { t } = useI18n()
+  const { t, language } = useI18n()
 
   useEffect(() => {
     if (!open) return
@@ -209,8 +210,10 @@ export function CommandPalette({ open, onClose, onOpenCheatsheet }: Props) {
                   </span>
                 )}
                 <span className="palette-item-text">
-                  <strong>{row.kind === 'tool' ? row.tool.title : row.action.label}</strong>
-                  <span>{row.kind === 'tool' ? row.tool.blurb : (row.action.hint ?? row.action.group)}</span>
+                  <strong>{row.kind === 'tool' ? toolText(language, row.tool).title : row.action.label}</strong>
+                  <span>
+                    {row.kind === 'tool' ? toolText(language, row.tool).blurb : (row.action.hint ?? row.action.group)}
+                  </span>
                 </span>
                 <span className="palette-item-meta">
                   {row.kind === 'tool' ? t(`category.${row.tool.category}`) : null}
