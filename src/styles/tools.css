@@ -3065,3 +3065,197 @@ audio.media-preview {
   border: 1px solid var(--line);
   background: #f7f1e4;
 }
+
+.arcade {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+}
+
+.arcade-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: min(100%, 480px);
+}
+
+.arcade-canvas {
+  width: min(100%, 480px);
+  height: auto;
+  background: #14160f;
+  border-radius: var(--radius);
+  touch-action: none;
+}
+
+.arcade-grid {
+  display: grid;
+  gap: 4px;
+  width: min(100%, 420px);
+}
+
+.arcade-cell {
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 700 1.1rem var(--font-ui);
+  display: grid;
+  place-items: center;
+}
+
+.arcade-tile {
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface));
+}
+
+.arcade-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.arcade-word {
+  margin: 0;
+  font:
+    700 1.4rem/1.4 ui-monospace,
+    monospace;
+  letter-spacing: 0.12em;
+  white-space: pre;
+}
+
+.arcade-boards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.arcade-scroll {
+  width: min(100%, 560px);
+  overflow-x: auto;
+}
+
+.card {
+  width: 52px;
+  height: 72px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: #f7f4ea;
+  color: #1c1c1c;
+  font: 700 13px var(--font-ui);
+  display: grid;
+  place-items: center;
+}
+
+.card.red {
+  color: #b42318;
+}
+
+.card.back {
+  background: #1d4e89;
+  color: #dbe7f5;
+}
+
+.card.sel {
+  outline: 2px solid var(--accent);
+}
+
+.card.tower {
+  width: 120px;
+  height: auto;
+  min-height: 120px;
+  align-content: end;
+  padding: 8px;
+}
+
+.tableau {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 12px;
+}
+
+.tableau-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 52px;
+  min-height: 72px;
+}
+
+.tableau-col .card {
+  margin-top: -48px;
+}
+
+.tableau-col .card:first-child {
+  margin-top: 0;
+}
+
+.mark-g {
+  background: #3f6212;
+  color: #f4f1e4;
+}
+
+.mark-y {
+  background: #a16207;
+  color: #f4f1e4;
+}
+
+.mark-b {
+  background: #3f3f3a;
+  color: #f4f1e4;
+}
+
+.boxes {
+  display: grid;
+  gap: 0;
+  width: min(100%, 320px);
+}
+
+.box-h,
+.box-v {
+  display: flex;
+}
+
+.edge {
+  width: 48px;
+  height: 10px;
+  margin: 0 8px;
+  border: 0;
+  border-radius: 99px;
+  background: var(--line);
+}
+
+.edge.vert {
+  width: 10px;
+  height: 48px;
+  margin: 8px 0;
+}
+
+.edge.on {
+  background: var(--ink);
+}
+
+.box-v span {
+  display: flex;
+  align-items: center;
+}
+
+.box-v i {
+  width: 48px;
+  text-align: center;
+  font-style: normal;
+}
+
+.maze {
+  display: grid;
+  background: #14160f;
+  padding: 8px;
+}
+
+.maze i {
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid #f4f1e4;
+}

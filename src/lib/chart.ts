@@ -185,6 +185,45 @@ function linePath(values: (number | null)[], l: Layout, bounds: { min: number; m
   return d
 }
 
+/** Close each contiguous run to the baseline, so a gap does not fill across the hole. */
+function areaFills(
+  values: (number | null)[],
+  l: Layout,
+  bounds: { min: number; max: number },
+  zeroY: number,
+  color: string,
+): string {
+  const slot = l.plotW / Math.max(1, values.length)
+  const parts: string[] = []
+  let d = ''
+  let x0 = 0
+  let xLast = 0
+  let open = false
+  const close = () => {
+    if (!open) return
+    parts.push(
+      `<path d="${d}L${xLast.toFixed(2)} ${zeroY.toFixed(2)}L${x0.toFixed(2)} ${zeroY.toFixed(2)}Z" fill="${color}" fill-opacity="0.18"/>`,
+    )
+    d = ''
+    open = false
+  }
+  values.forEach((value, i) => {
+    if (value == null) {
+      close()
+      return
+    }
+    const span = bounds.max - bounds.min
+    const x = l.left + slot * (i + 0.5)
+    const y = l.top + l.plotH - ((value - bounds.min) / (span || 1)) * l.plotH
+    if (!open) x0 = x
+    d += `${open ? 'L' : 'M'}${x.toFixed(2)} ${y.toFixed(2)}`
+    xLast = x
+    open = true
+  })
+  close()
+  return parts.join('')
+}
+
 function linesSvg(spec: ChartSpec, data: ChartData, l: Layout, bounds: { min: number; max: number }): string {
   const slot = l.plotW / Math.max(1, data.labels.length)
   const zeroY = l.top + l.plotH - ((0 - bounds.min) / (bounds.max - bounds.min)) * l.plotH
@@ -193,17 +232,7 @@ function linesSvg(spec: ChartSpec, data: ChartData, l: Layout, bounds: { min: nu
     const color = PALETTE[si % PALETTE.length]
     const d = linePath(s.values, l, bounds)
     if (!d) return
-    if (spec.kind === 'area') {
-      const first = s.values.findIndex((v) => v != null)
-      const last = s.values.length - 1 - [...s.values].reverse().findIndex((v) => v != null)
-      if (first >= 0) {
-        const x0 = l.left + slot * (first + 0.5)
-        const x1 = l.left + slot * (last + 0.5)
-        parts.push(
-          `<path d="${d}L${x1.toFixed(2)} ${zeroY.toFixed(2)}L${x0.toFixed(2)} ${zeroY.toFixed(2)}Z" fill="${color}" fill-opacity="0.18"/>`,
-        )
-      }
-    }
+    if (spec.kind === 'area') parts.push(areaFills(s.values, l, bounds, zeroY, color))
     parts.push(
       `<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`,
     )

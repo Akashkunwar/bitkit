@@ -1,0 +1,60 @@
+import { useEffect, useRef } from 'react'
+
+export function isTypingTarget(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null
+  const tag = el?.tagName
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || !!el?.isContentEditable
+}
+
+export function useHeld(keys: readonly string[]) {
+  const held = useRef(new Set<string>())
+  useEffect(() => {
+    const down = (event: KeyboardEvent) => {
+      if (!keys.includes(event.key) || isTypingTarget(event.target)) return
+      event.preventDefault()
+      held.current.add(event.key)
+    }
+    const up = (event: KeyboardEvent) => {
+      held.current.delete(event.key)
+    }
+    const clear = () => held.current.clear()
+    window.addEventListener('keydown', down)
+    window.addEventListener('keyup', up)
+    window.addEventListener('blur', clear)
+    return () => {
+      window.removeEventListener('keydown', down)
+      window.removeEventListener('keyup', up)
+      window.removeEventListener('blur', clear)
+    }
+  }, [keys])
+  return held
+}
+
+export function useTick(run: () => void, ms: number) {
+  const saved = useRef(run)
+  saved.current = run
+  useEffect(() => {
+    const id = window.setInterval(() => saved.current(), ms)
+    return () => window.clearInterval(id)
+  }, [ms])
+}
+
+export function useTap() {
+  const pending = useRef(false)
+  const api = useRef({
+    tap: () => {
+      pending.current = true
+    },
+    take: () => {
+      const value = pending.current
+      pending.current = false
+      return value
+    },
+  })
+  return api.current
+}
+
+export const INK = '#f4f1e4'
+export const LIME = '#c9f150'
+export const RED = '#e85d4c'
+export const BG = '#14160f'

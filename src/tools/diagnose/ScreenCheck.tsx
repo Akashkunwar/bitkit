@@ -49,6 +49,20 @@ export function ScreenCheck() {
       if (event.key === 'ArrowRight') setColour((current) => ((current ?? 0) + 1) % SCREEN_COLOURS.length)
       if (event.key === 'ArrowLeft')
         setColour((current) => ((current ?? 0) - 1 + SCREEN_COLOURS.length) % SCREEN_COLOURS.length)
+      if (event.key !== 'Tab') return
+      const focusables = fillRef.current?.querySelectorAll<HTMLElement>(
+        'button, input, [href], [tabindex]:not([tabindex="-1"])',
+      )
+      if (!focusables?.length) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)

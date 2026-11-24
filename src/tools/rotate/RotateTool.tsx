@@ -42,6 +42,7 @@ function resolveFormat(item: ImageItem, format: Format): OutputFormat {
 function Preview({ item, angle, angleMode }: { item: ImageItem; angle: number; angleMode: 'expand' | 'crop' }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [source, setSource] = useState<{ id: string; bitmap: ImageBitmap | HTMLImageElement } | null>(null)
+  const [decodeError, setDecodeError] = useState<{ id: string; message: string } | null>(null)
 
   useEffect(() => {
     let live = true
@@ -49,10 +50,20 @@ function Preview({ item, angle, angleMode }: { item: ImageItem; angle: number; a
     void decodeImage(item.file)
       .then((bitmap) => {
         decoded = bitmap
-        if (live) setSource({ id: item.id, bitmap })
-        else if ('close' in bitmap) bitmap.close()
+        if (!live) {
+          if ('close' in bitmap) bitmap.close()
+          return
+        }
+        setSource({ id: item.id, bitmap })
+        setDecodeError(null)
       })
-      .catch(() => undefined)
+      .catch((err: unknown) => {
+        if (!live) return
+        setDecodeError({
+          id: item.id,
+          message: err instanceof Error ? err.message : 'Could not read this image.',
+        })
+      })
     return () => {
       live = false
       if (decoded && 'close' in decoded) decoded.close()
@@ -77,10 +88,19 @@ function Preview({ item, angle, angleMode }: { item: ImageItem; angle: number; a
     drawTransformed(ctx, bitmap as CanvasImageSource, natural, out, opts)
   }, [source, item.id, item.rotation, item.flipX, item.flipY, angle, angleMode])
 
+  const decodeMessage = (decodeError?.id === item.id ? decodeError.message : null) ?? item.error ?? null
+
   return (
-    <div className="preview-frame rotate-stage">
-      <canvas ref={canvasRef} aria-label={`Preview of ${item.name}`} role="img" />
-    </div>
+    <>
+      <div className="preview-frame rotate-stage">
+        <canvas ref={canvasRef} aria-label={`Preview of ${item.name}`} role="img" />
+      </div>
+      {decodeMessage ? (
+        <p className="status-bad" role="alert">
+          {decodeMessage}
+        </p>
+      ) : null}
+    </>
   )
 }
 

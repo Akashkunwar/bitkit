@@ -45,7 +45,9 @@ export default function PdfImagesTool() {
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [output, setOutput] = useState<Output | null>(null)
+  const [previewHint, setPreviewHint] = useState<string | null>(null)
   const thumbUrls = useRef<string[]>([])
+  const previewGen = useRef(0)
 
   const releaseThumbs = () => {
     for (const url of thumbUrls.current) URL.revokeObjectURL(url)
@@ -71,11 +73,13 @@ export default function PdfImagesTool() {
   useEffect(() => {
     if (!loaded) return
     let live = true
+    let noted = false
+    const gen = previewGen.current
     void (async () => {
       for (let n = 1; n <= loaded.pages && live; n += 1) {
         try {
           const url = await renderPageThumb(loaded.doc, n)
-          if (!live) {
+          if (!live || gen !== previewGen.current) {
             URL.revokeObjectURL(url)
             return
           }
@@ -84,6 +88,9 @@ export default function PdfImagesTool() {
         } catch (err) {
           // A page that fails to preview can still be exported.
           console.warn(`Preview of page ${n} failed`, err)
+          if (!live || noted || gen !== previewGen.current) continue
+          noted = true
+          setPreviewHint(`Page ${n} could not be previewed.`)
         }
       }
     })()
@@ -99,6 +106,8 @@ export default function PdfImagesTool() {
       const bytes = new Uint8Array(await file.arrayBuffer())
       const doc = await openPdfJs(pdfjs, bytes, pass)
       releaseThumbs()
+      previewGen.current += 1
+      setPreviewHint(null)
       const pages = doc.numPages
       setLoaded({ name: file.name, base: file.name.replace(/\.pdf$/i, '') || 'document', bytes, doc, pages })
       setSelected(new Set(Array.from({ length: pages }, (_, i) => i + 1)))
@@ -224,6 +233,8 @@ export default function PdfImagesTool() {
 
   const reset = () => {
     releaseThumbs()
+    previewGen.current += 1
+    setPreviewHint(null)
     setLoaded(null)
     setOutput(null)
     setError(null)
@@ -328,6 +339,8 @@ export default function PdfImagesTool() {
                 Select
               </button>
             </form>
+
+            {previewHint ? <p className="hint">{previewHint}</p> : null}
 
             <ul className="thumb-grid" aria-label="Pages">
               {pageList.map((n) => {

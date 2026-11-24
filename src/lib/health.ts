@@ -47,7 +47,10 @@ export function bandFor(value: number, bands: BmiBand[]): BmiBand {
 export function healthyWeightRange(cm: number, bands: BmiBand[]): { min: number; max: number } {
   const healthy = bands.find((b) => b.tone === 'ok') ?? bands[1]
   const m = cm / 100
-  return { min: healthy.from * m * m, max: healthy.to * m * m }
+  const min = healthy.from * m * m
+  // Bands are half-open, and the tool shows one decimal. The upper cut-off itself is the next band.
+  const max = Math.max(min, Math.floor((healthy.to * m * m - 1e-6) * 10) / 10)
+  return { min, max }
 }
 
 /**
@@ -98,9 +101,9 @@ export function waterLitres(kg: number): number {
 
 /** Height in feet and inches, for people who think in those units. */
 export function cmToFeet(cm: number): { feet: number; inches: number } {
-  const totalInches = cm / 2.54
+  const totalInches = Math.max(0, Math.round(cm / 2.54))
   const feet = Math.floor(totalInches / 12)
-  return { feet, inches: Math.round(totalInches - feet * 12) }
+  return { feet, inches: totalInches - feet * 12 }
 }
 
 export function feetToCm(feet: number, inches: number): number {

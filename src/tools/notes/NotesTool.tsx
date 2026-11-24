@@ -24,6 +24,7 @@ export default function NotesTool() {
   const [query, setQuery] = useState('')
   const [preview, setPreview] = useState(false)
   const [pdfBusy, setPdfBusy] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
   const timer = useRef<number | null>(null)
   const pending = useRef<Note | null>(null)
 
@@ -45,29 +46,41 @@ export default function NotesTool() {
   }
 
   useEffect(() => {
+    let live = true
     void (async () => {
-      const all = await listNotes()
-      if (!all.length) {
-        const note = newNote()
-        await upsertNote(note)
-        setNotes([note])
-        setActiveId(note.id)
-        return
+      try {
+        const all = await listNotes()
+        if (!live) return
+        if (!all.length) {
+          const note = newNote()
+          await upsertNote(note)
+          if (!live) return
+          setNotes([note])
+          setActiveId(note.id)
+          return
+        }
+        setNotes(all)
+        setActiveId(all[0].id)
+      } catch (err) {
+        if (live) setNotice(err instanceof Error ? err.message : 'Could not open notes.')
       }
-      setNotes(all)
-      setActiveId(all[0].id)
     })()
+    return () => {
+      live = false
+    }
   }, [])
 
   useEffect(() => {
     const hide = () => flush()
-    window.addEventListener('pagehide', hide)
-    document.addEventListener('visibilitychange', () => {
+    const onHide = () => {
       if (document.hidden) hide()
-    })
+    }
+    window.addEventListener('pagehide', hide)
+    document.addEventListener('visibilitychange', onHide)
     return () => {
       hide()
       window.removeEventListener('pagehide', hide)
+      document.removeEventListener('visibilitychange', onHide)
     }
   }, [])
 
@@ -110,6 +123,7 @@ export default function NotesTool() {
       title="Local notes"
       lede="Stored in this browser only. Clearing site data or using private mode will drop them — export a backup if they matter."
     >
+      {notice ? <p className="status-bad">{notice}</p> : null}
       <div className="notes-split">
         <aside className="panel">
           <input
@@ -158,9 +172,14 @@ export default function NotesTool() {
                     return
                   }
                   flush()
-                  const imported = importNotes(await file.text())
-                  await replaceNotes(imported)
-                  await refresh(imported[0]?.id)
+                  try {
+                    const imported = importNotes(await file.text())
+                    await replaceNotes(imported)
+                    await refresh(imported[0]?.id)
+                    setNotice(null)
+                  } catch (err) {
+                    setNotice(err instanceof Error ? err.message : 'Could not import those notes.')
+                  }
                 }}
               />
             </label>
@@ -208,6 +227,8 @@ export default function NotesTool() {
                         footer: 'BitKit',
                       })
                       await downloadNamed(blob, `${active.title || 'note'}.pdf`)
+                    } catch (err) {
+                      setNotice(err instanceof Error ? err.message : 'Could not make that PDF.')
                     } finally {
                       setPdfBusy(false)
                     }

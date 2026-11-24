@@ -55,12 +55,30 @@ export function tableFromCsv(input: string, delimiter = ','): Table {
 
 const DELIMITERS = [',', '\t', ';', '|'] as const
 
+function countOutsideQuotes(line: string, delimiter: string): number {
+  let count = 0
+  let quoted = false
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i]
+    if (ch === '"') {
+      if (quoted && line[i + 1] === '"') {
+        i += 1
+        continue
+      }
+      quoted = !quoted
+      continue
+    }
+    if (!quoted && ch === delimiter) count += 1
+  }
+  return count
+}
+
 export function detectDelimiter(input: string): string {
   const line = input.split('\n').find((l) => l.trim()) ?? ''
   let best = ','
   let bestCount = 0
   for (const candidate of DELIMITERS) {
-    const count = line.split(candidate).length - 1
+    const count = countOutsideQuotes(line, candidate)
     if (count > bestCount) {
       best = candidate
       bestCount = count

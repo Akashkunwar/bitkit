@@ -155,10 +155,22 @@ export function locationPayload(place: { query: string; lat: string; lng: string
 }
 
 function icsStamp(value: string): string {
-  const digits = value.replace(/\D/g, '')
-  if (digits.length < 8) return ''
-  const time = digits.slice(8, 12)
-  return time ? `${digits.slice(0, 8)}T${time}00` : digits.slice(0, 8)
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+  // An absolute instant keeps its UTC time. A floating datetime stays local, so 09:30 stays 09:30.
+  if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(trimmed)) {
+    const instant = new Date(trimmed)
+    if (Number.isNaN(instant.getTime())) return ''
+    return instant
+      .toISOString()
+      .replace(/[-:]/g, '')
+      .replace(/\.\d{3}Z$/, 'Z')
+  }
+  const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?/)
+  if (!match) return ''
+  const [, year, month, day, hour, minute, second] = match
+  if (!hour) return `${year}${month}${day}`
+  return `${year}${month}${day}T${hour}${minute}${second ?? '00'}`
 }
 
 export function eventPayload(event: { title: string; start: string; end: string; location: string }): string {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { DownloadButton } from '../../components/DownloadButton'
@@ -18,9 +18,18 @@ export default function ClipboardTool() {
   const [format, setFormat] = useState<Format>('image/png')
   const [pattern, setPattern] = useState('clipboard-{date}')
   const [preview, setPreview] = useState<{ url: string; blob: Blob; name: string } | null>(null)
+  const urlRef = useRef<string | null>(null)
+  urlRef.current = preview?.url ?? null
   const [error, setError] = useState<string | null>(null)
   const [folder, setFolder] = useState<FileSystemDirectoryHandle | null>(null)
   const [count, setCount] = useState(1)
+
+  useEffect(
+    () => () => {
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current)
+    },
+    [],
+  )
 
   useEffect(() => {
     void (async () => {

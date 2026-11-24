@@ -70,6 +70,7 @@ export default function BarcodeTool() {
   const [panel, setPanel] = useState<'make' | 'scan'>('make')
   const [batchText, setBatchText] = useState('SKU-0001\nSKU-0002\nSKU-0003')
   const [busy, setBusy] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
   const [outputs, setOutputs] = useState<File[]>([])
   const { copied, copy } = useCopied(1400)
   const info = SYMBOLOGIES.find((s) => s.id === settings.symbology) ?? SYMBOLOGIES[0]
@@ -112,6 +113,7 @@ export default function BarcodeTool() {
     const valid = batch.filter((row) => row.svg)
     if (!valid.length) return
     setBusy(true)
+    setExportError(null)
     try {
       const files: File[] = []
       for (const row of valid) {
@@ -124,6 +126,8 @@ export default function BarcodeTool() {
       const zip = zipStore(entries)
       triggerDownload(new Blob([zip.slice().buffer as ArrayBuffer], { type: 'application/zip' }), 'barcodes.zip')
       setOutputs(files)
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : 'Could not export those barcodes.')
     } finally {
       setBusy(false)
     }
@@ -323,6 +327,7 @@ export default function BarcodeTool() {
                 </div>
               </div>
             )}
+            {exportError ? <p className="status-bad">{exportError}</p> : null}
             <LabelSheet
               sample={settings.value}
               renderPng={async (value) => {

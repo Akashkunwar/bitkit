@@ -9,9 +9,58 @@ marked.setOptions({
 
 const purifyConfig: Config = {
   USE_PROFILES: { html: true },
-  FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
+  FORBID_TAGS: [
+    'script',
+    'iframe',
+    'object',
+    'embed',
+    'form',
+    'input',
+    'button',
+    'video',
+    'audio',
+    'source',
+    'track',
+    'link',
+    'meta',
+    'base',
+  ],
   FORBID_ATTR: ['onerror', 'onload', 'onclick'],
   ALLOW_DATA_ATTR: false,
+}
+
+/** A URL the browser would request from another host. Relative names and data: URLs stay. */
+function isRemoteUrl(value: string): boolean {
+  const trimmed = value.trim()
+  if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('data:') || trimmed.startsWith('blob:')) return false
+  if (trimmed.startsWith('//')) return true
+  return /^[a-z][a-z0-9+.-]*:/i.test(trimmed)
+}
+
+/** Drop URLs that would fetch a remote resource. Clicked links and local filenames stay. */
+function dropRemoteResources(html: string): string {
+  if (typeof document === 'undefined') return html
+  const root = document.createElement('div')
+  root.innerHTML = html
+  for (const el of root.querySelectorAll<HTMLElement>('*')) {
+    for (const attr of ['src', 'srcset', 'poster']) {
+      const value = el.getAttribute(attr)
+      if (value == null) continue
+      if (attr === 'srcset') {
+        const remote = value.split(',').some((part) => isRemoteUrl(part.trim().split(/\s+/)[0] ?? ''))
+        if (remote) el.removeAttribute(attr)
+        continue
+      }
+      if (isRemoteUrl(value)) el.removeAttribute(attr)
+    }
+    const style = el.getAttribute('style')
+    if (style && /url\s*\([^)]+\)/i.test(style)) {
+      const urls = style.match(/url\s*\(\s*['"]?[^'")]+/gi) ?? []
+      const remote = urls.some((raw) => isRemoteUrl(raw.replace(/^url\s*\(\s*['"]?/i, '')))
+      if (remote) el.removeAttribute('style')
+    }
+  }
+  return root.innerHTML
 }
 
 /**
@@ -52,12 +101,12 @@ function headingIds(html: string): string {
 
 export function renderMarkdown(source: string): string {
   const html = marked.parse(source, { async: false }) as string
-  return DOMPurify.sanitize(headingIds(taskBoxes(html)), purifyConfig)
+  return dropRemoteResources(DOMPurify.sanitize(headingIds(taskBoxes(html)), purifyConfig))
 }
 
 /** Sanitises HTML that came from a file on disk before it touches the DOM. */
 export function sanitizeHtml(html: string): string {
-  return DOMPurify.sanitize(html, purifyConfig)
+  return dropRemoteResources(DOMPurify.sanitize(html, purifyConfig))
 }
 
 export function extractTitle(source: string): string {

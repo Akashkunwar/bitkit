@@ -76,6 +76,43 @@ export function probeMedia(file: File): Promise<MediaInfo> {
   })
 }
 
+export type Cue = { start: number; end: number; text: string }
+
+function stampToSeconds(value: string): number {
+  const match = value.trim().match(/(?:(\d+):)?(\d{2}):(\d{2})[,.](\d{1,3})/)
+  if (!match) throw new Error(`Could not read the time “${value.trim()}”.`)
+  const hours = Number(match[1] ?? 0)
+  const ms = match[4].padEnd(3, '0').slice(0, 3)
+  return hours * 3600 + Number(match[2]) * 60 + Number(match[3]) + Number(ms) / 1000
+}
+
+/** SubRip cues. Index lines are ignored. Times may use a comma or a dot. */
+export function parseSrt(input: string): Cue[] {
+  const blocks = input
+    .replaceAll('\r', '')
+    .trim()
+    .split(/\n{2,}/)
+  const cues: Cue[] = []
+  for (const block of blocks) {
+    const lines = block.split('\n').map((line) => line.trimEnd())
+    const time = lines.find((line) => line.includes('-->'))
+    if (!time) continue
+    const [start, end] = time.split('-->')
+    const text = lines
+      .filter((line) => line !== time && !/^\d+$/.test(line.trim()))
+      .join('\n')
+      .trim()
+    if (!text || !start || !end) continue
+    cues.push({ start: stampToSeconds(start), end: stampToSeconds(end), text })
+  }
+  if (!cues.length) throw new Error('No subtitles in that text. Use SubRip times, like 00:00:01,000 --> 00:00:03,000.')
+  return cues
+}
+
+export function cueAt(cues: Cue[], time: number): string {
+  return cues.find((cue) => time >= cue.start && time < cue.end)?.text ?? ''
+}
+
 export type TrimOptions = {
   start: number
   end: number
@@ -86,6 +123,8 @@ export type TrimOptions = {
   mute?: boolean
   audioOnly?: boolean
   mimeType?: string
+  /** Burned into the picture. The browser re-encodes the clip to do this. */
+  captions?: Cue[]
 }
 
 export type TrimResult = { blob: Blob; mime: string; durationSec: number }
@@ -139,7 +178,24 @@ export async function trimMedia(
       canvas.height = Math.max(2, size.height)
       const ctx = canvas.getContext('2d')
       if (!ctx) throw new Error('Canvas is unavailable in this browser.')
-      draw = () => ctx.drawImage(media, 0, 0, canvas!.width, canvas!.height)
+      draw = () => {
+        ctx.drawImage(media, 0, 0, canvas!.width, canvas!.height)
+        const line = options.captions ? cueAt(options.captions, media.currentTime) : ''
+        if (!line) return
+        const size = Math.max(16, Math.round(canvas!.height / 18))
+        ctx.font = `600 ${size}px sans-serif`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'bottom'
+        const parts = line.split('\n').slice(0, 3)
+        parts.forEach((part, index) => {
+          const y = canvas!.height - 12 - (parts.length - 1 - index) * (size + 6)
+          const width = ctx.measureText(part).width
+          ctx.fillStyle = 'rgba(0,0,0,0.6)'
+          ctx.fillRect((canvas!.width - width) / 2 - 10, y - size - 4, width + 20, size + 10)
+          ctx.fillStyle = '#ffffff'
+          ctx.fillText(part, canvas!.width / 2, y)
+        })
+      }
       const canvasStream = canvas.captureStream(30)
       tracks.push(...canvasStream.getVideoTracks())
     }
@@ -195,6 +251,11 @@ export async function trimMedia(
       raf = requestAnimationFrame(step)
     }
     cleanup.push(() => cancelAnimationFrame(raf))
+
+    cleanup.push(() => {
+      if (recorder.state !== 'inactive') recorder.stop()
+      for (const track of stream.getTracks()) track.stop()
+    })
 
     recorder.start(250)
     await media.play()

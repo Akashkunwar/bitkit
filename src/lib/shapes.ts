@@ -44,3 +44,13 @@ export function patternSvg(kind: 'dots' | 'grid' | 'stripes', fill = '#c45b2d'):
         : `<circle cx="4" cy="4" r="2" fill="${color}"/>`
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><defs><pattern id="p" width="16" height="16" patternUnits="userSpaceOnUse">${tile}</pattern></defs><rect width="160" height="160" fill="url(#p)"/></svg>`
 }
+
+/** A sized box with a label, for layout placeholders. */
+export function placeholderSvg(width: number, height: number, label = '', fill = '#e7e5e4'): string {
+  const color = hexColor(fill)
+  const w = Math.min(4000, Math.max(1, Math.round(width)))
+  const h = Math.min(4000, Math.max(1, Math.round(height)))
+  const text = (label || `${w}×${h}`).replace(/[<>&"]/g, '')
+  const size = Math.max(12, Math.round(Math.min(w, h) / 10))
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect width="100%" height="100%" fill="${color}"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#292524" font-family="sans-serif" font-size="${size}">${text}</text></svg>`
+}

@@ -30,7 +30,7 @@ export default function CipherTool() {
   return (
     <ToolLayout
       title="DES and RIPEMD"
-      lede="DES encrypts with a password in this tab. RIPEMD-160 is a hash, not a way to reverse one."
+      lede="DES takes a password of at most 8 bytes and is not modern encryption. RIPEMD-160 is a hash, not a way to reverse one."
     >
       <Segmented
         label="Mode"

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Download, FileArchive, Trash2, X } from 'lucide-react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
@@ -45,6 +45,9 @@ export default function ImageConvertTool() {
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const runId = useRef(0)
+  const itemsRef = useRef(items)
+  itemsRef.current = items
 
   useEffect(() => {
     void Promise.all([canEncode('webp'), canEncode('avif')]).then(([webp, avif]) =>
@@ -63,6 +66,8 @@ export default function ImageConvertTool() {
 
   // Any change to the settings makes earlier results stale.
   useEffect(() => {
+    runId.current += 1
+    setBusy(false)
     setConverted([])
   }, [settings.format, settings.quality, settings.resize, settings.maxSide, settings.background])
 
@@ -72,6 +77,7 @@ export default function ImageConvertTool() {
 
   const convertAll = async () => {
     if (!ready.length) return
+    const token = ++runId.current
     setBusy(true)
     setError(null)
     setProgress(0)
@@ -86,15 +92,25 @@ export default function ImageConvertTool() {
           maxSide: settings.resize === 'max' ? settings.maxSide : null,
           background: info.alpha ? null : settings.background,
         })
+        if (runId.current !== token) return
         out.push({ id: item.id, file: new File([blob], renameFor(item.name, settings.format), { type: blob.type }) })
         setProgress((i + 1) / ready.length)
       }
-      setConverted(out)
-      if (out.length === 1) triggerDownload(out[0].file, out[0].file.name)
+      if (runId.current !== token) return
+      const live = new Set(itemsRef.current.map((entry) => entry.id))
+      setConverted((current) => {
+        const next = new Map(current.filter((entry) => live.has(entry.id)).map((entry) => [entry.id, entry]))
+        for (const entry of out) {
+          if (live.has(entry.id)) next.set(entry.id, entry)
+        }
+        return [...next.values()]
+      })
+      if (out.length === 1 && live.has(out[0].id)) triggerDownload(out[0].file, out[0].file.name)
     } catch (err) {
+      if (runId.current !== token) return
       setError(err instanceof Error ? err.message : 'Conversion failed.')
     } finally {
-      setBusy(false)
+      if (runId.current === token) setBusy(false)
     }
   }
 

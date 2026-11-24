@@ -428,9 +428,16 @@ export type RenderOptions = {
   background: string
 }
 
+/** Colors are interpolated into SVG. Only hex is accepted; anything else is a fallback. */
+function svgPaint(value: string, fallback: string): string {
+  return /^#[0-9a-fA-F]{3,8}$/.test(value) ? value : fallback
+}
+
 /** Barcode as a standalone SVG string. */
 export function barcodeSvg(encoded: Encoded, options: RenderOptions): string {
-  const { moduleWidth: m, height, quietZone, showText, foreground, background } = options
+  const { moduleWidth: m, height, quietZone, showText } = options
+  const foreground = svgPaint(options.foreground, '#000000')
+  const background = svgPaint(options.background, '#ffffff')
   const modules = encoded.widths.reduce((a, b) => a + b, 0)
   const width = (modules + quietZone * 2) * m
   const textSize = Math.max(10, Math.round(m * 9))

@@ -49,6 +49,8 @@ export function expandField(expr: string, field: { min: number; max: number; nam
       if (!Number.isInteger(a) || !Number.isInteger(b)) throw new Error(`Could not read the range “${rangePart}”.`)
       from = a
       to = b
+      // SUN is 0, so FRI-SUN would otherwise be the backwards range 5-0.
+      if (field.names === DAYS && to === 0 && from > 0) to = 7
     } else {
       const n = Number(nameToNumber(rangePart, field.names))
       if (!Number.isInteger(n)) throw new Error(`Could not read the value “${rangePart}”.`)
@@ -146,7 +148,8 @@ export function nextRuns(expr: string, count = 5, after = new Date()): Date[] {
   const out: Date[] = []
   const cursor = new Date(after.getTime())
   cursor.setSeconds(0, 0)
-  cursor.setMinutes(cursor.getMinutes() + 1)
+  // Advance by absolute minutes. setMinutes skips the repeated hour when clocks fall back.
+  cursor.setTime(cursor.getTime() + 60_000)
 
   // Two years of minutes is a generous ceiling for any real schedule.
   const limit = 366 * 2 * 24 * 60
@@ -165,7 +168,7 @@ export function nextRuns(expr: string, count = 5, after = new Date()): Date[] {
     ) {
       out.push(new Date(cursor.getTime()))
     }
-    cursor.setMinutes(cursor.getMinutes() + 1)
+    cursor.setTime(cursor.getTime() + 60_000)
   }
   return out
 }

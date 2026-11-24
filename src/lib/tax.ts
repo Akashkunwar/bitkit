@@ -114,10 +114,10 @@ function slabTax(taxable: number, bands: Band[]): number {
 }
 
 /**
- * Section 87A. Under the new regime, tax is zero up to ₹12 lakh and the
- * amount above that is capped so a rupee over the line is not a cliff.
- * The old regime does the same around ₹5 lakh, with the rebate itself
- * capped at ₹12,500.
+ * Section 87A. The new regime rebates tax up to ₹12 lakh and applies
+ * marginal relief, so one rupee over the line is not a cliff. The old
+ * regime rebates tax only when taxable income is at most ₹5 lakh (capped
+ * at ₹12,500). The statute gives the old regime no marginal relief.
  */
 function applyRebate(
   regime: 'new' | 'old',
@@ -139,8 +139,6 @@ function applyRebate(
     const rebate = Math.min(tax, 12_500)
     return { tax: tax - rebate, rebate }
   }
-  const excess = taxable - 500_000
-  if (tax > excess && excess < 12_500) return { tax: excess, rebate: tax - excess }
   return { tax, rebate: 0 }
 }
 

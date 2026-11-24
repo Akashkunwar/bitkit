@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
@@ -12,6 +12,8 @@ import { usePasteFiles } from '../../lib/usePasteFiles'
 export default function FaviconTool() {
   const [file, setFile] = useState<File | null>(null)
   const [url, setUrl] = useState<string | null>(null)
+  const urlRef = useRef<string | null>(null)
+  urlRef.current = url
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [outputs, setOutputs] = useState<File[]>([])
@@ -23,6 +25,13 @@ export default function FaviconTool() {
     setOutputs([])
     setError(null)
   }
+
+  useEffect(
+    () => () => {
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current)
+    },
+    [],
+  )
 
   useHandoff((payload) => {
     const image = payload.files?.find((f) => f.type.startsWith('image/'))

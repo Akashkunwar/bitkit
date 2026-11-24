@@ -167,6 +167,12 @@ export default function MarkupTool() {
               width={loaded.width}
               height={loaded.height}
               className="markup-canvas"
+              role="img"
+              aria-label={
+                marks.length
+                  ? `Screenshot markup with ${marks.length} ${marks.length === 1 ? 'mark' : 'marks'}`
+                  : 'Screenshot markup'
+              }
               onPointerDown={down}
               onPointerMove={move}
               onPointerUp={up}

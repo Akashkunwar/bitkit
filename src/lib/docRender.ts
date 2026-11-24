@@ -130,6 +130,8 @@ async function renderDocx(file: File, options: RenderOptions): Promise<RenderedD
       renderEndnotes: true,
       renderChanges: false,
       renderComments: false,
+      // AltChunks render as unsandboxed srcdoc iframes. A Word file could then script this origin.
+      renderAltChunks: false,
     })
     // Fix bullets in the live styles too, so layout and raster agree.
     for (const style of host.querySelectorAll('style')) style.textContent = normalizeDocxCss(style.textContent ?? '')

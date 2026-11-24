@@ -19,6 +19,7 @@ export function emi(principal: number, annualRatePct: number, months: number): E
   if (!(principal > 0) || !(months > 0)) throw new Error('Enter a loan amount and a tenure above zero.')
   if (annualRatePct < 0) throw new Error('The interest rate cannot be negative.')
   const n = Math.round(months)
+  if (n < 1) throw new Error('Enter a tenure of at least one month.')
   const r = annualRatePct / 12 / 100
   const payment = r === 0 ? principal / n : (principal * r * (1 + r) ** n) / ((1 + r) ** n - 1)
 
@@ -55,6 +56,7 @@ export function sip(monthly: number, annualReturnPct: number, years: number): Gr
   if (!(monthly > 0) || !(years > 0)) throw new Error('Enter a monthly amount and a period above zero.')
   const i = annualReturnPct / 12 / 100
   const months = Math.round(years * 12)
+  if (months < 1) throw new Error('Enter a period of at least one month.')
   let value = 0
   const yearly: GrowthResult['yearly'] = []
   for (let m = 1; m <= months; m += 1) {

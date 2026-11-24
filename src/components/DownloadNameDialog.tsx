@@ -5,6 +5,8 @@ export function DownloadNameDialog() {
   const [request, setRequest] = useState<DownloadNameRequest | null>(null)
   const [name, setName] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+  const dialogRef = useRef<HTMLFormElement>(null)
+  const restoreRef = useRef<Element | null>(null)
 
   useEffect(
     () =>
@@ -17,6 +19,7 @@ export function DownloadNameDialog() {
 
   useEffect(() => {
     if (!request) return
+    restoreRef.current = document.activeElement
     const frame = requestAnimationFrame(() => {
       const input = inputRef.current
       if (!input) return
@@ -25,15 +28,32 @@ export function DownloadNameDialog() {
       input.setSelectionRange(0, dot > 0 ? dot : request.suggested.length)
     })
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return
-      event.preventDefault()
-      event.stopPropagation()
-      request.resolve(null)
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        event.stopPropagation()
+        request.resolve(null)
+        return
+      }
+      if (event.key !== 'Tab') return
+      const focusables = dialogRef.current?.querySelectorAll<HTMLElement>(
+        'button, input, [href], [tabindex]:not([tabindex="-1"])',
+      )
+      if (!focusables?.length) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
     window.addEventListener('keydown', onKey, true)
     return () => {
       cancelAnimationFrame(frame)
       window.removeEventListener('keydown', onKey, true)
+      ;(restoreRef.current as HTMLElement | null)?.focus?.()
     }
   }, [request])
 
@@ -42,6 +62,7 @@ export function DownloadNameDialog() {
   return (
     <div className="sheet-backdrop no-print" onClick={() => request.resolve(null)}>
       <form
+        ref={dialogRef}
         className="sheet name-sheet"
         role="dialog"
         aria-modal="true"

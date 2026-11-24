@@ -30,6 +30,9 @@ export default function RecordTool() {
   const [elapsed, setElapsed] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [output, setOutput] = useState<Output | null>(null)
+  const outputRef = useRef<Output | null>(null)
+  outputRef.current = output
+  const mountedRef = useRef(true)
 
   const previewRef = useRef<HTMLVideoElement>(null)
   const recorderRef = useRef<MediaRecorder | null>(null)
@@ -52,13 +55,13 @@ export default function RecordTool() {
   }
 
   useEffect(() => {
+    mountedRef.current = true
     return () => {
+      mountedRef.current = false
       if (recorderRef.current && recorderRef.current.state !== 'inactive') recorderRef.current.stop()
       stopTracks()
-      if (output) URL.revokeObjectURL(output.url)
+      if (outputRef.current) URL.revokeObjectURL(outputRef.current.url)
     }
-    // Cleanup only on unmount; the output URL is revoked when replaced too.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const start = async () => {
@@ -116,6 +119,10 @@ export default function RecordTool() {
         const type = recorder.mimeType || mime || 'video/webm'
         const blob = new Blob(chunks, { type })
         const url = URL.createObjectURL(blob)
+        if (!mountedRef.current) {
+          URL.revokeObjectURL(url)
+          return
+        }
         setOutput({ blob, name: `${source}-recording.${extensionFor(type)}`, url })
         setRecording(false)
         stopTracks()

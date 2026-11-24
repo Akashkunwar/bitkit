@@ -31,6 +31,7 @@ function getWorker(): Worker | null {
     }
     worker.onerror = () => {
       supported = false
+      worker?.terminate()
       worker = null
       failAll(new Error('Image worker crashed.'))
     }

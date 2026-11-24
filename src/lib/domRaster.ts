@@ -175,9 +175,17 @@ export function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: 
  * that want an image rendered convert it to a data: URL first.
  */
 export function stripExternalImages(root: Element): void {
-  for (const img of root.querySelectorAll('img')) {
-    const src = img.getAttribute('src') ?? ''
-    if (!src.startsWith('data:')) img.removeAttribute('src')
+  const nodes = root.querySelectorAll('img, video, audio, source, track, image')
+  for (const el of nodes) {
+    for (const attr of ['src', 'poster', 'href']) {
+      const value = el.getAttribute(attr)
+      if (value != null && !value.startsWith('data:') && !value.startsWith('#')) el.removeAttribute(attr)
+    }
+    const srcset = el.getAttribute('srcset')
+    if (srcset != null) {
+      const local = srcset.split(',').every((part) => (part.trim().split(/\s+/)[0] ?? '').startsWith('data:'))
+      if (!local) el.removeAttribute('srcset')
+    }
   }
 }
 

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
@@ -13,6 +13,8 @@ import { PASSPORT_PX, passportLayout, type SheetKind } from '../../lib/passport'
 export default function PassportTool() {
   const [file, setFile] = useState<File | null>(null)
   const [url, setUrl] = useState<string | null>(null)
+  const urlRef = useRef<string | null>(null)
+  urlRef.current = url
   const [kind, setKind] = useState<SheetKind>('4x6')
   const [copies, setCopies] = useState(6)
   const [busy, setBusy] = useState(false)
@@ -27,6 +29,13 @@ export default function PassportTool() {
     setSheet(null)
     setError(null)
   }
+
+  useEffect(
+    () => () => {
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current)
+    },
+    [],
+  )
 
   useHandoff((payload) => {
     const image = payload.files?.find((f) => f.type.startsWith('image/'))

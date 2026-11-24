@@ -92,14 +92,14 @@ export default function ChartTool() {
     [kind, labelColumn, valueColumns, title, showGrid, showLegend, showValues],
   )
 
-  const svg = useMemo(() => {
+  const drawn = useMemo(() => {
     try {
-      return chartSvg(table, spec)
+      return { svg: chartSvg(table, spec), problem: null as string | null }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not draw that chart.')
-      return ''
+      return { svg: '', problem: err instanceof Error ? err.message : 'Could not draw that chart.' }
     }
   }, [table, spec])
+  const svg = drawn.svg
 
   const single = kind === 'pie' || kind === 'donut' || kind === 'bar'
 
@@ -127,7 +127,7 @@ export default function ChartTool() {
             .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Could not read that file.'))
         }}
       />
-      {error ? <p className="status-bad">{error}</p> : null}
+      {error || drawn.problem ? <p className="status-bad">{error || drawn.problem}</p> : null}
 
       <label className="field" style={{ marginTop: '1rem' }}>
         <span>Data — CSV</span>

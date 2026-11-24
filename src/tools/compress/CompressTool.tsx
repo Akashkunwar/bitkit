@@ -39,6 +39,7 @@ export default function CompressTool() {
   const maxBytes = parseByteLimit(maxBytesInput)
   const itemsRef = useRef(items)
   itemsRef.current = items
+  const runId = useRef(0)
 
   useEffect(() => {
     return () => {
@@ -85,35 +86,48 @@ export default function CompressTool() {
   }
 
   const run = async () => {
+    const token = ++runId.current
     const w = width ? Number(width) : undefined
     const h = height ? Number(height) : undefined
+    const batch = items
     setItems((prev) => prev.map((item) => ({ ...item, busy: true, error: undefined })))
-    const updated: Item[] = []
-    for (const item of items) {
-      try {
-        const result = await compressInWorker(item.file, {
-          width: w,
-          height: h,
-          fit,
-          mime,
-          maxBytes,
-          background: mime === 'image/jpeg' ? '#ffffff' : undefined,
-        })
-        if (item.result) URL.revokeObjectURL(item.result.url)
-        updated.push({
-          ...item,
-          busy: false,
-          result: { ...result, url: URL.createObjectURL(result.blob) },
-        })
-      } catch (err) {
-        updated.push({
-          ...item,
-          busy: false,
-          error: err instanceof Error ? err.message : 'Compression failed.',
-        })
+    try {
+      for (const item of batch) {
+        try {
+          const result = await compressInWorker(item.file, {
+            width: w,
+            height: h,
+            fit,
+            mime,
+            maxBytes,
+            background: mime === 'image/jpeg' ? '#ffffff' : undefined,
+          })
+          if (runId.current !== token) return
+          const url = URL.createObjectURL(result.blob)
+          const live = itemsRef.current.find((entry) => entry.id === item.id)
+          if (!live) {
+            URL.revokeObjectURL(url)
+            continue
+          }
+          if (live.result) URL.revokeObjectURL(live.result.url)
+          setItems((prev) =>
+            prev.map((entry) =>
+              entry.id === item.id ? { ...entry, busy: false, error: undefined, result: { ...result, url } } : entry,
+            ),
+          )
+        } catch (err) {
+          if (runId.current !== token) return
+          const message = err instanceof Error ? err.message : 'Compression failed.'
+          setItems((prev) =>
+            prev.map((entry) => (entry.id === item.id ? { ...entry, busy: false, error: message } : entry)),
+          )
+        }
+      }
+    } finally {
+      if (runId.current === token) {
+        setItems((prev) => prev.map((item) => (item.busy ? { ...item, busy: false } : item)))
       }
     }
-    setItems(updated)
   }
 
   const jpegWarning = mime === 'image/jpeg'

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { useCopied } from '../../lib/useCopied'
-import { colorShades, mixColors } from '../../lib/colorMix'
+import { colorHarmonies, colorShades, mixColors } from '../../lib/colorMix'
 
 export default function MixTool() {
   const [from, setFrom] = useState('#c45b2d')
@@ -24,6 +24,14 @@ export default function MixTool() {
       return []
     }
   }, [from, steps])
+
+  const harmonies = useMemo(() => {
+    try {
+      return colorHarmonies(from)
+    } catch {
+      return []
+    }
+  }, [from])
 
   return (
     <ToolLayout
@@ -49,6 +57,12 @@ export default function MixTool() {
           <Swatches colors={mixed.colors} onCopy={(hex) => void copy(hex, hex)} copied={copied} />
           <h3>Shades of the first color</h3>
           <Swatches colors={shades} onCopy={(hex) => void copy(hex, hex)} copied={copied} />
+          {harmonies.map((set) => (
+            <div key={set.name}>
+              <h3>{set.name}</h3>
+              <Swatches colors={set.colors} onCopy={(hex) => void copy(hex, hex)} copied={copied} />
+            </div>
+          ))}
         </section>
         <aside className="panel">
           <p className="hint">Click a swatch to copy its hex. The ramp stays in this tab.</p>

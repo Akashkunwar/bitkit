@@ -10,6 +10,7 @@ import {
   captureFrame,
   extensionFor,
   formatClock,
+  parseSrt,
   probeMedia,
   trimMedia,
   type MediaInfo,
@@ -34,6 +35,7 @@ export default function MediaTool() {
   const [maxEdge, setMaxEdge] = useState(0)
   const [limit, setLimit] = useState('')
   const [mute, setMute] = useState(false)
+  const [captions, setCaptions] = useState('')
   const [audioOnly, setAudioOnly] = useState(false)
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -78,6 +80,7 @@ export default function MediaTool() {
     setError(null)
     setOutput(null)
     setProgress(0)
+    abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
     try {
@@ -91,6 +94,7 @@ export default function MediaTool() {
           maxEdge: maxEdge || undefined,
           mute: override?.mute ?? mute,
           audioOnly,
+          captions: captions.trim() ? parseSrt(captions) : undefined,
           videoBitsPerSecond: maxBytes ? bitrateForTarget(maxBytes, seconds) : undefined,
           audioBitsPerSecond: 96_000,
         },
@@ -98,16 +102,20 @@ export default function MediaTool() {
         controller.signal,
       )
       const ext = extensionFor(result.mime)
+      if (abortRef.current !== controller) return
       setOutput({
         blob: result.blob,
         name: `${file.name.replace(/\.[^.]+$/, '')}-clip.${ext}`,
         withinLimit: !maxBytes || result.blob.size <= maxBytes,
       })
     } catch (err) {
+      if (abortRef.current !== controller) return
       setError(err instanceof Error ? err.message : 'Could not process that clip.')
     } finally {
-      setBusy(false)
-      abortRef.current = null
+      if (abortRef.current === controller) {
+        setBusy(false)
+        abortRef.current = null
+      }
     }
   }
 
@@ -215,6 +223,19 @@ export default function MediaTool() {
               Drop the audio
             </label>
           </div>
+          {info.kind === 'video' ? (
+            <label className="field">
+              <span>Subtitles to burn in, SubRip times</span>
+              <textarea
+                className="code-area"
+                rows={5}
+                spellCheck={false}
+                placeholder={'1\n00:00:01,000 --> 00:00:03,000\nHello'}
+                value={captions}
+                onChange={(e) => setCaptions(e.target.value)}
+              />
+            </label>
+          ) : null}
 
           <p className="hint">
             Clip is {formatClock(seconds)}

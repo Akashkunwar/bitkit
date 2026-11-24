@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
@@ -17,10 +17,14 @@ export default function OcrTool() {
   const [error, setError] = useState<string | null>(null)
   const [allowed, setAllowed] = useState(() => hasEngineConsent())
   const { copied, copy } = useCopied()
+  const runId = useRef(0)
 
   useHandoff((payload) => {
     const image = payload.files?.find((f) => f.type.startsWith('image/'))
-    if (image) setFile(image)
+    if (!image) return
+    runId.current += 1
+    setBusy(false)
+    setFile(image)
   })
 
   useEffect(() => {
@@ -36,16 +40,19 @@ export default function OcrTool() {
       setError('Allow the OCR engine to download once from a CDN first.')
       return
     }
+    const token = ++runId.current
     setBusy(true)
     setError(null)
     try {
       const result = await recognizeImage(file)
+      if (runId.current !== token) return
       setText(result.text)
       setConfidence(result.confidence)
     } catch (err) {
+      if (runId.current !== token) return
       setError(err instanceof Error ? err.message : 'OCR failed. The engine may still be loading.')
     } finally {
-      setBusy(false)
+      if (runId.current === token) setBusy(false)
     }
   }
 
@@ -81,6 +88,8 @@ export default function OcrTool() {
             accept="image/*"
             label="Drop a screenshot or photo of text."
             onFiles={(files) => {
+              runId.current += 1
+              setBusy(false)
               setFile(files[0] ?? null)
               setText('')
               setConfidence(null)

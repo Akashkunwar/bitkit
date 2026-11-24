@@ -15,8 +15,12 @@ export default function SoundMeterTool() {
   const streamRef = useRef<MediaStream | null>(null)
   const ctxRef = useRef<AudioContext | null>(null)
   const rafRef = useRef<number>(0)
+  const calibrationRef = useRef(calibration)
+  calibrationRef.current = calibration
+  const runRef = useRef(0)
 
   const stop = () => {
+    runRef.current += 1
     cancelAnimationFrame(rafRef.current)
     streamRef.current?.getTracks().forEach((t) => t.stop())
     streamRef.current = null
@@ -28,12 +32,18 @@ export default function SoundMeterTool() {
   useEffect(() => stop, [])
 
   const start = async () => {
+    stop()
+    const run = ++runRef.current
     setError(null)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         // Processing would fight the measurement, so ask for the raw signal.
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
       })
+      if (run !== runRef.current) {
+        stream.getTracks().forEach((track) => track.stop())
+        return
+      }
       streamRef.current = stream
       const ctx = new AudioContext()
       ctxRef.current = ctx
@@ -49,8 +59,8 @@ export default function SoundMeterTool() {
       const tick = () => {
         analyser.getFloatTimeDomainData(buffer)
         const level = measure(buffer)
-        const spl = estimateSpl(level.db, calibration)
-        const peak = estimateSpl(level.peakDb, calibration)
+        const spl = estimateSpl(level.db, calibrationRef.current)
+        const peak = estimateSpl(level.peakDb, calibrationRef.current)
         setReading({ spl, peak })
         setMax((current) => Math.max(current, spl))
         setHistory((current) => [...current.slice(-119), spl])

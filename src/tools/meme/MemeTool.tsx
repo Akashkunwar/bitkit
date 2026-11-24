@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
@@ -16,6 +16,8 @@ export default function MemeTool() {
     bottom: 'on the first try',
   })
   const [url, setUrl] = useState<string | null>(null)
+  const urlRef = useRef<string | null>(null)
+  urlRef.current = url
   const [blob, setBlob] = useState<Blob | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [capped, setCapped] = useState(false)
@@ -52,13 +54,12 @@ export default function MemeTool() {
     }
   }, [file, options])
 
-  useEffect(() => {
-    return () => {
-      if (url) URL.revokeObjectURL(url)
-    }
-    // Only on unmount; earlier URLs are revoked as they are replaced.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  useEffect(
+    () => () => {
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current)
+    },
+    [],
+  )
 
   const set = <K extends keyof MemeOptions>(key: K, value: MemeOptions[K]) =>
     setOptions((current) => ({ ...current, [key]: value }))

@@ -71,6 +71,7 @@ export default function CollageTool() {
   // Full-resolution decodes, one per list item, released when the item goes.
   const sources = useRef(new Map<string, Source>())
   const pending = useRef(new Set<string>())
+  const [decodeErrors, setDecodeErrors] = useState<Record<string, string>>({})
   const [decoded, setDecoded] = useState(0)
 
   useEffect(() => {
@@ -91,7 +92,7 @@ export default function CollageTool() {
       sources.current.delete(id)
     }
     for (const item of items) {
-      if (item.error || sources.current.has(item.id) || pending.current.has(item.id)) continue
+      if (item.error || decodeErrors[item.id] || sources.current.has(item.id) || pending.current.has(item.id)) continue
       pending.current.add(item.id)
       void decodeImage(item.file)
         .then((image) => {
@@ -100,10 +101,13 @@ export default function CollageTool() {
           sources.current.set(item.id, { width, height, image: image as CanvasImageSource })
           setDecoded((n) => n + 1)
         })
-        .catch(() => undefined)
+        .catch((err: unknown) => {
+          const message = err instanceof Error ? err.message : 'Could not read this image.'
+          setDecodeErrors((current) => (current[item.id] === message ? current : { ...current, [item.id]: message }))
+        })
         .finally(() => pending.current.delete(item.id))
     }
-  }, [items])
+  }, [items, decodeErrors])
 
   const ordered = useMemo(
     () => items.map((item) => sources.current.get(item.id)).filter((s): s is Source => !!s),
@@ -150,6 +154,10 @@ export default function CollageTool() {
   }
 
   const size = ordered.length ? layoutCollage(ordered, settings) : null
+  const fileError = items
+    .map((item) => item.error ?? decodeErrors[item.id])
+    .find((message): message is string => Boolean(message))
+  const shownError = error ?? fileError ?? null
 
   return (
     <ToolLayout
@@ -353,9 +361,9 @@ export default function CollageTool() {
               {busy ? <span className="spinner" aria-hidden="true" /> : <Download size={18} aria-hidden="true" />}
               {busy ? 'Rendering…' : 'Download collage'}
             </button>
-            {error ? (
+            {shownError ? (
               <p className="status-bad" role="alert">
-                {error}
+                {shownError}
               </p>
             ) : null}
             {output ? (

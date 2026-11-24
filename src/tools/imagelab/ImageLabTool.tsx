@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
@@ -29,6 +29,8 @@ export default function ImageLabTool() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [mode, setMode] = useState<Mode>('invert')
   const [url, setUrl] = useState<string | null>(null)
+  const urlRef = useRef<string | null>(null)
+  urlRef.current = url
   const [stamp, setStamp] = useState(() => new Date().toISOString().slice(0, 10).replaceAll('-', '.'))
   const [cell, setCell] = useState(8)
   const [base64, setBase64] = useState('')
@@ -77,6 +79,13 @@ export default function ImageLabTool() {
       setError(err instanceof Error ? err.message : 'Could not read that image.')
     }
   }
+
+  useEffect(
+    () => () => {
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current)
+    },
+    [],
+  )
 
   return (
     <ToolLayout

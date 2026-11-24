@@ -402,6 +402,7 @@ function evaluate(node: Node, scope: Required<Pick<Scope, 'angle'>> & Scope): nu
         case 'root': {
           need(2)
           const [x, n] = args
+          if (n === 0) throw new CalcError('The root cannot be zero.')
           if (x < 0 && n % 2 === 1) return -(Math.abs(x) ** (1 / n))
           return x ** (1 / n)
         }
@@ -413,7 +414,12 @@ function evaluate(node: Node, scope: Required<Pick<Scope, 'angle'>> & Scope): nu
           return Math.log(x)
         }
         case 'log': {
-          if (args.length === 2) return Math.log(args[0]) / Math.log(args[1])
+          if (args.length === 2) {
+            const [value, base] = args
+            if (!(value > 0)) throw new CalcError('log needs a positive number.')
+            if (!(base > 0) || base === 1) throw new CalcError('log needs a positive base other than 1.')
+            return Math.log(value) / Math.log(base)
+          }
           const x = one()
           if (x <= 0) throw new CalcError('log needs a positive number.')
           return Math.log10(x)
@@ -464,7 +470,13 @@ function evaluate(node: Node, scope: Required<Pick<Scope, 'angle'>> & Scope): nu
           return args.reduce((a, b) => gcd(a, b))
         case 'lcm':
           if (args.length < 2) throw new CalcError('lcm needs two or more values.')
-          return args.reduce((a, b) => Math.abs(Math.round(a) * Math.round(b)) / gcd(a, b))
+          return args.reduce((a, b) => {
+            const left = Math.round(a)
+            const right = Math.round(b)
+            const divisor = gcd(left, right)
+            if (divisor === 0) return 0
+            return Math.abs(left * right) / divisor
+          })
       }
       throw new CalcError(`Unknown function “${node.name}”.`)
     }

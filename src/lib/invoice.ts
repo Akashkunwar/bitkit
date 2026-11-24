@@ -52,12 +52,22 @@ export function emptyInvoice(): Invoice {
 
 export type Totals = { subtotal: number; discount: number; tax: number; total: number }
 
+/** Round to the nearest paisa/cent before summing, so printed lines add up to the subtotal. */
+export function moneyRound(amount: number): number {
+  if (!Number.isFinite(amount)) return 0
+  return Math.round(amount * 100 + Math.sign(amount) * 1e-8) / 100
+}
+
+export function lineAmount(item: { quantity: number; rate: number }): number {
+  return moneyRound(item.quantity * item.rate)
+}
+
 export function totalsOf(invoice: Invoice): Totals {
-  const subtotal = invoice.items.reduce((sum, item) => sum + item.quantity * item.rate, 0)
-  const discount = (subtotal * (invoice.discount || 0)) / 100
-  const taxable = subtotal - discount
-  const tax = (taxable * (invoice.taxPercent || 0)) / 100
-  return { subtotal, discount, tax, total: taxable + tax }
+  const subtotal = moneyRound(invoice.items.reduce((sum, item) => sum + lineAmount(item), 0))
+  const discount = moneyRound((subtotal * (invoice.discount || 0)) / 100)
+  const taxable = moneyRound(subtotal - discount)
+  const tax = moneyRound((taxable * (invoice.taxPercent || 0)) / 100)
+  return { subtotal, discount, tax, total: moneyRound(taxable + tax) }
 }
 
 export function money(amount: number, currency: string): string {
@@ -132,7 +142,7 @@ export function invoicePdf(invoice: Invoice): Blob {
     doc.text(lines, margin, y)
     doc.text(String(item.quantity), colQty, y, { align: 'right' })
     doc.text(amount(item.rate), colRate, y, { align: 'right' })
-    doc.text(amount(item.quantity * item.rate), colAmount, y, { align: 'right' })
+    doc.text(amount(lineAmount(item)), colAmount, y, { align: 'right' })
     y += Math.max(1, lines.length) * 4.6 + 2
   }
 

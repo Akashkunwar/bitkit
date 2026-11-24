@@ -105,25 +105,30 @@ export function useImageList() {
   const urls = useRef(new Map<string, string>())
   // Latest thumbnail request per item, so a slow render never overwrites a newer one.
   const versions = useRef(new Map<string, number>())
+  const liveIds = useRef(new Set<string>())
 
   useEffect(() => {
     const owned = urls.current
     const cached = bases.current
+    const ids = liveIds.current
     return () => {
       for (const url of owned.values()) URL.revokeObjectURL(url)
       owned.clear()
       cached.clear()
+      ids.clear()
     }
   }, [])
 
   const refreshThumb = useCallback(async (item: Pick<ImageItem, 'id' | 'rotation' | 'flipX' | 'flipY'>) => {
+    if (!liveIds.current.has(item.id)) return
     const base = bases.current.get(item.id)
     if (!base) return
     const version = (versions.current.get(item.id) ?? 0) + 1
     versions.current.set(item.id, version)
     const url = await orientedThumb(base, item.rotation, item.flipX, item.flipY)
-    if (versions.current.get(item.id) !== version || !bases.current.has(item.id)) {
+    if (!liveIds.current.has(item.id) || versions.current.get(item.id) !== version || !bases.current.has(item.id)) {
       URL.revokeObjectURL(url)
+      if (!liveIds.current.has(item.id)) bases.current.delete(item.id)
       return
     }
     const previous = urls.current.get(item.id)
@@ -148,15 +153,18 @@ export function useImageList() {
         flipY: false,
         thumbUrl: null,
       }))
+      for (const item of fresh) liveIds.current.add(item.id)
       setItems((list) => [...list, ...fresh])
       for (const item of fresh) {
         void makeBase(item.file)
           .then(({ canvas, width, height }) => {
+            if (!liveIds.current.has(item.id)) return
             bases.current.set(item.id, canvas)
             setItems((list) => list.map((entry) => (entry.id === item.id ? { ...entry, width, height } : entry)))
             return refreshThumb(item)
           })
           .catch((err: unknown) => {
+            if (!liveIds.current.has(item.id)) return
             const message = err instanceof Error ? err.message : 'Could not read this image.'
             setItems((list) => list.map((entry) => (entry.id === item.id ? { ...entry, error: message } : entry)))
           })
@@ -202,6 +210,7 @@ export function useImageList() {
   )
 
   const remove = useCallback((id: string) => {
+    liveIds.current.delete(id)
     const url = urls.current.get(id)
     if (url) URL.revokeObjectURL(url)
     urls.current.delete(id)
@@ -211,6 +220,7 @@ export function useImageList() {
   }, [])
 
   const clear = useCallback(() => {
+    liveIds.current.clear()
     for (const url of urls.current.values()) URL.revokeObjectURL(url)
     urls.current.clear()
     bases.current.clear()

@@ -179,6 +179,20 @@ describe('rendering', () => {
     expect(svg).toContain('A&lt;B')
     expect(svg).toContain('width="48"')
   })
+
+  it('refuses to interpolate a color that is not hex', () => {
+    const encoded = { widths: [1, 1], text: 'A' }
+    const svg = barcodeSvg(encoded, {
+      moduleWidth: 2,
+      height: 40,
+      quietZone: 10,
+      showText: false,
+      foreground: '"><img src=x onerror=alert(1)>',
+      background: '#fff',
+    })
+    expect(svg).not.toContain('<img')
+    expect(svg).toContain('fill="#000000"')
+  })
 })
 
 describe('speech helpers', () => {

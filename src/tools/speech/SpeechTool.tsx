@@ -128,6 +128,7 @@ export default function SpeechTool() {
       if (event.error === 'interrupted' || event.error === 'canceled') return
       queue.current = null
       setStatus('idle')
+      setNote('This browser could not speak that.')
     }
     window.speechSynthesis.speak(utterance)
   }, [voice, settings.rate, settings.pitch, settings.volume])
@@ -256,6 +257,7 @@ export default function SpeechTool() {
     }
     queue.current = { chunks, offsets, index: 0 }
     setStatus('speaking')
+    setNote(null)
     speakChunk()
   }
 

@@ -48,10 +48,13 @@
   --brand-kit: var(--accent);
 
   --cat-daily: #b8741a;
+  --cat-diagnostics: #155e75;
+  --cat-games: #c2410c;
   --cat-image: #c23f6c;
   --cat-document: #c2452d;
   --cat-data: #2f7d55;
   --cat-media: #7b4fb0;
+  --cat-labs: #3f6212;
   --cat-social: #2f8f6b;
   --cat-developer: #2a65ad;
   --cat-design: #a8458c;
@@ -115,10 +118,13 @@
   --warn: #f2c14e;
   --hl-ink: #0e0f0c;
   --cat-daily: #eab04a;
+  --cat-diagnostics: #67e8f9;
+  --cat-games: #fb923c;
   --cat-image: #f07ca2;
   --cat-document: #f28b73;
   --cat-data: #71cf98;
   --cat-media: #b797ee;
+  --cat-labs: #bef264;
   --cat-social: #7ddec0;
   --cat-developer: #74b0ee;
   --cat-design: #e28ccb;
@@ -179,10 +185,13 @@
   --warn: #f7cd5f;
   --hl-ink: #050604;
   --cat-daily: #eab04a;
+  --cat-diagnostics: #67e8f9;
+  --cat-games: #fb923c;
   --cat-image: #f07ca2;
   --cat-document: #f28b73;
   --cat-data: #71cf98;
   --cat-media: #b797ee;
+  --cat-labs: #bef264;
   --cat-social: #7ddec0;
   --cat-developer: #74b0ee;
   --cat-design: #e28ccb;

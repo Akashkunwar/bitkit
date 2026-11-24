@@ -153,6 +153,7 @@ export default function DocGapTool() {
   const previewRef = useRef<HTMLCanvasElement>(null)
   const sourceRef = useRef<ImageData | null>(null)
   const pdfBytesRef = useRef<Uint8Array | null>(null)
+  const runId = useRef(0)
 
   useEffect(() => {
     if (mode !== 'trace') return
@@ -180,23 +181,27 @@ export default function DocGapTool() {
     }
   }, [comic])
 
-  const run = async (work: () => Promise<void>) => {
+  const run = async (work: (isCurrent: () => boolean) => Promise<void>) => {
+    const token = ++runId.current
+    const isCurrent = () => runId.current === token
     setBusy(true)
     setError(null)
     try {
-      await work()
+      await work(isCurrent)
     } catch (err) {
+      if (!isCurrent()) return
       setError(err instanceof Error ? err.message : 'Something went wrong.')
     } finally {
-      setBusy(false)
+      if (isCurrent()) setBusy(false)
     }
   }
 
   const takeImage = (files: File[]) => {
     const file = files[0]
     if (!file) return
-    void run(async () => {
+    void run(async (isCurrent) => {
       const img = await fileToImage(file)
+      if (!isCurrent()) return
       const size = stageDownscale(img.naturalWidth || img.width, img.naturalHeight || img.height)
       const canvas = document.createElement('canvas')
       canvas.width = size.width
@@ -228,8 +233,9 @@ export default function DocGapTool() {
   const downloadPreview = () => {
     const canvas = previewRef.current
     if (!canvas || !canvas.width) return
-    void run(async () => {
+    void run(async (isCurrent) => {
       const blob = await canvasBlob(canvas)
+      if (!isCurrent()) return
       const stem = baseName(note ?? '', mode === 'scanner' ? 'document-scan' : 'scanned')
       await downloadNamed(blob, `${stem}.png`)
     })
@@ -238,18 +244,22 @@ export default function DocGapTool() {
   const takePdf = (files: File[]) => {
     const file = files[0]
     if (!file) return
-    void run(async () => {
+    void run(async (isCurrent) => {
       const bytes = new Uint8Array(await file.arrayBuffer())
+      if (!isCurrent()) return
       pdfBytesRef.current = bytes
       setPdfName(baseName(file.name, 'document'))
       if (mode === 'booklet') {
         const out = await imposeBooklet(bytes)
+        if (!isCurrent()) return
         await downloadBytes(out, `${baseName(file.name, 'booklet')}-booklet.pdf`, 'application/pdf')
+        if (!isCurrent()) return
         setNote(`Reordered ${file.name} into saddle-stitch order.`)
         return
       }
       if (mode === 'meta') {
         const meta = await readPdfMeta(bytes)
+        if (!isCurrent()) return
         if (meta.encrypted) {
           throw new Error('This PDF is encrypted. pdf-lib cannot decrypt it, so the title and author were not read.')
         }
@@ -259,6 +269,7 @@ export default function DocGapTool() {
         return
       }
       const meta = await readPdfMeta(bytes)
+      if (!isCurrent()) return
       if (mode === 'lock') {
         setLockNote(
           pdfEncryptSupported()
@@ -280,8 +291,9 @@ export default function DocGapTool() {
   const saveMeta = () => {
     const bytes = pdfBytesRef.current
     if (!bytes) return
-    void run(async () => {
+    void run(async (isCurrent) => {
       const out = await writePdfMeta(bytes, { title, author })
+      if (!isCurrent()) return
       pdfBytesRef.current = out
       setNote(formatMeta({ title, author }))
       await downloadBytes(out, `${pdfName || 'document'}.pdf`, 'application/pdf')
@@ -291,16 +303,24 @@ export default function DocGapTool() {
   const takeZip = (files: File[], asPdf: boolean) => {
     const file = files[0]
     if (!file) return
-    void run(async () => {
+    void run(async (isCurrent) => {
       const bytes = new Uint8Array(await file.arrayBuffer())
+      if (!isCurrent()) return
       const images = await readZipImages(bytes)
+      if (!isCurrent()) return
       if (!images.length) throw new Error('No images in that archive.')
       setZipNames(images.map((image) => image.name))
       if (asPdf) {
         const pages: Uint8Array[] = []
-        for (const image of images) pages.push(await ensurePngOrJpeg(image.data, image.name))
+        for (const image of images) {
+          const page = await ensurePngOrJpeg(image.data, image.name)
+          if (!isCurrent()) return
+          pages.push(page)
+        }
         const pdf = await imagesToPdf(pages)
+        if (!isCurrent()) return
         await downloadBytes(pdf, `${baseName(file.name, 'comic')}.pdf`, 'application/pdf')
+        if (!isCurrent()) return
         setNote(`Built a ${pages.length}-page PDF. Remote files were not fetched.`)
         return
       }
@@ -308,6 +328,10 @@ export default function DocGapTool() {
         name: image.name,
         url: URL.createObjectURL(bytesBlob(image.data, mimeFor(image.name))),
       }))
+      if (!isCurrent()) {
+        for (const page of pages) URL.revokeObjectURL(page.url)
+        return
+      }
       setComic(pages)
       setPageIndex(0)
       setNote(`${pages.length} image${pages.length === 1 ? '' : 's'} in ${file.name}.`)
@@ -315,18 +339,21 @@ export default function DocGapTool() {
   }
 
   const extractMhtml = () => {
-    void run(async () => {
+    void run(async (isCurrent) => {
       const html = parseMhtml(mhtml)
+      if (!isCurrent()) return
       setHtmlPart(html)
       setNote('HTML was extracted. Remote addresses in the message were not opened.')
     })
   }
 
   const downloadMhtmlPdf = () => {
-    void run(async () => {
+    void run(async (isCurrent) => {
       const html = parseMhtml(mhtml)
+      if (!isCurrent()) return
       setHtmlPart(html)
       const pdf = await mhtmlToPdf(mhtml)
+      if (!isCurrent()) return
       setNote('HTML was extracted. Remote addresses in the message were not opened.')
       await downloadBytes(pdf, 'extracted.pdf', 'application/pdf')
     })
@@ -338,9 +365,10 @@ export default function DocGapTool() {
       setError('Add at least one line shaped like “A M0 0 L10 10”.')
       return
     }
-    void run(async () => {
+    void run(async (isCurrent) => {
       const svg = svgFont(glyphs)
       await downloadNamed(new Blob([svg], { type: 'image/svg+xml' }), 'handwriting.svg')
+      if (!isCurrent()) return
       setNote(
         `SVG font with ${glyphs.map((glyph) => glyph.char).join('')}. These are the paths you typed, not traced outlines.`,
       )
@@ -363,6 +391,10 @@ export default function DocGapTool() {
         options={[...MODES]}
         onChange={(next) => {
           setMode(next)
+          if (next !== 'comic' && next !== 'cbz') {
+            setComic((pages) => (pages.length === 0 ? pages : []))
+            setPageIndex(0)
+          }
           setError(null)
           setNote(null)
           setLockNote(null)
@@ -395,8 +427,10 @@ export default function DocGapTool() {
               onClick={() => {
                 const canvas = traceRef.current
                 if (!canvas) return
-                void run(async () => {
-                  await downloadNamed(await canvasBlob(canvas), 'tracing-worksheet.png')
+                void run(async (isCurrent) => {
+                  const blob = await canvasBlob(canvas)
+                  if (!isCurrent()) return
+                  await downloadNamed(blob, 'tracing-worksheet.png')
                 })
               }}
             >
@@ -600,8 +634,10 @@ export default function DocGapTool() {
               onFiles={(files) => {
                 const file = files[0]
                 if (!file) return
-                void run(async () => {
-                  setMhtml(await file.text())
+                void run(async (isCurrent) => {
+                  const text = await file.text()
+                  if (!isCurrent()) return
+                  setMhtml(text)
                   setHtmlPart('')
                 })
               }}

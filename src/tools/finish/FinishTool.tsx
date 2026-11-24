@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { DownloadButton } from '../../components/DownloadButton'
@@ -27,6 +27,9 @@ export default function FinishTool() {
   const [mime, setMime] = useState<'image/jpeg' | 'image/webp' | 'image/png'>('image/jpeg')
   const [preset, setPreset] = useState('original')
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const urlRef = useRef<string | null>(null)
+  urlRef.current = url
   const imgRef = useRef<HTMLImageElement>(null)
   const drag = useRef<{ x: number; y: number } | null>(null)
 
@@ -35,16 +38,28 @@ export default function FinishTool() {
   })
 
   const load = async (next: File) => {
-    if (url) URL.revokeObjectURL(url)
-    const decoded = await decodeImage(next)
-    const width = 'naturalWidth' in decoded && decoded.naturalWidth ? decoded.naturalWidth : decoded.width
-    const height = 'naturalHeight' in decoded && decoded.naturalHeight ? decoded.naturalHeight : decoded.height
-    if ('close' in decoded) decoded.close()
-    setFile(next)
-    setUrl(URL.createObjectURL(next))
-    setNatural({ width, height })
-    setCrop({ x: 0, y: 0, w: width, h: height })
+    try {
+      if (url) URL.revokeObjectURL(url)
+      const decoded = await decodeImage(next)
+      const width = 'naturalWidth' in decoded && decoded.naturalWidth ? decoded.naturalWidth : decoded.width
+      const height = 'naturalHeight' in decoded && decoded.naturalHeight ? decoded.naturalHeight : decoded.height
+      if ('close' in decoded) decoded.close()
+      setFile(next)
+      setUrl(URL.createObjectURL(next))
+      setNatural({ width, height })
+      setCrop({ x: 0, y: 0, w: width, h: height })
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not open that image.')
+    }
   }
+
+  useEffect(
+    () => () => {
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current)
+    },
+    [],
+  )
 
   useHandoff((payload) => {
     const image = payload.files?.find((f) => f.type.startsWith('image/'))
@@ -80,6 +95,9 @@ export default function FinishTool() {
         blob = sized.blob
       }
       triggerDownload(blob, applyFilenamePattern('{original}-edit', { original: file.name, ext: mimeToExt(mime) }))
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not export that image.')
     } finally {
       setBusy(false)
     }
@@ -116,6 +134,7 @@ export default function FinishTool() {
       title="Image finishing"
       lede="Crop, color, rotate, overlay, and export. This does not remove AI watermarks or provenance signals, and it will not make a generated image “undetectable.”"
     >
+      {error ? <p className="status-bad">{error}</p> : null}
       <p className="banner">
         SynthID and similar marks live in the pixels. Ordinary edits are not a removal tool. Label AI-assisted marketing
         assets when that is the honest description.

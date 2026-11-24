@@ -130,8 +130,14 @@ export function desBlock(block: Uint8Array, key: Uint8Array, decrypt = false): U
 }
 
 function keyBytes(password: string): Uint8Array {
+  const encoded = new TextEncoder().encode(password)
+  if (encoded.length > 8) {
+    throw new Error(
+      'A DES password can only be 8 bytes. Extra characters are not used — switch to AES for a real passphrase.',
+    )
+  }
   const key = new Uint8Array(8)
-  key.set(new TextEncoder().encode(password).slice(0, 8))
+  key.set(encoded)
   return key
 }
 
@@ -178,6 +184,9 @@ export function desDecrypt(payload: string, password: string): string {
   }
   const pad = plain[plain.length - 1]
   if (pad < 1 || pad > 8) throw new Error('Wrong password, or the message was damaged.')
+  for (let i = 1; i <= pad; i += 1) {
+    if (plain[plain.length - i] !== pad) throw new Error('Wrong password, or the message was damaged.')
+  }
   return new TextDecoder().decode(plain.subarray(0, plain.length - pad))
 }
 

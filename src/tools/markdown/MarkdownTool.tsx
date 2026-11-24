@@ -119,15 +119,25 @@ export default function MarkdownTool() {
   const editorRef = useRef<HTMLTextAreaElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const loadedDraft = useRef(false)
+  const touched = useRef(false)
+  const sourceRef = useRef(source)
+  sourceRef.current = source
   const paper = PAPER_PX[settings.paper]
   const { ref: previewRef, zoom } = usePreviewZoom(paper.width)
 
   // Restore the last draft once; keep it saved as you type.
   useEffect(() => {
+    let live = true
     void getPref<string | null>(DRAFT_KEY, null).then((draft) => {
-      if (!loadedDraft.current && draft) setSource(draft)
+      if (!live) return
+      // A handoff, import, or keystroke that landed first must not be replaced.
+      if (!loadedDraft.current && !touched.current && draft) setSource(draft)
       loadedDraft.current = true
+      if (touched.current) void setPref(DRAFT_KEY, sourceRef.current)
     })
+    return () => {
+      live = false
+    }
   }, [])
   useEffect(() => {
     if (!loadedDraft.current) return
@@ -137,6 +147,7 @@ export default function MarkdownTool() {
 
   useHandoff((payload) => {
     loadedDraft.current = true
+    touched.current = true
     if (payload.text) setSource(payload.text)
     else if (payload.files?.[0]) void payload.files[0].text().then(setSource)
   })
@@ -167,6 +178,7 @@ export default function MarkdownTool() {
     const start = el?.selectionStart ?? source.length
     const end = el?.selectionEnd ?? source.length
     const next = source.slice(0, start) + text + source.slice(end)
+    touched.current = true
     setSource(next)
     window.requestAnimationFrame(() => {
       el?.focus()
@@ -190,7 +202,10 @@ export default function MarkdownTool() {
 
   const openFiles = async (files: File[]) => {
     const md = files.find((f) => /\.(md|markdown|txt)$/i.test(f.name) || f.type.startsWith('text/'))
-    if (md) setSource(await md.text())
+    if (md) {
+      touched.current = true
+      setSource(await md.text())
+    }
     await embedImages(files)
   }
 
@@ -258,6 +273,7 @@ export default function MarkdownTool() {
     const file = files[0]
     if (!file) return
     const { htmlToMarkdown } = await import('../../lib/codeFormat')
+    touched.current = true
     setSource(htmlToMarkdown(await file.text()))
   }
 
@@ -474,7 +490,14 @@ export default function MarkdownTool() {
                 <ImagePlus size={15} aria-hidden="true" />
                 Image
               </button>
-              <button type="button" className="btn btn-sm btn-ghost" onClick={() => setSource(SAMPLE)}>
+              <button
+                type="button"
+                className="btn btn-sm btn-ghost"
+                onClick={() => {
+                  touched.current = true
+                  setSource(SAMPLE)
+                }}
+              >
                 <RotateCcw size={15} aria-hidden="true" />
                 Sample
               </button>
@@ -486,7 +509,10 @@ export default function MarkdownTool() {
             data-dragging={dragging}
             value={source}
             spellCheck
-            onChange={(event) => setSource(event.target.value)}
+            onChange={(event) => {
+              touched.current = true
+              setSource(event.target.value)
+            }}
             onDragOver={(event) => {
               if (event.dataTransfer.types.includes('Files')) {
                 event.preventDefault()

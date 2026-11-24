@@ -360,7 +360,8 @@ export default function QrTool() {
         if (ctx) {
           ctx.drawImage(video, 0, 0)
           const value = await decodeQrFromCanvas(canvas)
-          if (value && active) {
+          if (!active) return
+          if (value) {
             setDecoded(value)
             stopCamera()
             return

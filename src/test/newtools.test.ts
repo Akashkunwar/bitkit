@@ -77,6 +77,7 @@ describe('table', () => {
     expect(detectDelimiter('a,b,c\n1,2,3')).toBe(',')
     expect(detectDelimiter('a\tb\tc')).toBe('\t')
     expect(detectDelimiter('a;b;c')).toBe(';')
+    expect(detectDelimiter('"a,b,c";d;e')).toBe(';')
   })
 
   it('parses a semicolon file that contains commas inside cells', () => {
@@ -189,6 +190,12 @@ describe('chart', () => {
     expect((svg.match(/d="M/g) ?? []).length).toBeGreaterThanOrEqual(1)
     expect(svg).toContain('<svg')
   })
+
+  it('fills each side of a gap separately', () => {
+    const gapped = tableFromCsv('m,v\nJan,10\nFeb,\nMar,15')
+    const svg = chartSvg(gapped, spec('area'))
+    expect(svg.match(/fill-opacity="0.18"/g) ?? []).toHaveLength(2)
+  })
 })
 
 describe('cron', () => {
@@ -206,6 +213,7 @@ describe('cron', () => {
 
   it('treats weekday 7 as Sunday', () => {
     expect(expandField('7', CRON_FIELDS[4])).toEqual([0])
+    expect(expandField('FRI-SUN', CRON_FIELDS[4])).toEqual([0, 5, 6])
     expect(describeCron('0 0 * * 7')).toMatch(/SUN/)
   })
 
@@ -367,6 +375,17 @@ describe('invoice', () => {
     expect(totals.discount).toBe(20)
     expect(totals.tax).toBeCloseTo(32.4, 5)
     expect(totals.total).toBeCloseTo(212.4, 5)
+    const pennies = {
+      ...invoice,
+      items: [
+        { id: 'a', description: 'x', quantity: 1, rate: 1.005 },
+        { id: 'b', description: 'y', quantity: 1, rate: 1.005 },
+        { id: 'c', description: 'z', quantity: 1, rate: 1.005 },
+      ],
+      discount: 0,
+      taxPercent: 0,
+    }
+    expect(totalsOf(pennies).subtotal).toBe(3.03)
   })
 })
 

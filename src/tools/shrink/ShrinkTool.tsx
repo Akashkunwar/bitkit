@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { pdfjs } from '../../lib/pdfjsRuntime'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
@@ -37,8 +37,13 @@ export default function ShrinkTool() {
   const [password, setPassword] = useState('')
   const [needsPassword, setNeedsPassword] = useState(false)
   const [queue, setQueue] = useState<File[]>([])
+  const runId = useRef(0)
+  const loadId = useRef(0)
 
   const take = (next: File) => {
+    const load = ++loadId.current
+    runId.current += 1
+    setBusy(false)
     setFile(next)
     setOutput(null)
     setError(null)
@@ -47,11 +52,14 @@ export default function ShrinkTool() {
     setNeedsPassword(false)
     setPassword('')
     void next.arrayBuffer().then(async (buf) => {
+      if (loadId.current !== load) return
       try {
         const { encrypted: locked } = await loadPdf(new Uint8Array(buf))
+        if (loadId.current !== load) return
         setEncrypted(locked)
         if (locked) setNeedsPassword(true)
       } catch {
+        if (loadId.current !== load) return
         setEncrypted(false)
       }
     })
@@ -70,11 +78,13 @@ export default function ShrinkTool() {
 
   const run = async () => {
     if (!file) return
+    const token = ++runId.current
     setBusy(true)
     setError(null)
     setOutput(null)
     try {
       const source = new Uint8Array(await file.arrayBuffer())
+      if (runId.current !== token) return
       const maxBytes = parseByteLimit(limit)
       const name = `${file.name.replace(/\.pdf$/i, '')}-smaller.pdf`
 
@@ -85,7 +95,10 @@ export default function ShrinkTool() {
           )
         }
         setStatus('Rewriting the document…')
-        const stripped = await stripPdfMetadata(await repackPdf(source))
+        const packed = await repackPdf(source)
+        if (runId.current !== token) return
+        const stripped = await stripPdfMetadata(packed)
+        if (runId.current !== token) return
         const blob = new Blob([stripped.slice().buffer as ArrayBuffer], { type: 'application/pdf' })
         setOutput({ blob, name, withinLimit: !maxBytes || blob.size <= maxBytes, pages: 0 })
         return
@@ -93,14 +106,24 @@ export default function ShrinkTool() {
 
       // pdf.js transfers and detaches the buffer it is handed, so pass a copy.
       const doc = await openPdfJs(pdfjs, source, password || undefined)
-      const result = await shrinkPdf(doc, { preset, maxBytes, grayscale }, ({ page, pages, pass }) =>
-        setStatus(`Pass ${pass} · page ${page} of ${pages}`),
-      )
+      if (runId.current !== token) {
+        await destroyPdfJs(doc)
+        return
+      }
+      const result = await shrinkPdf(doc, { preset, maxBytes, grayscale }, ({ page, pages, pass }) => {
+        if (runId.current === token) setStatus(`Pass ${pass} · page ${page} of ${pages}`)
+      })
+      if (runId.current !== token) {
+        await destroyPdfJs(doc)
+        return
+      }
       const blob = new Blob([result.bytes.slice().buffer as ArrayBuffer], { type: 'application/pdf' })
       setOutput({ blob, name, withinLimit: result.withinLimit, pages: result.pages })
       await destroyPdfJs(doc)
+      if (runId.current !== token) return
       setNeedsPassword(false)
     } catch (err) {
+      if (runId.current !== token) return
       if (isPdfPasswordError(err)) {
         setNeedsPassword(true)
         setError(err.message)
@@ -108,35 +131,47 @@ export default function ShrinkTool() {
       }
       setError(err instanceof Error ? err.message : 'Could not shrink this PDF.')
     } finally {
-      setBusy(false)
-      setStatus(null)
+      if (runId.current === token) {
+        setBusy(false)
+        setStatus(null)
+      }
     }
   }
 
   const shrinkQueue = async () => {
     if (queue.length < 2) return
+    const token = ++runId.current
+    const batch = queue
     setBusy(true)
     setError(null)
     try {
       const entries: { name: string; data: Uint8Array }[] = []
-      for (const next of queue) {
+      for (const next of batch) {
+        if (runId.current !== token) return
         setStatus(next.name)
         const source = new Uint8Array(await next.arrayBuffer())
+        if (runId.current !== token) return
         const doc = await openPdfJs(pdfjs, source)
         try {
+          if (runId.current !== token) return
           const result = await shrinkPdf(doc, { preset, maxBytes: parseByteLimit(limit), grayscale })
+          if (runId.current !== token) return
           entries.push({ name: `${next.name.replace(/\.pdf$/i, '')}-smaller.pdf`, data: result.bytes })
         } finally {
           await destroyPdfJs(doc)
         }
       }
+      if (runId.current !== token) return
       const zip = zipStore(entries)
       triggerDownload(new Blob([zip.slice().buffer as ArrayBuffer], { type: 'application/zip' }), 'smaller-pdfs.zip')
     } catch (err) {
+      if (runId.current !== token) return
       setError(err instanceof Error ? err.message : 'Could not shrink that batch.')
     } finally {
-      setBusy(false)
-      setStatus(null)
+      if (runId.current === token) {
+        setBusy(false)
+        setStatus(null)
+      }
     }
   }
 
@@ -156,6 +191,9 @@ export default function ShrinkTool() {
         onFiles={(files) => {
           const pdfs = files.filter((f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))
           if (pdfs.length > 1) {
+            runId.current += 1
+            setBusy(false)
+            setStatus(null)
             setQueue(pdfs)
             setFile(null)
             setOutput(null)
@@ -164,7 +202,12 @@ export default function ShrinkTool() {
           }
           setQueue([])
           if (pdfs[0]) take(pdfs[0])
-          else setError('That is not a PDF.')
+          else {
+            runId.current += 1
+            setBusy(false)
+            setStatus(null)
+            setError('That is not a PDF.')
+          }
         }}
       />
 

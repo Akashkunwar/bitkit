@@ -64,6 +64,8 @@ describe('qr payloads', () => {
   it('builds a calendar event and a bitcoin request', () => {
     const event = eventPayload({ title: 'Tasting', start: '2026-11-23T09:30', end: '', location: 'Kitchen' })
     expect(event).toContain('DTSTART:20261123T093000')
+    const zoned = eventPayload({ title: 'Tasting', start: '2026-11-23T18:55:45Z', end: '', location: '' })
+    expect(zoned).toContain('DTSTART:20261123T185545Z')
     expect(event).toContain('LOCATION:Kitchen')
     expect(event).not.toContain('DTEND')
     expect(bitcoinPayload({ address: 'bc1qxy', amount: '0.01', label: 'Tip' })).toBe(

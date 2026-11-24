@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
@@ -18,10 +18,14 @@ export default function CutoutTool() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [allowed, setAllowed] = useState(() => hasEngineConsent())
+  const runId = useRef(0)
 
   useHandoff((payload) => {
     const image = payload.files?.find((f) => f.type.startsWith('image/'))
-    if (image) setFile(image)
+    if (!image) return
+    runId.current += 1
+    setBusy(false)
+    setFile(image)
   })
 
   useEffect(() => {
@@ -47,14 +51,18 @@ export default function CutoutTool() {
       setError('Allow the cutout model to download once from a CDN first.')
       return
     }
+    const token = ++runId.current
     setBusy(true)
     setError(null)
     try {
-      setResult(await removeBackground(file, threshold, invert))
+      const blob = await removeBackground(file, threshold, invert)
+      if (runId.current !== token) return
+      setResult(blob)
     } catch (err) {
+      if (runId.current !== token) return
       setError(err instanceof Error ? err.message : 'Cutout failed. The model may still be loading.')
     } finally {
-      setBusy(false)
+      if (runId.current === token) setBusy(false)
     }
   }
 
@@ -91,6 +99,8 @@ export default function CutoutTool() {
             accept="image/*"
             label="Drop a photo to cut out."
             onFiles={(files) => {
+              runId.current += 1
+              setBusy(false)
               setFile(files[0] ?? null)
               setResult(null)
             }}

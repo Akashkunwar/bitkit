@@ -50,9 +50,11 @@ export default function DocImageTool() {
   const [error, setError] = useState<string | null>(null)
   const [outputs, setOutputs] = useState<File[]>([])
   const thumbsRef = useRef<string[]>([])
+  const runId = useRef(0)
 
   useEffect(
     () => () => {
+      runId.current += 1
       for (const url of thumbsRef.current) URL.revokeObjectURL(url)
     },
     [],
@@ -61,6 +63,7 @@ export default function DocImageTool() {
   const isWord = loaded ? loaded.preview.kind === 'docx' : false
 
   const load = async (file: File) => {
+    const token = ++runId.current
     setBusy('Reading…')
     setError(null)
     setOutputs([])
@@ -71,17 +74,25 @@ export default function DocImageTool() {
         paper: settings.paper,
         marginMm: settings.marginMm,
         theme: settings.theme,
-        onProgress: (done, total) => setProgress(done / total),
+        onProgress: (done, total) => {
+          if (runId.current === token) setProgress(done / total)
+        },
       })
-      for (const url of thumbsRef.current) URL.revokeObjectURL(url)
+      if (runId.current !== token) return
       const thumbs = await Promise.all(preview.pages.map(thumbnail))
+      if (runId.current !== token) {
+        for (const url of thumbs) URL.revokeObjectURL(url)
+        return
+      }
+      for (const url of thumbsRef.current) URL.revokeObjectURL(url)
       thumbsRef.current = thumbs
       setLoaded({ file, base: baseName(file.name), preview, thumbs })
       setSelected(new Set(preview.pages.map((_, i) => i)))
     } catch (err) {
+      if (runId.current !== token) return
       setError(err instanceof Error ? err.message : 'Could not read that document.')
     } finally {
-      setBusy(null)
+      if (runId.current === token) setBusy(null)
     }
   }
 
@@ -119,32 +130,39 @@ export default function DocImageTool() {
     if (!loaded) return
     const chosen = loaded.preview.pages.map((_, i) => i).filter((i) => selected.has(i))
     if (!chosen.length) return
+    const token = ++runId.current
+    const source = loaded
     setBusy('Rendering…')
     setError(null)
     setProgress(0)
     try {
-      const full = await renderDocument(loaded.file, {
+      const full = await renderDocument(source.file, {
         scale: settings.scale,
         paper: settings.paper,
         marginMm: settings.marginMm,
         theme: settings.theme,
-        onProgress: (done, total) => setProgress((done / total) * 0.8),
+        onProgress: (done, total) => {
+          if (runId.current === token) setProgress((done / total) * 0.8)
+        },
       })
+      if (runId.current !== token) return
       const pages = chosen.map((i) => full.pages[i]).filter(Boolean)
       const mime = settings.format === 'png' ? 'image/png' : 'image/jpeg'
       const ext = settings.format === 'png' ? 'png' : 'jpg'
 
       if (settings.output === 'pdf') {
-        const bytes = await pagesToPdf(pages, full.pageWidth, full.pageHeight, { title: loaded.base })
-        const file = new File([bytes.slice().buffer as ArrayBuffer], `${loaded.base}.pdf`, { type: 'application/pdf' })
+        const bytes = await pagesToPdf(pages, full.pageWidth, full.pageHeight, { title: source.base })
+        if (runId.current !== token) return
+        const file = new File([bytes.slice().buffer as ArrayBuffer], `${source.base}.pdf`, { type: 'application/pdf' })
         setOutputs([file])
         triggerDownload(file, file.name)
       } else if (settings.output === 'long' || pages.length === 1) {
         const canvas =
           settings.output === 'long' ? stackPages(pages, Math.round(16 * settings.scale), '#e5e7eb') : pages[0]
         const blob = await canvasToBlob(canvas, mime, 0.92)
+        if (runId.current !== token) return
         const suffix = settings.output === 'long' ? '' : `-page-${chosen[0] + 1}`
-        const file = new File([blob], `${loaded.base}${suffix}.${ext}`, { type: mime })
+        const file = new File([blob], `${source.base}${suffix}.${ext}`, { type: mime })
         setOutputs([file])
         triggerDownload(file, file.name)
       } else {
@@ -152,8 +170,9 @@ export default function DocImageTool() {
         const files: File[] = []
         for (let i = 0; i < pages.length; i += 1) {
           const blob = await canvasToBlob(pages[i], mime, 0.92)
+          if (runId.current !== token) return
           files.push(
-            new File([blob], `${loaded.base}-page-${String(chosen[i] + 1).padStart(width, '0')}.${ext}`, {
+            new File([blob], `${source.base}-page-${String(chosen[i] + 1).padStart(width, '0')}.${ext}`, {
               type: mime,
             }),
           )
@@ -162,26 +181,30 @@ export default function DocImageTool() {
         const entries = await Promise.all(
           files.map(async (f) => ({ name: f.name, data: new Uint8Array(await f.arrayBuffer()) })),
         )
+        if (runId.current !== token) return
         const zip = zipStore(entries)
         triggerDownload(
           new Blob([zip.slice().buffer as ArrayBuffer], { type: 'application/zip' }),
-          `${loaded.base}-pages.zip`,
+          `${source.base}-pages.zip`,
         )
         setOutputs(files)
       }
     } catch (err) {
+      if (runId.current !== token) return
       setError(err instanceof Error ? err.message : 'Could not render the pages.')
     } finally {
-      setBusy(null)
+      if (runId.current === token) setBusy(null)
     }
   }
 
   const reset = () => {
+    runId.current += 1
     for (const url of thumbsRef.current) URL.revokeObjectURL(url)
     thumbsRef.current = []
     setLoaded(null)
     setOutputs([])
     setError(null)
+    setBusy(null)
   }
 
   const count = selected.size

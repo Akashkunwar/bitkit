@@ -46,6 +46,7 @@ describe('DES', () => {
   it('round-trips a short message', () => {
     const sealed = desEncrypt('hello', 'password')
     expect(desDecrypt(sealed, 'password')).toBe('hello')
+    expect(() => desEncrypt('hello', 'password-extra')).toThrow(/8 bytes/)
   })
 })
 

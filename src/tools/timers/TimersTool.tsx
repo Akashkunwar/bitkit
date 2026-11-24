@@ -74,11 +74,16 @@ export default function TimersTool() {
 
   const deadlineRef = useRef<number>(0)
   const originRef = useRef<number>(0)
+  const phaseRef = useRef(phase)
+  const roundsRef = useRef(rounds)
+  phaseRef.current = phase
+  roundsRef.current = rounds
 
   // A single interval drives whichever mode is active. Wall-clock deltas are
   // used rather than counting ticks, so a throttled background tab stays right.
   useEffect(() => {
     if (!running) return
+    let settled = false
     const id = window.setInterval(() => {
       if (mode === 'stopwatch') {
         setElapsed(Date.now() - originRef.current)
@@ -86,24 +91,28 @@ export default function TimersTool() {
       }
       const left = deadlineRef.current - Date.now()
       if (left <= 0) {
+        if (settled) return
+        settled = true
         setRemaining(0)
         setRunning(false)
         setDone(true)
         chime(mode === 'pomodoro' ? 3 : 2)
         if (mode === 'pomodoro') {
-          setPhase((current) => {
-            if (current !== 'focus') return 'focus'
-            const next = rounds + 1
+          if (phaseRef.current !== 'focus') {
+            setPhase('focus')
+          } else {
+            const next = roundsRef.current + 1
+            roundsRef.current = next
             setRounds(next)
-            return next % 4 === 0 ? 'long' : 'short'
-          })
+            setPhase(next % 4 === 0 ? 'long' : 'short')
+          }
         }
       } else {
         setRemaining(left)
       }
     }, 100)
     return () => window.clearInterval(id)
-  }, [running, mode, rounds])
+  }, [running, mode])
 
   // Mirror the timer in the tab title. The original is captured rather than
   // hardcoded so it never drifts from index.html.

@@ -55,6 +55,10 @@ describe('calculator: functions and modes', () => {
     expect(calculate('log(1000)')).toBeCloseTo(3)
     expect(calculate('ln(e)')).toBe(1)
     expect(calculate('log(8, 2)')).toBeCloseTo(3)
+    expect(() => calculate('log(0, 10)')).toThrow(CalcError)
+    expect(() => calculate('log(10, 1)')).toThrow(CalcError)
+    expect(() => calculate('root(8, 0)')).toThrow(CalcError)
+    expect(calculate('lcm(0, 0)')).toBe(0)
     expect(calculate('nCr(5, 2)')).toBe(10)
     expect(calculate('nPr(5, 2)')).toBe(20)
     expect(calculate('gcd(12, 18)')).toBe(6)
@@ -214,7 +218,9 @@ describe('finance', () => {
 
   it('rejects impossible inputs', () => {
     expect(() => emi(0, 8, 12)).toThrow()
+    expect(() => emi(100_000, 12, 0.4)).toThrow(/one month/)
     expect(() => sip(1000, 12, 0)).toThrow()
+    expect(() => sip(1000, 12, 0.01)).toThrow(/one month/)
     expect(() => cagr(0, 10, 1)).toThrow()
   })
 

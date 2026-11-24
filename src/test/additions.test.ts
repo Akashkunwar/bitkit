@@ -58,6 +58,14 @@ describe('income tax', () => {
     expect(result.old.total).toBe(0)
     expect(result.new.hraExemption).toBe(0)
   })
+
+  it('does not invent old-regime marginal relief above ₹5 lakh', () => {
+    const result = compareTax({ ...base, gross: 510_000, salaried: false })
+    expect(result.old.taxable).toBe(510_000)
+    expect(result.old.rebate).toBe(0)
+    expect(result.old.slabTax).toBe(14_500)
+    expect(result.old.total).toBe(15_080)
+  })
 })
 
 describe('subnet', () => {

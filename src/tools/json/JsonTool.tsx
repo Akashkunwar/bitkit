@@ -14,7 +14,7 @@ import {
 import { useHandoff } from '../../lib/useHandoff'
 import { SendTo } from '../../components/SendTo'
 import { jsonToTypeScript, jsonToZod } from '../../lib/jsonTypes'
-import { jsonToXml } from '../../lib/xml'
+import { csvToXml, jsonToXml, xmlToJson } from '../../lib/xml'
 
 const SAMPLE = `{
   "name": "kit",
@@ -175,6 +175,17 @@ export default function JsonTool() {
               }
             >
               XML
+            </button>
+            <button
+              type="button"
+              className="btn"
+              disabled={!input.trim()}
+              onClick={() => run(() => JSON.stringify(xmlToJson(input), null, 2))}
+            >
+              XML → JSON
+            </button>
+            <button type="button" className="btn" disabled={!input.trim()} onClick={() => run(() => csvToXml(input))}>
+              CSV → XML
             </button>
           </div>
           <div className="row" style={{ marginBottom: '1rem' }}>

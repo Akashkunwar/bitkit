@@ -19,6 +19,15 @@ describe('markdown sanitization', () => {
     expect(html.toLowerCase()).not.toContain('onerror')
   })
 
+  it('keeps links but does not load remote images', () => {
+    const html = renderMarkdown(
+      '![x](https://evil.test/p.png)\n\n[site](https://evil.test)\n\n<img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=">',
+    )
+    expect(html).not.toContain('https://evil.test/p.png')
+    expect(html).toContain('https://evil.test')
+    expect(html).toContain('data:image/gif')
+  })
+
   it('keeps task list ticks as glyphs without allowing inputs', () => {
     const html = renderMarkdown('- [x] shipped\n- [ ] reviewed')
     expect(html).not.toContain('<input')

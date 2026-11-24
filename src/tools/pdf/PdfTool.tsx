@@ -68,6 +68,7 @@ function PageCanvas({
       })
       try {
         await task.promise
+        if (cancelled) return
         onViewport?.({ width: vp.width, height: vp.height, scale })
       } catch {
         /* render cancelled */
@@ -82,14 +83,37 @@ function PageCanvas({
   return <canvas ref={canvasRef} draggable={false} />
 }
 
-function SignaturePad({ onSave }: { onSave: (dataUrl: string) => void }) {
+function SignaturePad({ onSave, onEdit }: { onSave: (dataUrl: string) => void; onEdit: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const drawing = useRef(false)
+  const strokeCleared = useRef(false)
   const [dirty, setDirty] = useState(false)
+  const [typed, setTyped] = useState('')
 
   const pos = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     const rect = event.currentTarget.getBoundingClientRect()
     return { x: event.clientX - rect.left, y: event.clientY - rect.top }
+  }
+
+  const commitTyped = () => {
+    const text = typed.trim()
+    const canvas = canvasRef.current
+    if (!text || !canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = '#10201f'
+    ctx.textBaseline = 'middle'
+    const family = '"Segoe Script", "Snell Roundhand", "Brush Script MT", cursive'
+    let size = 64
+    do {
+      ctx.font = `${size}px ${family}`
+      if (ctx.measureText(text).width <= canvas.width - 24) break
+      size -= 2
+    } while (size > 18)
+    ctx.fillText(text, 12, canvas.height / 2)
+    setDirty(true)
+    onSave(canvas.toDataURL('image/png'))
   }
 
   return (
@@ -101,6 +125,7 @@ function SignaturePad({ onSave }: { onSave: (dataUrl: string) => void }) {
         height={140}
         onPointerDown={(event) => {
           drawing.current = true
+          strokeCleared.current = false
           event.currentTarget.setPointerCapture(event.pointerId)
           const ctx = event.currentTarget.getContext('2d')
           if (!ctx) return
@@ -114,6 +139,10 @@ function SignaturePad({ onSave }: { onSave: (dataUrl: string) => void }) {
         }}
         onPointerMove={(event) => {
           if (!drawing.current) return
+          if (!strokeCleared.current) {
+            strokeCleared.current = true
+            onEdit()
+          }
           const ctx = event.currentTarget.getContext('2d')
           if (!ctx) return
           const p = pos(event)
@@ -144,11 +173,32 @@ function SignaturePad({ onSave }: { onSave: (dataUrl: string) => void }) {
             const canvas = canvasRef.current
             canvas?.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height)
             setDirty(false)
+            setTyped('')
+            onEdit()
           }}
         >
           Clear
         </button>
       </div>
+      <label className="field" style={{ marginTop: '0.75rem' }}>
+        <span>Type signature</span>
+        <input
+          className="text-input"
+          value={typed}
+          autoComplete="off"
+          spellCheck={false}
+          onChange={(event) => {
+            setTyped(event.target.value)
+            onEdit()
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') commitTyped()
+          }}
+        />
+      </label>
+      <button type="button" className="btn" disabled={!typed.trim()} onClick={commitTyped}>
+        Use typed signature
+      </button>
     </div>
   )
 }
@@ -695,6 +745,7 @@ export default function PdfTool() {
               disabled={selectedIndex <= 0}
               onClick={() => movePage(-1)}
               title="Move page up"
+              aria-label="Move page up"
             >
               ↑
             </button>
@@ -704,6 +755,7 @@ export default function PdfTool() {
               disabled={selectedIndex < 0 || selectedIndex >= pages.length - 1}
               onClick={() => movePage(1)}
               title="Move page down"
+              aria-label="Move page down"
             >
               ↓
             </button>
@@ -712,6 +764,7 @@ export default function PdfTool() {
               className="btn"
               disabled={!selected}
               title="Rotate 90°"
+              aria-label="Rotate page"
               onClick={() =>
                 selected &&
                 patchPage(selected.id, (p) => ({
@@ -727,6 +780,7 @@ export default function PdfTool() {
               className="btn"
               disabled={!selected}
               title="Duplicate page"
+              aria-label="Duplicate page"
               onClick={() => {
                 if (!selected) return
                 const copy: PageState = {
@@ -746,6 +800,7 @@ export default function PdfTool() {
               className="btn"
               disabled={pages.length <= 1 || (!selected && !dragId)}
               title="Delete page, or drop a page here"
+              aria-label="Delete page"
               data-hot={binHot || undefined}
               onClick={() => selected && removePage(selected.id)}
               onDragOver={onBinDragOver}
@@ -803,6 +858,7 @@ export default function PdfTool() {
                   }}
                   value={pendingText.value}
                   placeholder="Type, then Enter"
+                  aria-label="Annotation text"
                   onChange={(e) => setPendingText({ ...pendingText, value: e.target.value })}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') commitText()
@@ -892,11 +948,14 @@ export default function PdfTool() {
           {tool === 'sign' ? (
             <>
               <span className="field-label">Draw your signature</span>
-              <SignaturePad onSave={setSignature} />
+              <SignaturePad onSave={setSignature} onEdit={() => setSignature(null)} />
               {signature ? (
                 <p className="hint">Signature saved ✓ — click anywhere on the page to place it.</p>
               ) : (
-                <p className="hint">Draw above, press “Use signature”, then click the page.</p>
+                <p className="hint">
+                  Draw above and press “Use signature”, or type one and press “Use typed signature”. Then click the
+                  page.
+                </p>
               )}
             </>
           ) : null}

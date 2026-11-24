@@ -11,7 +11,7 @@ import {
   toInput,
 } from '../lib/dates'
 import { amountToWords, groupDigits, integerToWords, titleCase } from '../lib/numwords'
-import { bandFor, bmi, bmr, BMI_BANDS, healthyWeightRange, macrosFor, tdee } from '../lib/health'
+import { bandFor, bmi, bmr, BMI_BANDS, cmToFeet, healthyWeightRange, macrosFor, tdee } from '../lib/health'
 import { angleForIndex, makeTeams, parseEntries, pickMany, rollDice, shuffle } from '../lib/randomize'
 import { applyStyle, STYLES, toPlain } from '../lib/unicodeStyle'
 import { analyse, countSyllables, fleschEase, splitSentences } from '../lib/readability'
@@ -131,6 +131,8 @@ describe('health', () => {
     const range = healthyWeightRange(170, BMI_BANDS)
     expect(range.min).toBeCloseTo(53.5, 0)
     expect(range.max).toBeCloseTo(72.2, 0)
+    expect(bandFor(bmi(range.max, 170), BMI_BANDS).label).toBe('Healthy')
+    expect(cmToFeet(181.61)).toEqual({ feet: 6, inches: 0 })
   })
 
   it('applies the sex offset in Mifflin-St Jeor', () => {
