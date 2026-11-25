@@ -37,7 +37,9 @@ export async function totpCode(secret: Uint8Array, timeMs = Date.now(), step = 3
   const raw = new Uint8Array(secret.byteLength)
   raw.set(secret)
   const key = await crypto.subtle.importKey('raw', raw, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign'])
-  const mac = new Uint8Array(await crypto.subtle.sign('HMAC', key, bytes))
+  // A copied view, not the raw ArrayBuffer. Node 20's WebCrypto rejects a
+  // cross-realm ArrayBuffer (jsdom in CI) even though a Uint8Array is fine.
+  const mac = new Uint8Array(await crypto.subtle.sign('HMAC', key, new Uint8Array(bytes)))
   const offset = mac[mac.length - 1] & 0x0f
   const binary =
     (((mac[offset] & 0x7f) << 24) | (mac[offset + 1] << 16) | (mac[offset + 2] << 8) | mac[offset + 3]) >>> 0

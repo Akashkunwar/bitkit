@@ -31,8 +31,7 @@ export async function verifyJwt(token: string, secret: string): Promise<{ ok: bo
     throw new Error('Only HS256 tokens can be checked here.')
   }
   const key = await hmacKey(secret)
-  const raw = base64ToBytes(parts[2])
-  const signature = raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength) as ArrayBuffer
+  const signature = new Uint8Array(base64ToBytes(parts[2]))
   const ok = await crypto.subtle.verify('HMAC', key, signature, new TextEncoder().encode(`${parts[0]}.${parts[1]}`))
   return { ok, payload: view.payload }
 }
