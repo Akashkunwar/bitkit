@@ -24,7 +24,7 @@ export default function PushTool() {
   }, [])
   return (
     <Arcade
-      title="Push"
+      title="Sokoban"
       lede="Arrow keys push the boxes onto the dots. Walls stop you."
       status={
         state.won && state.level >= LEVELS.length - 1

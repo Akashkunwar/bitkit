@@ -67,7 +67,7 @@ export default function SquadronTool() {
       : `Wave ${state.wave}/3 · ${state.score} · lives ${state.lives}`
   return (
     <Arcade
-      title="Squadron"
+      title="1942"
       lede="Fly in four directions and hold space to fire. The green star widens your shot."
       status={status}
       onRestart={() => setState(freshSquadron())}

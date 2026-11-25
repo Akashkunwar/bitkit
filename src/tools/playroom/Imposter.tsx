@@ -32,7 +32,7 @@ export function Imposter({ names, roster, onRoster }: RosterProps) {
       }
       result={
         <>
-          <h2>Imposter</h2>
+          <h2>Among Us</h2>
           {roles.length === 0 ? <p className="hint">Assign roles when the group is in the list.</p> : null}
           {current ? (
             <>

@@ -12,7 +12,7 @@ export default function ConnectTool() {
     state.winner === 1 ? 'You win' : state.winner === 2 ? 'You lose' : state.winner === 3 ? 'Draw' : 'Your drop'
   return (
     <Arcade
-      title="Connect"
+      title="Connect Four"
       lede="Drop a disc. Four in a line wins. The other side answers at once."
       status={status}
       onRestart={() => setState(freshConnect())}

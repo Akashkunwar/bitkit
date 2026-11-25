@@ -84,7 +84,7 @@ export default function PinsTool() {
 
   return (
     <Arcade
-      title="Pins"
+      title="Pinball"
       lede="Left and right raise the flippers. Either one launches. Drop all three targets for a bonus."
       status={state.dead ? 'Drained' : state.locked ? 'Launch' : `Score ${state.score} · ball ${state.balls}`}
       onRestart={() => setState(freshPins())}

@@ -69,7 +69,7 @@ export default function ClimbTool() {
   const status = state.won ? 'Top reached' : state.dead ? 'Flattened' : `${state.score} · lives ${state.lives}`
   return (
     <Arcade
-      title="Climb"
+      title="Donkey Kong"
       lede="Up and down the ladders. Up jumps when you are not on a ladder. Reach the green mark before a barrel does."
       status={status}
       onRestart={() => setState(freshClimb())}

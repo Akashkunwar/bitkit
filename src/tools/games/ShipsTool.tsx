@@ -50,7 +50,7 @@ export default function ShipsTool() {
   const status = game.over === 1 ? 'Fleet sunk' : game.over === 2 ? 'Your fleet is gone' : 'Fire on their grid'
   return (
     <Arcade
-      title="Ships"
+      title="Battleship"
       lede="Your fleet is on the left. Fire on the right. A cross is a hit, a dot is open water. They shoot back."
       status={status}
       onRestart={() => {

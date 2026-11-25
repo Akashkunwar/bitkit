@@ -31,7 +31,7 @@ export default function AimTool() {
 
   return (
     <ToolLayout
-      title="Aim"
+      title="Mouse sensitivity"
       lede="eDPI, centimetres per 360, and a sensitivity that matches between two games. The yaw values are the usual ones for those games."
     >
       <div className="split">

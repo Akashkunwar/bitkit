@@ -38,7 +38,7 @@ export default function FlapTool() {
 
   return (
     <Arcade
-      title="Flap"
+      title="Flappy Bird"
       lede="Tap, click, or press space to hop through the gaps."
       status={state.dead ? 'Hit a pipe' : `Score ${state.score}`}
       onRestart={() => setState(freshFlap())}

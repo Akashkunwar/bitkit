@@ -70,7 +70,7 @@ export default function BlobTool() {
 
   return (
     <Arcade
-      title="Blob"
+      title="Agar.io"
       lede="Steer into smaller dots and cells. A larger cell swallows you. Pointer or arrows."
       status={state.dead ? `Eaten · ${state.score}` : `Mass ${state.score}`}
       onRestart={() => {

@@ -59,7 +59,7 @@ export default function MinesTool() {
 
   return (
     <ToolLayout
-      title="Mines"
+      title="Minesweeper"
       lede="Open every safe square. The first click is never a mine. Flag mode, a long press, right-click, or Shift-click marks a mine."
     >
       <div className="arcade">

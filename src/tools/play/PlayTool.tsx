@@ -112,7 +112,7 @@ export default function PlayTool() {
 
   return (
     <ToolLayout
-      title="Reflex"
+      title="Reflex tests"
       lede="Reaction time, the five lights, clicks per second, and a breathing timer. Nothing is stored."
     >
       <Segmented

@@ -40,7 +40,7 @@ export default function InvadersTool() {
 
   return (
     <Arcade
-      title="Invaders"
+      title="Space Invaders"
       lede="Move with the arrow keys and hold space to fire. Don't let the formation reach you."
       status={state.won ? 'Cleared' : state.dead ? 'Overrun' : `Score ${state.score} · lives ${state.lives}`}
       onRestart={() => setState(freshInvaders())}

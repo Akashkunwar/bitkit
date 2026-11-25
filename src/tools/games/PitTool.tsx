@@ -45,7 +45,7 @@ export default function PitTool() {
   const seconds = Math.ceil(state.time / 60)
   return (
     <Arcade
-      title="Pit"
+      title="Hole.io"
       lede="Move the hole. It swallows anything smaller than it and grows. Larger blocks stay put until you can take them."
       status={state.over ? `Time · ${state.score}` : `${state.score} · ${seconds}s`}
       onRestart={() => setState(freshPit())}

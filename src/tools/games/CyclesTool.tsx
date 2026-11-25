@@ -41,7 +41,7 @@ export default function CyclesTool() {
   const status = state.over === 1 ? 'You win' : state.over === 2 ? 'You crashed' : state.over === 3 ? 'Draw' : 'Riding'
   return (
     <Arcade
-      title="Cycles"
+      title="Tron"
       lede="Left and right turn your light cycle. The trail is a wall. The other rider turns to stay alive."
       status={status}
       onRestart={() => {

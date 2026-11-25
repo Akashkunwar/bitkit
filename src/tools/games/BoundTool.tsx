@@ -30,7 +30,7 @@ export default function BoundTool() {
 
   return (
     <Arcade
-      title="Bound"
+      title="Doodle Jump"
       lede="The ball bounces on its own. Steer left and right. Red pads are spikes, and falling off ends the climb."
       status={state.dead ? `Fell · ${state.score}` : `Score ${state.score}`}
       onRestart={() => setState(freshBound())}

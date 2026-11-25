@@ -7,7 +7,7 @@ export default function HigherTool() {
   const [seed, setSeed] = useState(21)
   return (
     <Arcade
-      title="Higher"
+      title="Higher or Lower"
       lede="The next card is either higher or lower. Ace is high. A tie keeps the streak."
       status={
         game.over

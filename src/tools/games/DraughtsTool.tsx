@@ -30,7 +30,7 @@ export default function DraughtsTool() {
     state.over === 1 ? 'You win' : state.over === -1 ? 'You lose' : state.chain >= 0 ? 'Jump again' : 'Your move'
   return (
     <Arcade
-      title="Draughts"
+      title="Checkers"
       lede="You are the dark pieces at the bottom. Tap a piece, then a diagonal square. Jumps are required."
       status={status}
       onRestart={() => {

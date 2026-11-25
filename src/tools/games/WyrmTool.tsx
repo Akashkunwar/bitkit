@@ -50,7 +50,7 @@ export default function WyrmTool() {
 
   return (
     <Arcade
-      title="Wyrm"
+      title="Slither.io"
       lede="Turn left and right. Eat the orbs to grow. Touching a body ends the run. The field wraps."
       status={state.dead ? `Crashed · ${state.score}` : `Orbs ${state.score}`}
       onRestart={() => setState(freshWyrm())}

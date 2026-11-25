@@ -113,7 +113,7 @@ export default function LedgeTool() {
   const stage = state.won ? 'Clear' : state.dead ? 'Fell' : `Stage ${state.level + 1}/${LEDGE_LEVELS.length}`
   return (
     <Arcade
-      title="Ledge"
+      title="Super Mario Bros."
       lede="Run and jump the stages. Land on a walker to stomp it, pick up the coins, and touch the flag."
       status={state.won ? 'Clear' : state.dead ? 'Out of lives' : `${stage} · ${state.score} · lives ${state.lives}`}
       onRestart={() => setState(freshLedge())}

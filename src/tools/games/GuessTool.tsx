@@ -15,7 +15,7 @@ export default function GuessTool() {
   const status = game.status === 'win' ? 'Got it' : game.status === 'lose' ? game.word : `${game.guesses.length} of 6`
   return (
     <Arcade
-      title="Word guess"
+      title="Wordle"
       lede="Six tries at a five-letter word from the list. Green is the right place. Amber is in the word."
       status={status}
       onRestart={() => {

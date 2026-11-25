@@ -121,7 +121,11 @@ export function AppShell() {
   }, [location.pathname, tray])
 
   return (
-    <div className="shell" data-sidebar={sidebarHidden ? 'hidden' : 'shown'}>
+    <div
+      className="shell"
+      data-sidebar={sidebarHidden ? 'hidden' : 'shown'}
+      data-immersive={activeTool?.id === 'live' ? 'true' : 'false'}
+    >
       <a className="skip-link" href="#main">
         {t('nav.skip')}
       </a>

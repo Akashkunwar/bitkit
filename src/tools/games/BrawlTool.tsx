@@ -68,7 +68,7 @@ export default function BrawlTool() {
       : `Wave ${state.wave}/3 · ${state.score} · ${state.hp} hp`
   return (
     <Arcade
-      title="Brawl"
+      title="Double Dragon"
       lede="Space punches. Up kicks, which reaches further. Clear three waves."
       status={status}
       onRestart={() => setState(freshBrawl())}

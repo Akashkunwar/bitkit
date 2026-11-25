@@ -27,7 +27,7 @@ export default function FifteenTool() {
   useArrows(play)
   return (
     <Arcade
-      title="Fifteen"
+      title="15 Puzzle"
       lede="Slide tiles into the gap until they read 1 to 15. Arrow keys move the tile beside the gap."
       status={fifteenSolved(tiles) ? 'Solved' : 'Slide a neighbour'}
       onRestart={() => setTiles(freshFifteen(mulberry32(Date.now() % 100000)))}

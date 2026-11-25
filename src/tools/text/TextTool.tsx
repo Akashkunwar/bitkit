@@ -90,7 +90,7 @@ export default function TextTool() {
   const peopleRows = useMemo(() => dummyPeople(people), [people])
 
   return (
-    <ToolLayout title="Text bench" lede="Case, lines, bionic reading, KrutiDev, binary, and dummy copy. All local.">
+    <ToolLayout title="Text tools" lede="Case, lines, bionic reading, KrutiDev, binary, and dummy copy. All local.">
       <Segmented
         label="Mode"
         value={mode}

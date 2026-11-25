@@ -26,7 +26,7 @@ export default function ReversiTool() {
       : `Their turn · ${score.you}–${score.them}`
   return (
     <Arcade
-      title="Reversi"
+      title="Othello"
       lede="You are the dark discs. A move must flip at least one light disc."
       status={status}
       onRestart={() => setState(freshReversi())}

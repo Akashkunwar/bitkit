@@ -53,7 +53,7 @@ export default function HopperTool() {
 
   return (
     <Arcade
-      title="Hopper"
+      title="Frogger"
       lede="Cross the lanes. Arrow keys hop one square. Reaching the far side scores and sends you back."
       status={state.dead ? 'Squashed' : `Crossed ${state.score} · lives ${state.lives}`}
       onRestart={() => setState(freshHopper())}

@@ -30,7 +30,7 @@ export default function RepeatTool() {
 
   return (
     <Arcade
-      title="Repeat"
+      title="Simon"
       lede="Watch the pads, then tap them in the same order. The run grows by one each time."
       status={
         game.failed

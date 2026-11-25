@@ -7,7 +7,7 @@ export default function LightsTool() {
   const [board, setBoard] = useState(() => freshLights(mulberry32(3)))
   return (
     <Arcade
-      title="Lights"
+      title="Lights Out"
       lede="Tap a light. It and its neighbours flip. Turn the whole grid off."
       status={lightsOut(board) ? 'Dark' : 'Still lit'}
       onRestart={() => setBoard(freshLights(mulberry32(Date.now() % 100000)))}

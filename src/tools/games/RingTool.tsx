@@ -88,7 +88,7 @@ export default function RingTool() {
       : `Round ${state.round} · ${state.score}`
   return (
     <Arcade
-      title="Ring"
+      title="Punch-Out"
       lede="Up dodges a high punch, down dodges a low one. On the open cue, Z hits high and X hits low."
       status={status}
       onRestart={() => setState(freshRing())}

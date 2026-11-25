@@ -27,7 +27,7 @@ export default function BoxesTool() {
     : `You ${state.score[0]} · them ${state.score[1]}`
   return (
     <Arcade
-      title="Boxes"
+      title="Dots and Boxes"
       lede="Tap a line. Close a square and you play again. The other side takes the rest."
       status={status}
       onRestart={() => setState(freshBoxes())}

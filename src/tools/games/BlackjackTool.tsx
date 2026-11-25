@@ -19,7 +19,7 @@ export default function BlackjackTool() {
           : `You ${handValue(game.you)}`
   return (
     <Arcade
-      title="Twenty-one"
+      title="Blackjack"
       lede="Hit or stand. Face cards are 10. An ace is 1 or 11. The dealer draws to 17."
       status={status}
       onRestart={() => {

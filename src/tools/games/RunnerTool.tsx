@@ -35,7 +35,7 @@ export default function RunnerTool() {
 
   return (
     <Arcade
-      title="Runner"
+      title="Hurdles"
       lede="Space or up jumps the runner. Miss a hurdle and the run ends."
       status={state.dead ? 'Tripped' : `Score ${state.score}`}
       onRestart={() => setState(freshRunner())}

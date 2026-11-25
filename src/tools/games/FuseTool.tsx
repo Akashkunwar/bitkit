@@ -17,7 +17,7 @@ export default function FuseTool() {
 
   return (
     <Arcade
-      title="Fuse"
+      title="Bomb Party"
       lede="Type a word of at least four letters that contains the letters before the fuse runs out. A hit adds time."
       status={state.dead ? `Out · ${state.score}` : `${state.score} ${state.score === 1 ? 'word' : 'words'}`}
       onRestart={() => {

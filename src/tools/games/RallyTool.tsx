@@ -131,7 +131,7 @@ export default function RallyTool() {
   const status = state.finished ? `Finished · P${state.place} · ${state.score}` : `P${state.place} · ${state.score}`
   return (
     <Arcade
-      title="Rally"
+      title="Road Rash"
       lede="Hold up to accelerate, steer through the bends, and press space to shove a rival alongside."
       status={status}
       onRestart={() => setState(freshRally())}

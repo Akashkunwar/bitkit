@@ -6,7 +6,7 @@ export default function TowersTool() {
   const [state, setState] = useState<Towers>(freshTowers)
   return (
     <Arcade
-      title="Towers"
+      title="Tower of Hanoi"
       lede="Move the stack to the right peg. Only a smaller disc can sit on a larger one."
       status={towersWon(state) ? 'Done' : 'Tap a peg'}
       onRestart={() => setState(freshTowers())}

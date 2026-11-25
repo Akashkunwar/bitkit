@@ -61,7 +61,7 @@ export default function KlondikeTool() {
 
   return (
     <Arcade
-      title="Klondike"
+      title="Solitaire"
       lede="Click the stock to draw. Click a face-up card, then a column or a foundation. Build down in alternating colours. Foundations go up by suit from the ace."
       status={klondikeWon(game) ? 'Cleared' : `Stock ${game.stock.length}`}
       onRestart={() => {

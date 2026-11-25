@@ -75,7 +75,7 @@ export default function RaidTool() {
       : `Wave ${state.wave}/4 · ${state.score} · lives ${state.lives}`
   return (
     <Arcade
-      title="Raid"
+      title="Contra"
       lede="Run, jump, and fire through four waves. Space shoots ahead. W shoots upward."
       status={status}
       onRestart={() => setState(freshRaid())}

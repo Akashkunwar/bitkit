@@ -7,7 +7,7 @@ export default function PegsTool() {
   const left = state.cells.filter((cell) => cell === '*').length
   return (
     <Arcade
-      title="Pegs"
+      title="Peg Solitaire"
       lede="Jump one peg over another onto an empty hole. The jumped peg is removed. Finish with one."
       status={state.won ? 'One left' : pegsStuck(state.cells) ? `Stuck · ${left} pegs` : `${left} pegs`}
       onRestart={() => setState(freshPegs())}

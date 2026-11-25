@@ -49,7 +49,7 @@ export default function LanderTool() {
       : `Fuel ${state.fuel} · vx ${state.vx.toFixed(1)} · vy ${state.vy.toFixed(1)}`
   return (
     <Arcade
-      title="Lander"
+      title="Lunar Lander"
       lede="Left and right push sideways. Up burns fuel. A safe landing needs a slow vertical speed and almost no sideways speed, on the green pad."
       status={status}
       onRestart={() => setState(freshLander(80 + (Date.now() % 240)))}

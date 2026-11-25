@@ -18,7 +18,7 @@ export default function MasterTool() {
       : `Guess ${game.guesses.length + 1} of 8`
   return (
     <Arcade
-      title="Codebreaker"
+      title="Mastermind"
       lede="Four pegs, six colours, and colours may repeat. A black mark is the right colour in the right place. A white mark is the right colour elsewhere. Each peg shows its number."
       status={status}
       onRestart={() => {

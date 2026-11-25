@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/favicon.svg" width="72" height="72" alt="">
   <h1>BitKit</h1>
-  <p><strong>180 everyday tools that run entirely in your browser.</strong></p>
+  <p><strong>195 everyday tools that run entirely in your browser.</strong></p>
   <p>No account. No server. Nothing you open ever leaves your device.</p>
 </div>
 
@@ -16,7 +16,7 @@ first load it works offline.
 
 | Group | Tools |
 | --- | --- |
-| **Daily** | **Calculator** (scientific, typed or tapped), **Unit converter** (16 quantities), **Finance** (EMI, SIP, compound interest, CAGR, discounts, income tax), **Exchange rate** (a rate you type), **Authenticator** (TOTP), Convert (time, zones, CSS units, percent, GST), Links & cards, Meeting planner, Age & date difference, Deadline calculator, Timers, Random picker, Number to words, Health calculators, Trip cost |
+| **Daily** | **Calculator** (scientific, typed or tapped), **Unit converter** (16 quantities), **Finance** (EMI, SIP, compound interest, CAGR, discounts, income tax), **Exchange rate** (a rate you type), **Authenticator** (TOTP), Convert (time, zones, CSS units, percent, GST), Links & cards, Meeting planner, Age & date difference, Deadline calculator, Timers, **Live clock**, Random picker, Number to words, Health calculators, Trip cost |
 | **Image** | **Image converter** (JPG/PNG/WebP/AVIF/BMP), **Rotate & flip**, **Image collage**, **Screenshot frame** (plus quote and code cards), **Screenshot markup**, **Strip metadata**, **Image compare**, Clipboard download, Resize & compress, Image finishing, Image metadata (EXIF/GPS), Favicon set, Passport sheet, Background cutout, SVG convert, Carousel splitter, Meme generator, ASCII from image |
 | **Document** | **Images to PDF** (reorder, rotate, page setup), **PDF to images** (PNG/JPEG/WebP, any DPI, plus embedded images), **Word to image** (and exact-look PDF), **Markdown to PDF** (themes, paginated), PDF editor (including permanent redaction), **PDF compare**, PDF merge & split, OCR, PDF form fill, Office to PDF, PDF to Word & text, Watermark & page numbers, PDF shrink, Markdown table, Invoice |
 | **Data** | Data table (CSV/TSV/JSON/XLSX), Chart maker, ZIP archive (stored, deflated, or .tar.gz), **Batch rename** |
@@ -28,12 +28,14 @@ first load it works offline.
 
 New in this release are in **bold**. Drop any file on the home page to see every tool that can open it.
 
+The latest twelve are **Number desk**, **Workshop maths**, **Body estimates**, **Date maths**, **Physics desk**, **Codes**, **Glyphs**, **Lists**, **Letters**, **Citations**, **Beat**, and **Ink colors**.
+
 Press <kbd>⌘K</kbd> (or <kbd>Ctrl</kbd> <kbd>K</kbd>, or <kbd>/</kbd>) for the command
 palette — it runs actions too, not just navigation ("compress an image to 450 KB").
 Press <kbd>?</kbd> for every shortcut and <kbd>[</kbd> to hide the sidebar.
 
 Every tool has a chord. Twenty-four keep a single letter (<kbd>G</kbd> <kbd>R</kbd> for
-resize), and all 180 are reachable by category (<kbd>G</kbd> <kbd>4</kbd> <kbd>D</kbd> —
+resize), and all 195 are reachable by category (<kbd>G</kbd> <kbd>4</kbd> <kbd>D</kbd> —
 fourth group, Data table). Digits can never collide with the single-letter chords, which
 is what made room for the rest.
 

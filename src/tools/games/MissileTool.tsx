@@ -71,7 +71,7 @@ export default function MissileTool() {
   const status = state.dead ? `Cities gone · ${state.score}` : `Score ${state.score}`
   return (
     <Arcade
-      title="Missiles"
+      title="Missile Command"
       lede="Click the sky, or aim with the arrows and fire with space or enter. The burst only lasts a moment. Each city can be lost once."
       status={status}
       onRestart={() => setState(freshMissile())}

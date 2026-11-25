@@ -152,7 +152,7 @@ export default function BlocksTool() {
 
   return (
     <ToolLayout
-      title="Blocks"
+      title="Tetris"
       lede="Falling blocks. Arrow keys move and turn. Space drops the piece. The next piece is shown beside the well."
     >
       <div className="arcade">

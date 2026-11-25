@@ -44,7 +44,7 @@ export default function SiteCopyTool() {
 
   return (
     <ToolLayout
-      title="Site copy"
+      title="Open Graph & terms"
       lede="Open Graph tags, plus a privacy note and terms draft filled from a name and an email."
     >
       <Segmented

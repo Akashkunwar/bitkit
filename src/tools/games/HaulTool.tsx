@@ -79,7 +79,7 @@ export default function HaulTool() {
   const status = state.dead ? `Stopped · ${state.score}` : `${state.score} · fuel ${Math.ceil(state.fuel)}`
   return (
     <Arcade
-      title="Haul"
+      title="Hill Climb Racing"
       lede="Right accelerates, left brakes. Ease off before a steep face or the bike flips. Coins refill the tank."
       status={status}
       onRestart={() => setState(freshHaul())}

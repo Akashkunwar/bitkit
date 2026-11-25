@@ -101,7 +101,7 @@ export default function PaperTool() {
 
   return (
     <ToolLayout
-      title="Paper"
+      title="Writing paper"
       lede="Handwriting on ruled paper, or a printable graph sheet. The page is drawn in this tab."
     >
       <div className="split">

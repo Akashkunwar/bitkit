@@ -46,7 +46,7 @@ const MODES: { value: Mode; label: string }[] = [
   { value: 'dice', label: '3D physics dice' },
   { value: 'notation', label: 'D&D dice notation' },
   { value: 'board', label: 'Board game timer' },
-  { value: 'imposter', label: 'Imposter' },
+  { value: 'imposter', label: 'Among Us' },
   { value: 'charades', label: 'Charades' },
   { value: 'elephant', label: 'White elephant' },
   { value: 'cats', label: 'Games for cats' },
@@ -108,7 +108,7 @@ export default function PlayroomTool() {
 
   return (
     <ToolLayout
-      title="Playroom"
+      title="Party games"
       lede="Classroom picks, timers, dice, party games, and races. Rolls and shuffles stay in this tab."
     >
       <Segmented label="Mode" value={mode} options={MODES} onChange={setMode} />

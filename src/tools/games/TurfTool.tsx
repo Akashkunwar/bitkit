@@ -50,7 +50,7 @@ export default function TurfTool() {
   const share = Math.round((state.score / total) * 100)
   return (
     <Arcade
-      title="Turf"
+      title="Paper.io"
       lede="Leave your patch, loop around empty ground, and come home to claim it. Hitting a trail loses."
       status={state.dead ? `Cut · ${share}%` : `${share}%`}
       onRestart={() => setState(freshTurf())}

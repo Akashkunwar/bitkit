@@ -12,7 +12,7 @@ export default function FiveTool() {
     state.winner === 1 ? 'You win' : state.winner === 2 ? 'You lose' : state.winner === 3 ? 'Draw' : 'Your stone'
   return (
     <Arcade
-      title="Five"
+      title="Gomoku"
       lede="Get five stones in a line. The board answers with a blocking stone."
       status={status}
       onRestart={() => setState(freshFive())}

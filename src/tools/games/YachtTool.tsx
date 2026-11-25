@@ -24,7 +24,7 @@ export default function YachtTool() {
   const [game, setGame] = useState<Yacht>(() => freshYacht(rand))
   return (
     <Arcade
-      title="Yacht"
+      title="Yahtzee"
       lede="Roll up to three times. Hold dice by tapping them, then score a category. The upper half pays 35 extra at 63."
       status={game.done ? `Total ${yachtTotal(game.taken)}` : `Rolls left ${game.rolls}`}
       onRestart={() => setGame(freshYacht(rand))}

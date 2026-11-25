@@ -80,7 +80,7 @@ export default function TanksTool() {
       : `Stage ${state.stage + 1} · ${state.score} · lives ${state.lives}`
   return (
     <Arcade
-      title="Tanks"
+      title="Battle City"
       lede="Guard the base. Bricks break under fire. Steel does not. Space shoots."
       status={status}
       onRestart={() => setState(freshTanks())}

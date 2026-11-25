@@ -25,7 +25,7 @@ export default function MuncherTool() {
   const width = state.rows[0].length
   return (
     <Arcade
-      title="Muncher"
+      title="Pac-Man"
       lede="Eat every dot. Arrow keys move. The ghost steps toward you."
       status={
         state.won

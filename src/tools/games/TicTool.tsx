@@ -22,7 +22,7 @@ export default function TicTool() {
   const end = winner(board)
 
   return (
-    <ToolLayout title="Noughts and crosses" lede="You are X. The other side answers at once.">
+    <ToolLayout title="Tic-tac-toe" lede="You are X. The other side answers at once.">
       <div className="arcade">
         <div className="arcade-top">
           <strong>{end === 'X' ? 'You win' : end === 'O' ? 'You lose' : end === 'draw' ? 'Draw' : 'Your move'}</strong>

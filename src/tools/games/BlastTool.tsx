@@ -72,7 +72,7 @@ export default function BlastTool() {
   const status = state.won ? 'Floor clear' : state.dead ? 'Caught' : `${state.score} · lives ${state.lives}`
   return (
     <Arcade
-      title="Blast"
+      title="Bomberman"
       lede="Space drops a bomb. Step off it before the cross of fire reaches you, and clear every crawler."
       status={status}
       onRestart={() => setState(freshBlast())}

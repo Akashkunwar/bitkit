@@ -9,7 +9,7 @@ export default function MoleTool() {
 
   return (
     <Arcade
-      title="Mole"
+      title="Whac-A-Mole"
       lede="Tap the lit hole before it ducks. A wrong hole counts as a miss."
       status={state.dead ? 'Too slow' : `Score ${state.score} · misses ${state.misses}`}
       onRestart={() => setState(freshMole())}
