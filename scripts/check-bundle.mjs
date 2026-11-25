@@ -17,13 +17,13 @@ const ASSETS = join(DIST, 'assets')
 
 /** Gzipped kilobytes. Raise these deliberately, with a reason in the commit. */
 const BUDGETS = {
-  // The home page and command palette list every tool, so the new games,
-  // sims, and workshop blurbs live in the entry. That catalog is about 1 KB
-  // gzipped past the previous 165 KB line.
-  entryJs: 170,
+  // The home page and command palette list every tool, so titles, blurbs, and
+  // keywords ship in the entry. The catalog at 195 tools measures about 182 KB
+  // gzipped, 12 KB past the 170 KB line set at 173 tools.
+  entryJs: 185,
   css: 30,
   /** Anything not lazy-loaded, together. */
-  totalEager: 200,
+  totalEager: 210,
 }
 
 function gzipKb(path) {
