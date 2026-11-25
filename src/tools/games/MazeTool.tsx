@@ -21,7 +21,7 @@ export default function MazeTool() {
   return (
     <Arcade
       title="Maze"
-      lede="Arrow keys walk the passages. The green square is the way out."
+      lede="Arrow keys walk the passages. You are the lime square. The red square is the way out."
       status={maze.won ? 'Out' : 'Find the exit'}
       onRestart={() => {
         const next = seed + 1
@@ -43,7 +43,7 @@ export default function MazeTool() {
                 borderRight: mask & MAZE_E ? '1px solid transparent' : undefined,
                 borderBottom: mask & MAZE_S ? '1px solid transparent' : undefined,
                 borderLeft: mask & MAZE_W ? '1px solid transparent' : undefined,
-                background: here ? 'var(--accent, #c9f150)' : end ? '#3d4a28' : undefined,
+                background: here ? '#c9f150' : end ? '#e85d4c' : undefined,
               }}
             />
           )

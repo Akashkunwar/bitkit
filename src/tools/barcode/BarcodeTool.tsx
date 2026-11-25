@@ -346,6 +346,7 @@ export default function BarcodeTool() {
 function BarcodeScan() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [text, setText] = useState<string | null>(null)
+  const { copied, copy } = useCopied()
   const [error, setError] = useState<string | null>(null)
   const [cameraOn, setCameraOn] = useState(false)
 
@@ -434,6 +435,11 @@ function BarcodeScan() {
       </section>
       <aside className="panel">
         <p className="lede">{text ?? 'Nothing read yet.'}</p>
+        {text ? (
+          <button type="button" className="btn btn-primary" onClick={() => void copy(text, 'scan')}>
+            {copied === 'scan' ? 'Copied' : 'Copy'}
+          </button>
+        ) : null}
       </aside>
     </div>
   )

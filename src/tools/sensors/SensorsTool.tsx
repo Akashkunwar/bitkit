@@ -9,10 +9,11 @@ export default function SensorsTool() {
   const [mode, setMode] = useState<Mode>('camera')
   const [hear, setHear] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [live, setLive] = useState(false)
   const [stick, setStick] = useState<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
-    if (mode !== 'camera') return
+    if (mode !== 'camera' || !live) return
     let stream: MediaStream | null = null
     let audio: AudioContext | null = null
     let stopped = false
@@ -37,7 +38,7 @@ export default function SensorsTool() {
       stream?.getTracks().forEach((track) => track.stop())
       void audio?.close()
     }
-  }, [mode, hear])
+  }, [mode, hear, live])
 
   useEffect(() => {
     if (mode !== 'stick') return
@@ -65,11 +66,17 @@ export default function SensorsTool() {
           { value: 'camera', label: 'Camera' },
           { value: 'stick', label: 'Stick drift' },
         ]}
-        onChange={setMode}
+        onChange={(next) => {
+          setLive(false)
+          setMode(next)
+        }}
       />
       {mode === 'camera' ? (
         <div className="panel">
-          <video ref={videoRef} autoPlay playsInline muted className="paper-preview" />
+          <video ref={videoRef} autoPlay playsInline muted className="paper-preview" hidden={!live} />
+          <button type="button" className="btn btn-primary" onClick={() => setLive((on) => !on)}>
+            {live ? 'Stop camera' : 'Start camera'}
+          </button>
           <label className="field">
             <span>
               <input type="checkbox" checked={hear} onChange={(e) => setHear(e.target.checked)} /> Play the microphone

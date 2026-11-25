@@ -319,7 +319,19 @@ export default function QrTool() {
     if (incoming.files?.some((f) => f.type.startsWith('image/'))) {
       setPanel('scan')
       const image = incoming.files.find((f) => f.type.startsWith('image/'))
-      if (image) void decodeQrFromBlob(image).then((value) => setDecoded(value ?? 'No QR code found.'))
+      if (image) {
+        void decodeQrFromBlob(image)
+          .then((value) => {
+            if (value) {
+              setScanError(null)
+              setDecoded(value)
+            } else {
+              setDecoded('')
+              setScanError('No QR code found.')
+            }
+          })
+          .catch((err: unknown) => setScanError(err instanceof Error ? err.message : 'Could not read that image.'))
+      }
     } else if (incoming.text) {
       setPanel('generate')
       setMode('text')
@@ -488,8 +500,17 @@ export default function QrTool() {
               onFiles={async (files) => {
                 if (!files[0]) return
                 setScanError(null)
-                const value = await decodeQrFromBlob(files[0])
-                setDecoded(value ?? 'No QR code found.')
+                try {
+                  const value = await decodeQrFromBlob(files[0])
+                  if (value) setDecoded(value)
+                  else {
+                    setDecoded('')
+                    setScanError('No QR code found.')
+                  }
+                } catch (err) {
+                  setDecoded('')
+                  setScanError(err instanceof Error ? err.message : 'Could not read that image.')
+                }
               }}
             />
             <div className="row" style={{ marginTop: '0.75rem' }}>

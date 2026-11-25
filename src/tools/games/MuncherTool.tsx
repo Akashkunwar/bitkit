@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { freshMuncher, stepMuncher, type Muncher } from '../../lib/games/muncher'
-import { Arcade } from './kit'
+import { Arcade, HoldKeys } from './kit'
 import { useHeld, useTick } from './loop'
 
 const KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'] as const
@@ -27,7 +27,13 @@ export default function MuncherTool() {
     <Arcade
       title="Muncher"
       lede="Eat every dot. Arrow keys move. The ghost steps toward you."
-      status={state.won ? 'Clear' : state.dead ? 'Caught' : `Dots ${state.score} · lives ${state.lives}`}
+      status={
+        state.won
+          ? `Clear · ${state.score}`
+          : state.dead
+            ? `Caught · ${state.score}`
+            : `Dots ${state.score} · lives ${state.lives}`
+      }
       onRestart={() => setState(freshMuncher())}
     >
       <div className="arcade-grid" style={{ gridTemplateColumns: `repeat(${width}, 1fr)`, maxWidth: 420, gap: 2 }}>
@@ -52,36 +58,15 @@ export default function MuncherTool() {
           }),
         )}
       </div>
-      <div className="arcade-keys">
-        <button
-          type="button"
-          className="btn"
-          onClick={() => setState((current) => stepMuncher(current, { x: 0, y: -1 }, true))}
-        >
-          Up
-        </button>
-        <button
-          type="button"
-          className="btn"
-          onClick={() => setState((current) => stepMuncher(current, { x: -1, y: 0 }, true))}
-        >
-          Left
-        </button>
-        <button
-          type="button"
-          className="btn"
-          onClick={() => setState((current) => stepMuncher(current, { x: 1, y: 0 }, true))}
-        >
-          Right
-        </button>
-        <button
-          type="button"
-          className="btn"
-          onClick={() => setState((current) => stepMuncher(current, { x: 0, y: 1 }, true))}
-        >
-          Down
-        </button>
-      </div>
+      <HoldKeys
+        held={held}
+        labels={[
+          ['ArrowUp', 'Up'],
+          ['ArrowLeft', 'Left'],
+          ['ArrowRight', 'Right'],
+          ['ArrowDown', 'Down'],
+        ]}
+      />
     </Arcade>
   )
 }

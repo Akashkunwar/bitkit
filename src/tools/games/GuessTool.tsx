@@ -8,8 +8,9 @@ export default function GuessTool() {
   const [game, setGame] = useState<Guess>(() => freshGuess(rand))
   const [text, setText] = useState('')
   const send = () => {
-    setGame((current) => submitGuess(current, text))
-    setText('')
+    const next = submitGuess(game, text)
+    setGame(next)
+    if (next.guesses.length !== game.guesses.length) setText('')
   }
   const status = game.status === 'win' ? 'Got it' : game.status === 'lose' ? game.word : `${game.guesses.length} of 6`
   return (
@@ -26,12 +27,17 @@ export default function GuessTool() {
         {game.guesses.map((guess) => (
           <div key={guess} className="arcade-keys">
             {markGuess(guess, game.word).map((mark, index) => (
-              <span key={index} className={`arcade-cell mark-${mark}`}>
+              <span
+                key={index}
+                className={`arcade-cell mark-${mark}`}
+                aria-label={`${guess[index]}, ${mark === 'g' ? 'right place' : mark === 'y' ? 'wrong place' : 'not in the word'}`}
+              >
                 {guess[index]}
               </span>
             ))}
           </div>
         ))}
+        {game.note && !game.status && <p className="hint">{game.note}</p>}
         {!game.status && (
           <div className="arcade-keys">
             <input

@@ -11,6 +11,9 @@ export function Scoreboard({ names, roster, onRoster }: RosterProps) {
       controls={
         <>
           <NamesField value={roster} onChange={onRoster} label="Names, one per line" />
+          <button type="button" className="btn" onClick={() => setScores({})}>
+            Reset scores
+          </button>
           <label className="field">
             <span>Points to add</span>
             <input

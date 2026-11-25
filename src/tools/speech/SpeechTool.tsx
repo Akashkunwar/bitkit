@@ -7,6 +7,7 @@ import { useHandoff } from '../../lib/useHandoff'
 import { grantEngineConsent, hasEngineConsent } from '../../lib/cdnConsent'
 import { NATURAL_VOICES } from '../../lib/naturalSpeech/voices'
 import { encodeWav } from '../../lib/naturalSpeech/wav'
+import { triggerDownload } from '../../lib/download'
 import { chunkText, pickVoice, wordAt } from '../../lib/speech'
 
 const DEFAULTS = {
@@ -55,6 +56,8 @@ export default function SpeechTool() {
   const clipUrl = useRef<string | null>(null)
   const runId = useRef(0)
   const finishClip = useRef<((outcome: 'ended' | 'stopped') => void) | null>(null)
+  const spokenPcm = useRef<Float32Array[]>([])
+  const [wav, setWav] = useState<Blob | null>(null)
 
   useHandoff((payload) => {
     if (payload.text) setText(payload.text)
@@ -157,6 +160,8 @@ export default function SpeechTool() {
   const playNatural = async () => {
     if (!text.trim() || !allowed) return
     stopNatural()
+    spokenPcm.current = []
+    setWav(null)
     window.speechSynthesis.cancel()
     const run = runId.current
     const element = audio()
@@ -192,6 +197,15 @@ export default function SpeechTool() {
           upcoming = synthesize(chunks[index + 1], settings.naturalVoice, settings.rate)
         }
         if (!pcm.length) continue
+        spokenPcm.current.push(pcm)
+        const parts = spokenPcm.current
+        const joined = new Float32Array(parts.reduce((count, part) => count + part.length, 0))
+        let at = 0
+        for (const part of parts) {
+          joined.set(part, at)
+          at += part.length
+        }
+        setWav(encodeWav(joined))
         const url = URL.createObjectURL(encodeWav(pcm))
         if (clipUrl.current) URL.revokeObjectURL(clipUrl.current)
         clipUrl.current = url
@@ -456,6 +470,16 @@ export default function SpeechTool() {
               <Square size={16} aria-hidden="true" />
               Stop
             </button>
+            {settings.engine === 'natural' ? (
+              <button
+                type="button"
+                className="btn btn-lg"
+                disabled={!wav}
+                onClick={() => wav && triggerDownload(wav, 'speech.wav')}
+              >
+                Download WAV
+              </button>
+            ) : null}
           </div>
           {note ? <p className={status === 'idle' ? 'status-bad' : 'hint'}>{note}</p> : null}
 

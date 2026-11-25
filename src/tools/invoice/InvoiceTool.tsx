@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { DateField } from '../../components/DateField'
 import { ToolLayout } from '../../components/ToolLayout'
 import { SendTo } from '../../components/SendTo'
@@ -13,6 +13,11 @@ const STORE_KEY = 'invoice-draft'
 export default function InvoiceTool() {
   const [invoice, setInvoice] = useState<Invoice>(() => emptyInvoice())
   const [saved, setSaved] = useState(false)
+  useEffect(() => {
+    void getPref<Invoice | null>(STORE_KEY, null).then((stored) => {
+      if (stored && Array.isArray(stored.items)) setInvoice({ ...emptyInvoice(), ...stored })
+    })
+  }, [])
   const [error, setError] = useState<string | null>(null)
   const undo = useUndo()
   const { language } = useI18n()

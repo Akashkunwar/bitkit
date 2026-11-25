@@ -68,7 +68,7 @@ export default function MissileTool() {
     ctx.stroke()
   }, 16)
 
-  const status = state.dead ? 'Cities gone' : `Score ${state.score}`
+  const status = state.dead ? `Cities gone · ${state.score}` : `Score ${state.score}`
   return (
     <Arcade
       title="Missiles"

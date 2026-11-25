@@ -30,7 +30,13 @@ export function stepLander(state: Lander, input: { left: boolean; right: boolean
   vx *= 0.995
   x += vx
   y += vy
-  x = Math.max(12, Math.min(LAND_W - 12, x))
+  if (x < 12) {
+    x = 12
+    if (vx < 0) vx = 0
+  } else if (x > LAND_W - 12) {
+    x = LAND_W - 12
+    if (vx > 0) vx = 0
+  }
   if (y < GROUND) return { ...state, x, y, vx, vy, fuel }
   const onPad = x > state.pad && x < state.pad + 72
   const soft = Math.abs(vx) < 0.7 && Math.abs(vy) < 1.15

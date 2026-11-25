@@ -136,13 +136,25 @@ export function stepBlast(state: Blast, input: BlastInput): Blast {
   let enemies = state.enemies.map((enemy) => ({ ...enemy }))
   move = Math.max(0, move - 1)
   if (move === 0 && (input.dc || input.dr)) {
-    const nc = c + Math.sign(input.dc)
-    const nr = r + Math.sign(input.dr)
-    const blockedByEnemy = enemies.some((enemy) => enemy.alive && enemy.c === nc && enemy.r === nr)
-    if (open(rows, bombs, nc, nr) && !blockedByEnemy) {
-      c = nc
-      r = nr
-      move = 7
+    const sx = Math.sign(input.dc)
+    const sy = Math.sign(input.dr)
+    const cornerCut = sx !== 0 && sy !== 0 && (!open(rows, bombs, c + sx, r) || !open(rows, bombs, c, r + sy))
+    const options = cornerCut
+      ? [
+          [sx, 0],
+          [0, sy],
+        ]
+      : [[sx, sy]]
+    for (const [dc, dr] of options) {
+      const nc = c + dc
+      const nr = r + dr
+      const blockedByEnemy = enemies.some((enemy) => enemy.alive && enemy.c === nc && enemy.r === nr)
+      if (open(rows, bombs, nc, nr) && !blockedByEnemy) {
+        c = nc
+        r = nr
+        move = 7
+        break
+      }
     }
   }
   bombs.forEach((bomb) => {

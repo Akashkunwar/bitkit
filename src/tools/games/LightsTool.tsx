@@ -18,7 +18,7 @@ export default function LightsTool() {
             key={index}
             type="button"
             className={on ? 'arcade-cell arcade-tile' : 'arcade-cell'}
-            onClick={() => setBoard((current) => toggleLight(current, index))}
+            onClick={() => setBoard((current) => (lightsOut(current) ? current : toggleLight(current, index)))}
           >
             {on ? '●' : ''}
           </button>

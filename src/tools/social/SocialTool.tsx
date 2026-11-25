@@ -230,15 +230,17 @@ export default function SocialTool() {
               </label>
             </>
           ) : null}
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() =>
-              canvasRef.current?.toBlob((blob) => blob && void downloadNamed(blob, 'screen.png'), 'image/png')
-            }
-          >
-            Download PNG
-          </button>
+          {['lists', 'stamp', 'share', 'bias'].includes(spec.kind) ? null : (
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() =>
+                canvasRef.current?.toBlob((blob) => blob && void downloadNamed(blob, 'screen.png'), 'image/png')
+              }
+            >
+              Download PNG
+            </button>
+          )}
         </section>
         <aside className="panel">
           {spec.kind === 'lists' ? (

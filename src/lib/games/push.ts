@@ -47,6 +47,6 @@ export function stepPush(state: Push, dr: number, dc: number): Push {
 }
 
 export function nextPush(state: Push): Push {
-  if (!state.won || state.level >= LEVELS.length - 1) return freshPush(0)
+  if (!state.won || state.level >= LEVELS.length - 1) return state
   return freshPush(state.level + 1)
 }

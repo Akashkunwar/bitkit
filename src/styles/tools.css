@@ -3212,6 +3212,31 @@ audio.media-preview {
   align-items: center;
 }
 
+.fuse-prompt {
+  margin: 0;
+  font: 700 3rem var(--font-ui);
+  letter-spacing: 0.14em;
+}
+
+.fuse-timer {
+  height: 10px;
+  width: min(100%, 420px);
+  background: #2a2e22;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.fuse-timer span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.fuse-note {
+  margin: 0;
+  max-width: 36rem;
+}
+
 .arcade-word {
   margin: 0;
   font:
@@ -3315,21 +3340,26 @@ audio.media-preview {
 
 .edge {
   width: 48px;
-  height: 10px;
+  height: 24px;
   margin: 0 8px;
   border: 0;
   border-radius: 99px;
-  background: var(--line);
+  background: linear-gradient(transparent 7px, var(--line) 7px, var(--line) 17px, transparent 17px);
 }
 
 .edge.vert {
-  width: 10px;
+  width: 24px;
   height: 48px;
   margin: 8px 0;
+  background: linear-gradient(to right, transparent 7px, var(--line) 7px, var(--line) 17px, transparent 17px);
 }
 
 .edge.on {
-  background: var(--ink);
+  background: linear-gradient(transparent 7px, var(--ink) 7px, var(--ink) 17px, transparent 17px);
+}
+
+.edge.vert.on {
+  background: linear-gradient(to right, transparent 7px, var(--ink) 7px, var(--ink) 17px, transparent 17px);
 }
 
 .box-v span {

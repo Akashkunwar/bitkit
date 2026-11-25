@@ -93,19 +93,21 @@ export default function TimersTool() {
       if (left <= 0) {
         if (settled) return
         settled = true
-        setRemaining(0)
         setRunning(false)
         setDone(true)
         chime(mode === 'pomodoro' ? 3 : 2)
         if (mode === 'pomodoro') {
-          if (phaseRef.current !== 'focus') {
-            setPhase('focus')
-          } else {
+          let nextPhase: Phase = 'focus'
+          if (phaseRef.current === 'focus') {
             const next = roundsRef.current + 1
             roundsRef.current = next
             setRounds(next)
-            setPhase(next % 4 === 0 ? 'long' : 'short')
+            nextPhase = next % 4 === 0 ? 'long' : 'short'
           }
+          setPhase(nextPhase)
+          setRemaining(PHASES[nextPhase].minutes * 60_000)
+        } else {
+          setRemaining(0)
         }
       } else {
         setRemaining(left)
@@ -229,10 +231,12 @@ export default function TimersTool() {
                 type="button"
                 className="chip"
                 onClick={() => {
+                  const ms = m * 60_000
                   setMinutes(m)
                   setSeconds(0)
-                  setRemaining(m * 60_000)
+                  setRemaining(ms)
                   setDone(false)
+                  if (running) deadlineRef.current = Date.now() + ms
                 }}
               >
                 {m} min

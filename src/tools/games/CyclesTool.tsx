@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { CYC_H, CYC_W, freshCycles, stepCycles, type Cycles } from '../../lib/games/cycles'
-import { Arcade } from './kit'
-import { BG, INK, LIME, RED, useHeld, useTick } from './loop'
+import { Arcade, HoldKeys } from './kit'
+import { BG, INK, LIME, RED, lastHeld, useHeld, useTick } from './loop'
 
 const KEYS = ['ArrowLeft', 'ArrowRight'] as const
 
@@ -9,10 +9,14 @@ export default function CyclesTool() {
   const [state, setState] = useState<Cycles>(freshCycles)
   const held = useHeld(KEYS)
   const steer = useRef<-1 | 0 | 1>(0)
+  const queued = useRef<-1 | 0 | 1>(0)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useTick(() => {
-    const next = held.current.has('ArrowLeft') ? -1 : held.current.has('ArrowRight') ? 1 : 0
+    const pressed = lastHeld(held.current, KEYS)
+    const key = pressed === 'ArrowLeft' ? -1 : pressed === 'ArrowRight' ? 1 : queued.current
+    queued.current = 0
+    const next = key
     const turn = next !== 0 && next !== steer.current ? next : 0
     steer.current = next
     setState((current) => stepCycles(current, turn as -1 | 0 | 1))
@@ -40,17 +44,20 @@ export default function CyclesTool() {
       title="Cycles"
       lede="Left and right turn your light cycle. The trail is a wall. The other rider turns to stay alive."
       status={status}
-      onRestart={() => setState(freshCycles())}
+      onRestart={() => {
+        steer.current = 0
+        queued.current = 0
+        setState(freshCycles())
+      }}
     >
       <canvas ref={canvasRef} className="arcade-canvas" width={CYC_W * 12} height={CYC_H * 12} />
-      <div className="arcade-keys">
-        <button type="button" className="btn" onClick={() => setState((current) => stepCycles(current, -1))}>
-          Left
-        </button>
-        <button type="button" className="btn" onClick={() => setState((current) => stepCycles(current, 1))}>
-          Right
-        </button>
-      </div>
+      <HoldKeys
+        held={held}
+        labels={[
+          ['ArrowLeft', 'Left'],
+          ['ArrowRight', 'Right'],
+        ]}
+      />
     </Arcade>
   )
 }

@@ -1,17 +1,21 @@
 import { useRef, useState } from 'react'
 import { freshTanks, stepTanks, TANK_CELL, TANK_N, type TankDir, type Tanks } from '../../lib/games/tanks'
 import { Arcade, HoldKeys } from './kit'
-import { BG, INK, LIME, RED, useHeld, useTick } from './loop'
+import { BG, INK, LIME, RED, lastHeld, useHeld, useTick } from './loop'
 
 const KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '] as const
 const SIZE = TANK_CELL * TANK_N
 
+const DIRS: Record<string, TankDir> = {
+  ArrowLeft: 'left',
+  ArrowRight: 'right',
+  ArrowUp: 'up',
+  ArrowDown: 'down',
+}
+
 function dirOf(held: Set<string>): TankDir | null {
-  if (held.has('ArrowLeft')) return 'left'
-  if (held.has('ArrowRight')) return 'right'
-  if (held.has('ArrowUp')) return 'up'
-  if (held.has('ArrowDown')) return 'down'
-  return null
+  const key = lastHeld(held, Object.keys(DIRS))
+  return key ? DIRS[key] : null
 }
 
 export default function TanksTool() {
@@ -70,7 +74,9 @@ export default function TanksTool() {
   const status = state.won
     ? 'Base held'
     : state.dead
-      ? 'Base lost'
+      ? state.lost === 'tank'
+        ? 'Lives gone'
+        : 'Base lost'
       : `Stage ${state.stage + 1} · ${state.score} · lives ${state.lives}`
   return (
     <Arcade

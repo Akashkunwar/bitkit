@@ -1,3 +1,5 @@
+import { mulberry32 } from './random'
+
 export type Mole = { up: number; age: number; score: number; misses: number; dead: boolean; tick: number }
 
 export function freshMole(): Mole {
@@ -10,7 +12,10 @@ export function stepMole(state: Mole): Mole {
   const age = state.age + 1
   if (age < 42) return { ...state, age, tick }
   const misses = state.misses + (state.up >= 0 ? 1 : 0)
-  return { up: tick % 9, age: 0, score: state.score, misses, dead: misses >= 5, tick }
+  const rand = mulberry32(tick * 997 + 13)
+  let up = Math.floor(rand() * 9)
+  if (up === state.up) up = (up + 1 + Math.floor(rand() * 8)) % 9
+  return { up, age: 0, score: state.score, misses, dead: misses >= 5, tick }
 }
 
 export function whack(state: Mole, hole: number): Mole {

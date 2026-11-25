@@ -151,7 +151,7 @@ export default function ShrinkTool() {
         setStatus(next.name)
         const source = new Uint8Array(await next.arrayBuffer())
         if (runId.current !== token) return
-        const doc = await openPdfJs(pdfjs, source)
+        const doc = await openPdfJs(pdfjs, source, password || undefined)
         try {
           if (runId.current !== token) return
           const result = await shrinkPdf(doc, { preset, maxBytes: parseByteLimit(limit), grayscale })
@@ -166,6 +166,11 @@ export default function ShrinkTool() {
       triggerDownload(new Blob([zip.slice().buffer as ArrayBuffer], { type: 'application/zip' }), 'smaller-pdfs.zip')
     } catch (err) {
       if (runId.current !== token) return
+      if (isPdfPasswordError(err)) {
+        setNeedsPassword(true)
+        setError(err.message)
+        return
+      }
       setError(err instanceof Error ? err.message : 'Could not shrink that batch.')
     } finally {
       if (runId.current === token) {
@@ -229,7 +234,7 @@ export default function ShrinkTool() {
               onChange={setPassword}
               busy={busy}
               error={error}
-              onUnlock={() => void run()}
+              onUnlock={() => void (queue.length > 1 ? shrinkQueue() : run())}
             />
           ) : null}
 

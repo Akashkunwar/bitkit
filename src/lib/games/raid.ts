@@ -231,7 +231,13 @@ export function stepRaid(state: Raid, input: RaidInput): Raid {
       if (wave >= 4) won = true
       else {
         wave += 1
-        foes = raidWave(wave)
+        foes = raidWave(wave).map((foe) => {
+          if (Math.abs(foe.x - x) < 56 && Math.abs(foe.y - y) < 36) {
+            return { ...foe, x: foe.x < x ? Math.max(16, foe.x - 90) : Math.min(450, foe.x + 90) }
+          }
+          return foe
+        })
+        hurt = Math.max(hurt, 40)
         pause = 50
       }
     }

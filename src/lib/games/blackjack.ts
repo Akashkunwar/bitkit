@@ -37,7 +37,9 @@ export function freshBlackjack(seed = 1): Blackjack {
   }
   const you = [deck[0], deck[2]]
   const dealer = [deck[1], deck[3]]
-  return { deck: deck.slice(4), you, dealer, done: false, result: '' }
+  const dealt = { deck: deck.slice(4), you, dealer, done: false, result: '' as const }
+  if (handValue(you) >= 21 || handValue(dealer) === 21) return standBlackjack(dealt)
+  return dealt
 }
 
 function finish(you: number[], dealer: number[], deck: number[]): Blackjack {
@@ -55,7 +57,7 @@ function finish(you: number[], dealer: number[], deck: number[]): Blackjack {
 }
 
 export function hitBlackjack(state: Blackjack): Blackjack {
-  if (state.done) return state
+  if (state.done || handValue(state.you) >= 21) return state
   const next = draw(state.deck)
   const you = state.you.concat(next.card)
   if (handValue(you) > 21) return finish(you, state.dealer, next.deck)

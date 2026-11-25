@@ -46,8 +46,11 @@ export function stepMissile(state: Missile): Missile {
   const cities = state.cities.slice()
   incoming = incoming.filter((shot) => {
     if (shot.y < MISS_H - 24) return true
-    const index = Math.max(0, Math.min(5, Math.floor(shot.x / 80)))
-    if (cities[index]) cities[index] = false
+    const index = cities.findIndex((_, city) => {
+      const left = city * 80 + 22
+      return shot.x + 4 >= left && shot.x <= left + 28
+    })
+    if (index >= 0 && cities[index]) cities[index] = false
     return false
   })
   if (tick % 70 === 0) {

@@ -28,6 +28,8 @@ export function freshMaster(rand: () => number): Master {
 
 export function guessMaster(state: Master, pegs: number[]): Master {
   if (state.solved || state.guesses.length >= 8 || pegs.length !== 4) return state
+  const last = state.guesses[state.guesses.length - 1]
+  if (last && last.pegs.every((peg, index) => peg === pegs[index])) return state
   const mark = feedback(state.secret, pegs)
   return { ...state, guesses: state.guesses.concat({ pegs, ...mark }), solved: mark.exact === 4 }
 }

@@ -10,7 +10,7 @@ export default function StackTool() {
 
   useEffect(() => {
     const down = (event: KeyboardEvent) => {
-      if ((event.key !== ' ' && event.key !== 'ArrowDown') || isTypingTarget(event.target)) return
+      if (event.repeat || (event.key !== ' ' && event.key !== 'ArrowDown') || isTypingTarget(event.target)) return
       event.preventDefault()
       tap.tap()
     }
@@ -28,20 +28,20 @@ export default function StackTool() {
     if (!canvas || !ctx) return
     ctx.fillStyle = BG
     ctx.fillRect(0, 0, 320, 360)
+    const shift = Math.max(0, state.blocks.length * 18 - 260)
     state.blocks.forEach((block, index) => {
-      ctx.fillStyle = index === 0 ? '#3d4a28' : LIME
-      const y = 340 - index * 18
-      ctx.fillRect(block.x, y, block.w, 16)
+      ctx.fillStyle = index === 0 ? '#8aa05a' : LIME
+      ctx.fillRect(block.x, 340 - index * 18 + shift, block.w, 16)
     })
     ctx.fillStyle = INK
-    ctx.fillRect(state.x, 340 - state.blocks.length * 18, state.w, 16)
+    ctx.fillRect(state.x, 340 - state.blocks.length * 18 + shift, state.w, 16)
   }, 16)
 
   return (
     <Arcade
       title="Stack"
       lede="Tap when the moving block lines up. Whatever hangs off is cut away."
-      status={state.dead ? 'Missed' : `Height ${state.score}`}
+      status={state.dead ? `Missed · height ${state.score}` : `Height ${state.score}`}
       onRestart={() => setState(freshStack())}
     >
       <canvas ref={canvasRef} className="arcade-canvas" width={320} height={360} onPointerDown={() => tap.tap()} />

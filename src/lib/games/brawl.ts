@@ -30,11 +30,11 @@ function waveOf(wave: number): Thug[] {
     ]
   }
   if (wave === 2) {
-    return [0, 1, 2, 3].map((i) => ({ x: 320 + i * 52, hp: 24, stun: 0, max: 24, boss: false }))
+    return [0, 1, 2, 3].map((i) => ({ x: 520 + i * 48, hp: 24, stun: 0, max: 24, boss: false }))
   }
   return [
-    { x: 300, hp: 22, stun: 0, max: 22, boss: false },
-    { x: 390, hp: 70, stun: 0, max: 70, boss: true },
+    { x: 500, hp: 22, stun: 0, max: 22, boss: false },
+    { x: 580, hp: 70, stun: 0, max: 70, boss: true },
   ]
 }
 

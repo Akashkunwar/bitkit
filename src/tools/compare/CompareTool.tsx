@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { pdfjs } from '../../lib/pdfjsRuntime'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
-import { destroyPdfJs, openPdfJs } from '../../lib/pdfJs'
+import { destroyPdfJs, isPdfPasswordError, openPdfJs } from '../../lib/pdfJs'
+import { PdfPassword } from '../../components/PdfPassword'
 import { renderPageCanvas } from '../../lib/pdfRaster'
 import { diffPixels } from '../../lib/pixels'
 import { useHandoff } from '../../lib/useHandoff'
@@ -35,6 +36,8 @@ export default function CompareTool() {
   const [pages, setPages] = useState<PageDiff[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [password, setPassword] = useState('')
+  const [needsPassword, setNeedsPassword] = useState(false)
 
   const revoke = (rows: PageDiff[]) => {
     const urls = new Set(rows.flatMap((row) => [row.leftUrl, row.rightUrl, row.diffUrl]))
@@ -68,9 +71,11 @@ export default function CompareTool() {
     if (!left || !right) return
     setBusy(true)
     setError(null)
-    const docA = await openPdfJs(pdfjs, left.bytes)
-    const docB = await openPdfJs(pdfjs, right.bytes)
+    let docA: Awaited<ReturnType<typeof openPdfJs>> | null = null
+    let docB: Awaited<ReturnType<typeof openPdfJs>> | null = null
     try {
+      docA = await openPdfJs(pdfjs, left.bytes, password || undefined)
+      docB = await openPdfJs(pdfjs, right.bytes, password || undefined)
       const count = Math.max(docA.numPages, docB.numPages)
       const next: PageDiff[] = []
       for (let page = 1; page <= count; page += 1) {
@@ -122,11 +127,17 @@ export default function CompareTool() {
         revoke(current)
         return next
       })
+      setNeedsPassword(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not compare those PDFs.')
+      if (isPdfPasswordError(err)) {
+        setNeedsPassword(true)
+        setError(err.message)
+      } else {
+        setError(err instanceof Error ? err.message : 'Could not compare those PDFs.')
+      }
     } finally {
-      await destroyPdfJs(docA)
-      await destroyPdfJs(docB)
+      if (docA) await destroyPdfJs(docA)
+      if (docB) await destroyPdfJs(docB)
       setBusy(false)
     }
   }
@@ -157,7 +168,17 @@ export default function CompareTool() {
       >
         {busy ? 'Comparing…' : 'Compare'}
       </button>
-      {error ? <p className="status-bad">{error}</p> : null}
+      {needsPassword ? (
+        <PdfPassword
+          value={password}
+          onChange={setPassword}
+          busy={busy}
+          error={error}
+          onUnlock={() => void compare()}
+        />
+      ) : error ? (
+        <p className="status-bad">{error}</p>
+      ) : null}
       {pages.length ? (
         <>
           <p className="status-ok">

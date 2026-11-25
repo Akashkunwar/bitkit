@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useQueryMode } from '../../lib/useQueryMode'
 import { Segmented } from '../../components/Segmented'
 import { ToolLayout } from '../../components/ToolLayout'
 import { BirthChart } from './BirthChart'
@@ -84,7 +84,10 @@ function SimBody({ mode }: { mode: SimMode }) {
 }
 
 export default function SimsTool() {
-  const [mode, setMode] = useState<SimMode>('life')
+  const [mode, setMode] = useQueryMode(
+    SIM_MODES.map((item) => item.value),
+    'life',
+  )
   const options: { value: SimMode; label: string }[] = SIM_MODES.map((item) => ({
     value: item.value,
     label: item.label,

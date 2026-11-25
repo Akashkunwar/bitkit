@@ -16,23 +16,37 @@ import { useArrows } from './keys'
 
 const COLORS = ['#67e8f9', '#fde047', '#c084fc', '#4ade80', '#f87171', '#60a5fa', '#fb923c']
 
-type Run = { board: Grid; piece: Piece; nextId: number; score: number; dead: boolean; bag: number }
+type Run = { board: Grid; piece: Piece; nextId: number; score: number; dead: boolean; bag: number; seed: number }
 
-function fresh(nextId: number): Run {
-  return { board: emptyBoard(), piece: spawn(0), nextId, score: 0, dead: false, bag: 1 }
+function pieceId(seed: number, index: number) {
+  const rand = mulberry32(seed)
+  let id = 0
+  for (let n = 0; n <= index; n += 1) id = Math.floor(rand() * 7)
+  return id
+}
+
+function fresh(seed: number): Run {
+  return {
+    board: emptyBoard(),
+    piece: spawn(pieceId(seed, 0)),
+    nextId: pieceId(seed, 1),
+    score: 0,
+    dead: false,
+    bag: 1,
+    seed,
+  }
 }
 
 export default function BlocksTool() {
-  const rand = useRef(mulberry32(7))
-  const drawId = () => Math.floor(rand.current() * 7)
-  const [run, setRun] = useState<Run>(() => fresh(drawId()))
+  const [run, setRun] = useState<Run>(() => fresh(7))
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const nextRef = useRef<HTMLCanvasElement>(null)
 
   const repeat = useRef(0)
   useEffect(() => () => window.clearInterval(repeat.current), [])
 
-  const play = useCallback((key: string) => {
+  const play = useCallback((key: string, repeated = false) => {
+    if (repeated && (key === ' ' || key === 'ArrowUp')) return
     setRun((current) => {
       if (current.dead) return current
       if (key === 'ArrowLeft') {
@@ -64,10 +78,11 @@ export default function BlocksTool() {
         return {
           board: landed.board,
           piece: landed.piece,
-          nextId: landed.spawned ? drawId() : current.nextId,
+          nextId: landed.spawned ? pieceId(current.seed, current.bag + 1) : current.nextId,
           score: score + landed.cleared * landed.cleared * 100,
           dead: landed.dead,
-          bag: current.bag + 1,
+          bag: current.bag + (landed.spawned ? 1 : 0),
+          seed: current.seed,
         }
       }
       return current
@@ -83,10 +98,11 @@ export default function BlocksTool() {
         return {
           board: landed.board,
           piece: landed.piece,
-          nextId: landed.spawned ? drawId() : current.nextId,
+          nextId: landed.spawned ? pieceId(current.seed, current.bag + 1) : current.nextId,
           score: current.score + landed.cleared * landed.cleared * 100,
           dead: landed.dead,
-          bag: current.bag + (landed.cleared ? 1 : 0),
+          bag: current.bag + (landed.spawned ? 1 : 0),
+          seed: current.seed,
         }
       })
     }, 520)
@@ -145,10 +161,7 @@ export default function BlocksTool() {
           <button
             type="button"
             className="btn"
-            onClick={() => {
-              rand.current = mulberry32(7)
-              setRun(fresh(drawId()))
-            }}
+            onClick={() => setRun(fresh((Date.now() ^ Math.floor(Math.random() * 1_000_000)) >>> 0 || 1))}
           >
             Restart
           </button>
@@ -184,11 +197,12 @@ export default function BlocksTool() {
                 event.currentTarget.setPointerCapture(event.pointerId)
                 window.clearInterval(repeat.current)
                 play(key)
-                if (key === ' ') return
+                if (key === ' ' || key === 'ArrowUp') return
                 repeat.current = window.setInterval(() => play(key), 140)
               }}
               onPointerUp={() => window.clearInterval(repeat.current)}
               onPointerCancel={() => window.clearInterval(repeat.current)}
+              onLostPointerCapture={() => window.clearInterval(repeat.current)}
             >
               {label}
             </button>

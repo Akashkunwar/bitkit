@@ -20,20 +20,25 @@ function wrap(n: number, max: number) {
   return ((n % max) + max) % max
 }
 
-function waveRocks(wave: number, rand: () => number): Rock[] {
-  return Array.from({ length: 3 + wave }, () => ({
-    x: rand() * AST_W,
-    y: rand() < 0.5 ? 24 : AST_H - 24,
-    vx: (rand() - 0.5) * 1.6,
-    vy: (rand() - 0.5) * 1.6,
-    r: 34,
-  }))
+function waveRocks(wave: number, rand: () => number, ship: { x: number; y: number }): Rock[] {
+  return Array.from({ length: 3 + wave }, () => {
+    let x = rand() * AST_W
+    const y = rand() < 0.5 ? 24 : AST_H - 24
+    if (Math.hypot(x - ship.x, y - ship.y) < 90) x = (x + AST_W / 2) % AST_W
+    return {
+      x,
+      y,
+      vx: (rand() - 0.5) * 1.6,
+      vy: (rand() - 0.5) * 1.6,
+      r: 34,
+    }
+  })
 }
 
 export function freshAsteroids(rand: () => number): Asteroids {
   return {
     ship: { x: AST_W / 2, y: AST_H / 2, a: -Math.PI / 2, vx: 0, vy: 0, inv: 80 },
-    rocks: waveRocks(0, rand),
+    rocks: waveRocks(0, rand, { x: AST_W / 2, y: AST_H / 2 }),
     bolts: [],
     score: 0,
     lives: 3,
@@ -129,7 +134,8 @@ export function stepAsteroids(state: Asteroids, input: AstInput, rand: () => num
   let wave = state.wave
   if (!dead && rocks.length === 0) {
     wave += 1
-    rocks = waveRocks(wave, rand)
+    rocks = waveRocks(wave, rand, ship)
+    ship.inv = Math.max(ship.inv, 50)
   }
   return { ship, rocks, bolts, score, lives, dead, cool, wave }
 }

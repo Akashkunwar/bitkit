@@ -10,7 +10,7 @@ export default function FlapTool() {
 
   useEffect(() => {
     const down = (event: KeyboardEvent) => {
-      if ((event.key !== ' ' && event.key !== 'ArrowUp') || isTypingTarget(event.target)) return
+      if (event.repeat || (event.key !== ' ' && event.key !== 'ArrowUp') || isTypingTarget(event.target)) return
       event.preventDefault()
       tap.tap()
     }

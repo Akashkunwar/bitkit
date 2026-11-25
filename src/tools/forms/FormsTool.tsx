@@ -26,10 +26,18 @@ export default function FormsTool() {
     try {
       const raw = new Uint8Array(await next.arrayBuffer())
       const { encrypted: locked } = await loadPdf(raw)
-      const listed = await listFormFields(raw)
       setFile(next)
       setBytes(raw)
       setEncrypted(locked)
+      if (locked) {
+        setFields([])
+        setValues({})
+        setError(
+          'This PDF is encrypted. BitKit cannot decrypt it, so the form was not opened. Unlock it in a reader first.',
+        )
+        return
+      }
+      const listed = await listFormFields(raw)
       setFields(listed)
       setValues(Object.fromEntries(listed.map((f) => [f.name, f.value])))
       if (!listed.length) setError('No AcroForm fields found. Scanned PDFs and flattened forms cannot be filled here.')
@@ -46,7 +54,7 @@ export default function FormsTool() {
   })
 
   const save = async () => {
-    if (!bytes) return
+    if (!bytes || encrypted) return
     setBusy(true)
     setError(null)
     try {

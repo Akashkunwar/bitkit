@@ -38,12 +38,16 @@ export default function BreakoutTool() {
     ctx.fill()
   }, [state])
 
-  const status = state.lost ? `Score ${state.score}. The ball got past the paddle.` : `Score ${state.score}`
+  const status = state.won
+    ? `Clear · ${state.score}`
+    : state.lost
+      ? `Score ${state.score}. The ball got past the paddle.`
+      : `Score ${state.score}`
   return (
     <Arcade
       title="Breakout"
       lede="Left and right arrows move the paddle. Clear the bricks."
-      status={String(state.score)}
+      status={status}
       onRestart={() => setState(freshBreakout())}
     >
       <canvas ref={canvasRef} className="arcade-canvas" role="img" aria-label={status} />
@@ -54,7 +58,13 @@ export default function BreakoutTool() {
           ['ArrowRight', 'Right'],
         ]}
       />
-      <p className="hint">{state.lost ? 'The ball got past the paddle.' : 'Each brick is ten points.'}</p>
+      <p className="hint">
+        {state.won
+          ? 'The bricks are gone.'
+          : state.lost
+            ? 'The ball got past the paddle.'
+            : 'Each brick is ten points.'}
+      </p>
     </Arcade>
   )
 }

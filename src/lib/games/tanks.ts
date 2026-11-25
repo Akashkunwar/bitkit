@@ -20,6 +20,7 @@ export type Tanks = {
   hurt: number
   dead: boolean
   won: boolean
+  lost: '' | 'base' | 'tank'
   tick: number
 }
 
@@ -112,6 +113,7 @@ function load(stage: number, score: number, lives: number): Tanks {
     hurt: 40,
     dead: false,
     won: false,
+    lost: '',
     tick: 0,
   }
 }
@@ -227,7 +229,7 @@ export function stepTanks(state: Tanks, input: TankInput): Tanks {
     const ch = tile(rows, c, r)
     const rim = c <= 0 || r <= 0 || c >= TANK_N - 1 || r >= TANK_N - 1
     if (ch === 'B') {
-      lives = 0
+      if (shell.foe) lives = 0
       return
     }
     if (ch === '#' && !rim) {
@@ -239,7 +241,7 @@ export function stepTanks(state: Tanks, input: TankInput): Tanks {
     keep.add(index)
   })
   if (lives <= 0) {
-    return { ...state, rows, tanks, shells: [], score, lives: 0, seed, dead: true, tick: state.tick + 1 }
+    return { ...state, rows, tanks, shells: [], score, lives: 0, seed, dead: true, lost: 'base', tick: state.tick + 1 }
   }
   shells = shells.filter((_, index) => keep.has(index))
 
@@ -247,6 +249,7 @@ export function stepTanks(state: Tanks, input: TankInput): Tanks {
     if (!tank.alive) return
     shells.forEach((shell) => {
       if (shell.foe === tank.foe) return
+      if (!tank.foe && hurt > 0) return
       if (Math.abs(shell.x - (tank.x + 9)) < 12 && Math.abs(shell.y - (tank.y + 9)) < 12) {
         tank.alive = false
         shell.x = -999
@@ -261,7 +264,8 @@ export function stepTanks(state: Tanks, input: TankInput): Tanks {
   const hero = tanks.find((tank) => !tank.foe)
   if (hero && !hero.alive) {
     lives -= 1
-    if (lives <= 0) return { ...state, rows, tanks, shells, score, lives: 0, seed, dead: true, tick: state.tick + 1 }
+    if (lives <= 0)
+      return { ...state, rows, tanks, shells, score, lives: 0, seed, dead: true, lost: 'tank', tick: state.tick + 1 }
     const respawn = load(state.stage, score, lives)
     const kept = respawn.tanks.map((tank) => {
       if (!tank.foe) return { ...tank, cool: 0 }

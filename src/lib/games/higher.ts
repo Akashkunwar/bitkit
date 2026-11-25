@@ -1,6 +1,6 @@
 import { mulberry32 } from './random'
 
-export type Higher = { deck: number[]; current: number; streak: number; over: boolean }
+export type Higher = { deck: number[]; current: number; previous: number | null; streak: number; over: boolean }
 
 function rank(card: number) {
   const face = (card % 13) + 1
@@ -14,7 +14,7 @@ export function freshHigher(seed = 1): Higher {
     const j = Math.floor(rand() * (i + 1))
     ;[deck[i], deck[j]] = [deck[j], deck[i]]
   }
-  return { deck: deck.slice(1), current: deck[0], streak: 0, over: false }
+  return { deck: deck.slice(1), current: deck[0], previous: null, streak: 0, over: false }
 }
 
 export function callHigher(state: Higher, higher: boolean): Higher {
@@ -23,8 +23,14 @@ export function callHigher(state: Higher, higher: boolean): Higher {
   const deck = state.deck.slice(1)
   const up = rank(next) > rank(state.current)
   const same = rank(next) === rank(state.current)
-  if (!same && up !== higher) return { deck, current: next, streak: state.streak, over: true }
-  return { deck, current: next, streak: state.streak + (same ? 0 : 1), over: deck.length === 0 }
+  if (!same && up !== higher) return { deck, current: next, previous: state.current, streak: state.streak, over: true }
+  return {
+    deck,
+    current: next,
+    previous: state.current,
+    streak: state.streak + (same ? 0 : 1),
+    over: deck.length === 0,
+  }
 }
 
 export function cardLabel(card: number) {

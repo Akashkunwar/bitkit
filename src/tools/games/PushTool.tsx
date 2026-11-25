@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { freshPush, nextPush, stepPush, type Push } from '../../lib/games/push'
+import { freshPush, LEVELS, nextPush, stepPush, type Push } from '../../lib/games/push'
 import { Arcade } from './kit'
 import { isTypingTarget } from './loop'
 
@@ -26,7 +26,13 @@ export default function PushTool() {
     <Arcade
       title="Push"
       lede="Arrow keys push the boxes onto the dots. Walls stop you."
-      status={state.won ? 'Level clear' : `Level ${state.level + 1}`}
+      status={
+        state.won && state.level >= LEVELS.length - 1
+          ? 'Pack finished'
+          : state.won
+            ? 'Level clear'
+            : `Level ${state.level + 1}`
+      }
       onRestart={() => setState(freshPush(0))}
     >
       <pre className="arcade-word">{state.rows.join('\n')}</pre>
@@ -43,7 +49,7 @@ export default function PushTool() {
         <button type="button" className="btn" onClick={() => setState((current) => stepPush(current, 1, 0))}>
           Down
         </button>
-        {state.won && (
+        {state.won && state.level < LEVELS.length - 1 && (
           <button type="button" className="btn" onClick={() => setState((current) => nextPush(current))}>
             Next
           </button>

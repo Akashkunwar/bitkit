@@ -12,26 +12,24 @@ export default function ClockTool() {
   const [minutes, setMinutes] = useState(5)
   const [left, setLeft] = useState<[number, number]>([5 * 60_000, 5 * 60_000])
   const [active, setActive] = useState<0 | 1 | null>(null)
-  const tick = useRef(0)
-
-  useEffect(() => () => window.clearInterval(tick.current), [])
+  const leftRef = useRef(left)
+  leftRef.current = left
+  const deadline = useRef(0)
 
   useEffect(() => {
-    window.clearInterval(tick.current)
     if (active == null) return
-    tick.current = window.setInterval(() => {
+    deadline.current = Date.now() + leftRef.current[active]
+    const id = window.setInterval(() => {
+      const remain = Math.max(0, deadline.current - Date.now())
       setLeft((current) => {
         const next: [number, number] = [...current]
-        next[active] = Math.max(0, next[active] - 100)
+        next[active] = remain
         return next
       })
-    }, 100)
-    return () => window.clearInterval(tick.current)
+      if (remain === 0) setActive(null)
+    }, 200)
+    return () => window.clearInterval(id)
   }, [active])
-
-  useEffect(() => {
-    if (active != null && left[active] === 0) setActive(null)
-  }, [active, left])
 
   const apply = (value: number) => {
     const ms = Math.max(1, value) * 60_000
@@ -43,7 +41,7 @@ export default function ClockTool() {
   return (
     <ToolLayout
       title="Chess clock"
-      lede="Two clocks. Tap a side to stop it and start the other. The time stays in this tab."
+      lede="Two clocks. Tap a stopped side to start it. Tap the running side to pass the turn. Pause keeps the time that is left."
     >
       <label className="field">
         <span>Minutes each · {minutes}</span>
@@ -59,9 +57,13 @@ export default function ClockTool() {
             data-running={active === side ? 'true' : 'false'}
             data-flag={left[side] === 0 ? 'true' : 'false'}
             onClick={() => {
-              const next = side === 0 ? 1 : 0
-              if (left[next] === 0) return
-              setActive(next)
+              if (left[side] === 0) return
+              if (active === side) {
+                const next = side === 0 ? 1 : 0
+                setActive(left[next] === 0 ? null : next)
+                return
+              }
+              setActive(side)
             }}
           >
             <small>{side === 0 ? 'White' : 'Black'}</small>
@@ -69,9 +71,14 @@ export default function ClockTool() {
           </button>
         ))}
       </div>
-      <button type="button" className="btn" onClick={() => apply(minutes)}>
-        Reset
-      </button>
+      <div className="row">
+        <button type="button" className="btn" disabled={active == null} onClick={() => setActive(null)}>
+          Pause
+        </button>
+        <button type="button" className="btn" onClick={() => apply(minutes)}>
+          Reset
+        </button>
+      </div>
     </ToolLayout>
   )
 }

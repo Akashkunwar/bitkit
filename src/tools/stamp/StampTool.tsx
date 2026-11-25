@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { pdfjs } from '../../lib/pdfjsRuntime'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
@@ -6,6 +7,8 @@ import { downloadNamed, triggerDownload } from '../../lib/download'
 import { zipStore } from '../../lib/zip'
 import { useHandoff } from '../../lib/useHandoff'
 import { inspectPdf } from '../../lib/pdfPages'
+import { destroyPdfJs, openPdfJs } from '../../lib/pdfJs'
+import { renderPageCanvas } from '../../lib/pdfRaster'
 import { encryptionWarning } from '../../lib/pdfLoad'
 import {
   DEFAULT_NUMBERS,
@@ -36,11 +39,29 @@ export default function StampTool() {
   const [error, setError] = useState<string | null>(null)
   const [outFile, setOutFile] = useState<File | null>(null)
   const [queue, setQueue] = useState<File[]>([])
+  const [preview, setPreview] = useState<string | null>(null)
+
+  const showPreview = async (bytes: Uint8Array) => {
+    const doc = await openPdfJs(pdfjs, bytes)
+    try {
+      const { canvas } = await renderPageCanvas(doc, 1, 72)
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.8))
+      if (!blob) return
+      const url = URL.createObjectURL(blob)
+      setPreview((current) => {
+        if (current) URL.revokeObjectURL(current)
+        return url
+      })
+    } finally {
+      await destroyPdfJs(doc)
+    }
+  }
 
   const take = async (files: File[]) => {
     const pdfs = files.filter((f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))
     if (pdfs.length > 1) {
       setQueue(pdfs)
+      setSource(null)
       setError(null)
       setOutFile(null)
       return
@@ -65,12 +86,21 @@ export default function StampTool() {
   const emit = async (bytes: Uint8Array, suffix: string) => {
     const stem = source ? source.file.name.replace(/\.pdf$/i, '') : 'document'
     const blob = new Blob([bytes.slice().buffer as ArrayBuffer], { type: 'application/pdf' })
+    try {
+      await showPreview(bytes)
+    } catch {
+      setPreview(null)
+    }
     const name = await downloadNamed(blob, `${stem}-${suffix}.pdf`)
     if (name) setOutFile(new File([blob], name, { type: 'application/pdf' }))
   }
 
   const apply = async () => {
     if (!source) return
+    if (source.encrypted) {
+      setError('This PDF is encrypted. BitKit cannot decrypt it. Unlock it in a PDF reader first.')
+      return
+    }
     setBusy(true)
     setError(null)
     try {
@@ -99,6 +129,10 @@ export default function StampTool() {
       const entries: { name: string; data: Uint8Array }[] = []
       for (const file of queue) {
         const bytes = new Uint8Array(await file.arrayBuffer())
+        const inspected = await inspectPdf(bytes)
+        if (inspected.encrypted) {
+          throw new Error(`${file.name} is encrypted. BitKit cannot decrypt it. Unlock it in a PDF reader first.`)
+        }
         const stamped = await stampPdf(bytes, {
           watermark: useWatermark ? watermark : null,
           numbers: useNumbers ? numbers : null,
@@ -121,6 +155,10 @@ export default function StampTool() {
 
   const rotate = async (turns: number) => {
     if (!source) return
+    if (source.encrypted) {
+      setError('This PDF is encrypted. BitKit cannot decrypt it. Unlock it in a PDF reader first.')
+      return
+    }
     setBusy(true)
     setError(null)
     try {
@@ -134,6 +172,10 @@ export default function StampTool() {
 
   const remove = async () => {
     if (!source || !deleteRange.trim()) return
+    if (source.encrypted) {
+      setError('This PDF is encrypted. BitKit cannot decrypt it. Unlock it in a PDF reader first.')
+      return
+    }
     setBusy(true)
     setError(null)
     try {
@@ -167,6 +209,7 @@ export default function StampTool() {
           <code>{source.file.name}</code> · {source.pages} page{source.pages === 1 ? '' : 's'}
         </p>
       ) : null}
+      {preview ? <img src={preview} alt="First page after the marks are applied" style={{ maxWidth: 360 }} /> : null}
 
       <div className="split">
         <section className="panel">

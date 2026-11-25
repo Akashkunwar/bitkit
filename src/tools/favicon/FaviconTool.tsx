@@ -17,12 +17,17 @@ export default function FaviconTool() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [outputs, setOutputs] = useState<File[]>([])
+  const [icons, setIcons] = useState<{ name: string; url: string }[]>([])
 
   const load = (next: File) => {
     if (url) URL.revokeObjectURL(url)
     setFile(next)
     setUrl(URL.createObjectURL(next))
     setOutputs([])
+    setIcons((current) => {
+      for (const icon of current) URL.revokeObjectURL(icon.url)
+      return []
+    })
     setError(null)
   }
 
@@ -57,6 +62,12 @@ export default function FaviconTool() {
         })),
       )
       setOutputs(files)
+      setIcons((current) => {
+        for (const icon of current) URL.revokeObjectURL(icon.url)
+        return files
+          .filter((item) => item.type === 'image/png')
+          .map((item) => ({ name: item.name, url: URL.createObjectURL(item) }))
+      })
       const zip = zipStore(set.map((item) => ({ name: item.name, data: item.bytes })))
       triggerDownload(new Blob([zip.slice().buffer as ArrayBuffer], { type: 'application/zip' }), 'favicon-set.zip')
     } catch (err) {
@@ -92,6 +103,16 @@ export default function FaviconTool() {
           <button type="button" className="btn btn-primary" disabled={!file || busy} onClick={() => void run()}>
             {busy ? 'Building…' : 'Download ZIP'}
           </button>
+          {icons.length ? (
+            <div className="row" style={{ alignItems: 'end', marginTop: '0.75rem' }}>
+              {icons.map((icon) => (
+                <figure key={icon.name}>
+                  <img src={icon.url} alt={icon.name} style={{ width: 48, height: 48, objectFit: 'contain' }} />
+                  <figcaption className="hint">{icon.name}</figcaption>
+                </figure>
+              ))}
+            </div>
+          ) : null}
           {outputs.map((out) => (
             <p key={out.name} className="hint">
               {out.name} · {out.size} bytes

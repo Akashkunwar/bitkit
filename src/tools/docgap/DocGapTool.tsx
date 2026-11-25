@@ -15,8 +15,6 @@ import {
   nextPage,
   parseGlyphLines,
   parseMhtml,
-  pdfEncryptSupported,
-  pdfUnlockSupported,
   prevPage,
   readPdfMeta,
   readZipImages,
@@ -35,8 +33,6 @@ const MODES = [
   { value: 'cbz', label: 'CBZ to PDF' },
   { value: 'mhtml', label: 'MHTML to PDF' },
   { value: 'meta', label: 'PDF metadata' },
-  { value: 'lock', label: 'Password-protect a PDF' },
-  { value: 'unlock', label: 'Unlock a PDF' },
   { value: 'hand', label: 'Handwriting to font' },
 ] as const
 
@@ -148,7 +144,6 @@ export default function DocGapTool() {
   const [author, setAuthor] = useState('')
   const [pdfName, setPdfName] = useState('document')
   const [glyphText, setGlyphText] = useState(SAMPLE_GLYPHS)
-  const [lockNote, setLockNote] = useState<string | null>(null)
   const traceRef = useRef<HTMLCanvasElement>(null)
   const previewRef = useRef<HTMLCanvasElement>(null)
   const sourceRef = useRef<ImageData | null>(null)
@@ -268,23 +263,6 @@ export default function DocGapTool() {
         setNote(formatMeta(meta))
         return
       }
-      const meta = await readPdfMeta(bytes)
-      if (!isCurrent()) return
-      if (mode === 'lock') {
-        setLockNote(
-          pdfEncryptSupported()
-            ? 'Encryption is available in this build.'
-            : `${file.name} was not password-protected. pdf-lib 1.17 has no encrypt method and no userPassword save option, so BitKit did not pretend to lock it.`,
-        )
-        return
-      }
-      setLockNote(
-        pdfUnlockSupported()
-          ? 'Password opening is available in this build.'
-          : meta.encrypted
-            ? `${file.name} is encrypted. pdf-lib 1.17 cannot open it with a password, and BitKit will not try passwords.`
-            : `${file.name} is not encrypted. There is nothing to unlock. pdf-lib still cannot open a password-protected PDF.`,
-      )
     })
   }
 
@@ -397,7 +375,6 @@ export default function DocGapTool() {
           }
           setError(null)
           setNote(null)
-          setLockNote(null)
         }}
       />
 
@@ -487,7 +464,7 @@ export default function DocGapTool() {
         </div>
       ) : null}
 
-      {mode === 'booklet' || mode === 'meta' || mode === 'lock' || mode === 'unlock' ? (
+      {mode === 'booklet' || mode === 'meta' ? (
         <div className="split">
           <section className="panel">
             <DropZone
@@ -495,13 +472,9 @@ export default function DocGapTool() {
               label={
                 mode === 'booklet'
                   ? 'Drop a PDF to reorder as a saddle booklet.'
-                  : mode === 'meta'
-                    ? 'Drop a PDF to read its title and author.'
-                    : mode === 'lock'
-                      ? 'Drop a PDF. It will not be password-protected.'
-                      : 'Drop a PDF to see whether it is encrypted.'
+                  : 'Drop a PDF to read its title and author.'
               }
-              hint="The file is not uploaded."
+              hint="The file is not uploaded. Password-protected PDFs cannot be opened here."
               onFiles={takePdf}
             />
             {mode === 'meta' ? (
@@ -516,36 +489,13 @@ export default function DocGapTool() {
                 </label>
               </>
             ) : null}
-            {lockNote ? <p className="hint">{lockNote}</p> : null}
           </section>
           <aside className="panel">
-            <p className="lede">
-              {mode === 'booklet'
-                ? 'PDF booklet'
-                : mode === 'meta'
-                  ? 'PDF metadata'
-                  : mode === 'lock'
-                    ? 'Password-protect a PDF'
-                    : 'Unlock a PDF'}
-            </p>
+            <p className="lede">{mode === 'booklet' ? 'PDF booklet' : 'PDF metadata'}</p>
             {mode === 'booklet' ? (
               <p className="hint">
                 Pages are reordered for a folded saddle booklet (8, 1, 2, 7… for an 8-page file). Blank pages pad the
                 count to a multiple of 4. The PDF is not scaled onto spreads.
-              </p>
-            ) : null}
-            {mode === 'lock' ? (
-              <p className="status-bad">
-                {pdfEncryptSupported()
-                  ? 'Encryption is reported as available.'
-                  : 'pdf-lib 1.17 cannot encrypt a PDF. Nothing downloaded from this mode is password-protected.'}
-              </p>
-            ) : null}
-            {mode === 'unlock' ? (
-              <p className="status-bad">
-                {pdfUnlockSupported()
-                  ? 'Password opening is reported as available.'
-                  : 'pdf-lib 1.17 cannot open a PDF with a password. BitKit will not guess one.'}
               </p>
             ) : null}
             {mode === 'meta' ? (

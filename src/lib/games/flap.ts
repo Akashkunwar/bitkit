@@ -10,8 +10,8 @@ export function freshFlap(): Flap {
 
 export function stepFlap(state: Flap, flap: boolean): Flap {
   if (state.dead) return state
-  const y = state.y + state.vy
   const vy = (flap ? -6.4 : state.vy) + 0.38
+  const y = state.y + vy
   let pipes = state.pipes.map((pipe) => ({ ...pipe, x: pipe.x - 2.6 }))
   let score = state.score
   let passed = state.passed
@@ -26,7 +26,7 @@ export function stepFlap(state: Flap, flap: boolean): Flap {
   pipes = pipes.filter((pipe) => pipe.x > -60)
   let dead = y < 8 || y > FLAP_H - 8
   pipes.forEach((pipe) => {
-    const hitX = pipe.x < 100 && pipe.x + 46 > 72
+    const hitX = pipe.x < 94 && pipe.x + 46 > 78
     if (hitX && (y < pipe.gap || y > pipe.gap + 108)) dead = true
   })
   return { y, vy, pipes, score, dead, passed }

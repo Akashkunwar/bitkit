@@ -25,7 +25,7 @@ function rotate(grid: number[][]): number[][] {
 
 /** Slide every row toward `dir`. Equal tiles that meet merge once. */
 export function moveGrid(grid: number[][], dir: Dir): { grid: number[][]; score: number; moved: boolean } {
-  const turns = { left: 0, up: 1, right: 2, down: 3 }[dir]
+  const turns = { left: 0, down: 1, right: 2, up: 3 }[dir]
   let turned = grid.map((row) => row.slice())
   for (let i = 0; i < turns; i += 1) turned = rotate(turned)
   let score = 0
@@ -42,6 +42,23 @@ export function moveGrid(grid: number[][], dir: Dir): { grid: number[][]; score:
 
 export function emptySlide(): number[][] {
   return Array.from({ length: 4 }, () => Array(4).fill(0))
+}
+
+export function movesLeft(grid: number[][]): boolean {
+  return (['left', 'right', 'up', 'down'] as const).some((dir) => moveGrid(grid, dir).moved)
+}
+
+export function reached2048(grid: number[][]): boolean {
+  return grid.some((row) => row.some((value) => value >= 2048))
+}
+
+export function spawnRandom(grid: number[][], rand: () => number): number[][] {
+  const open: { x: number; y: number }[] = []
+  grid.forEach((row, y) => row.forEach((cell, x) => cell === 0 && open.push({ x, y })))
+  if (!open.length) return grid
+  const spot = open[Math.floor(rand() * open.length)]
+  const value = rand() < 0.9 ? 2 : 4
+  return grid.map((row, y) => row.map((cell, x) => (x === spot.x && y === spot.y ? value : cell)))
 }
 
 export function spawnTile(grid: number[][], value: number, index: number): number[][] {

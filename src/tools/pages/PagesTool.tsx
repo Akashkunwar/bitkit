@@ -1,10 +1,13 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { pdfjs } from '../../lib/pdfjsRuntime'
 import { ToolLayout } from '../../components/ToolLayout'
 import { DropZone } from '../../components/DropZone'
 import { SendTo } from '../../components/SendTo'
 import { downloadNamed } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { cropPdf, extractPages, inspectPdf, mergePdfs, parsePageRange, splitPdf } from '../../lib/pdfPages'
+import { destroyPdfJs, openPdfJs } from '../../lib/pdfJs'
+import { renderPageCanvas } from '../../lib/pdfRaster'
 import { encryptionWarning } from '../../lib/pdfLoad'
 import { zipStore } from '../../lib/zip'
 
@@ -20,20 +23,57 @@ export default function PagesTool() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [merged, setMerged] = useState<File | null>(null)
+  const [thumb, setThumb] = useState<string | null>(null)
   const runId = useRef(0)
+  const first = items[0]
+
+  useEffect(() => {
+    if (!first || first.encrypted) {
+      setThumb(null)
+      return
+    }
+    let cancelled = false
+    let doc: Awaited<ReturnType<typeof openPdfJs>> | null = null
+    void (async () => {
+      try {
+        doc = await openPdfJs(pdfjs, first.bytes)
+        const { canvas } = await renderPageCanvas(doc, 1, 64)
+        const url = canvas.toDataURL('image/jpeg', 0.7)
+        if (!cancelled) setThumb(url)
+      } catch {
+        if (!cancelled) setThumb(null)
+      } finally {
+        if (doc) await destroyPdfJs(doc)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [first])
 
   const addFiles = async (files: File[]) => {
     const token = ++runId.current
     setBusy(false)
+    setError(null)
     const pdfs = files.filter((f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))
-    const next: Item[] = []
-    for (const file of pdfs) {
-      const bytes = new Uint8Array(await file.arrayBuffer())
-      const { pages, encrypted } = await inspectPdf(bytes)
-      next.push({ id: crypto.randomUUID(), file, bytes, pages, encrypted })
+    if (!pdfs.length) {
+      setError('Drop a PDF file.')
+      return
     }
-    setItems((prev) => [...prev, ...next])
-    if (runId.current === token) setMerged(null)
+    try {
+      const next: Item[] = []
+      for (const file of pdfs) {
+        const bytes = new Uint8Array(await file.arrayBuffer())
+        const { pages, encrypted } = await inspectPdf(bytes)
+        next.push({ id: crypto.randomUUID(), file, bytes, pages, encrypted })
+      }
+      if (runId.current !== token) return
+      setItems((prev) => [...prev, ...next])
+      setMerged(null)
+    } catch (err) {
+      if (runId.current !== token) return
+      setError(err instanceof Error ? err.message : 'Could not read that PDF.')
+    }
   }
 
   useHandoff((payload) => {
@@ -50,6 +90,13 @@ export default function PagesTool() {
     setBusy(true)
     setError(null)
     try {
+      const locked =
+        kind === 'merge' ? items.filter((item) => item.encrypted) : items.slice(0, 1).filter((item) => item.encrypted)
+      if (locked.length) {
+        throw new Error(
+          `${locked[0].file.name} is encrypted. BitKit cannot decrypt it, so this was not changed. Unlock it in a PDF reader first.`,
+        )
+      }
       if (kind === 'merge') {
         const bytes = await mergePdfs(items.map((item) => item.bytes))
         if (runId.current !== token) return
@@ -103,7 +150,7 @@ export default function PagesTool() {
         accept="application/pdf,.pdf"
         multiple
         label="Drop one or more PDFs."
-        hint="Merge uses every file in order. Extract and split use the first file."
+        hint="Merge uses every file, in the order shown. Extract, split, and crop use the first file — remove the others first."
         onFiles={(files) => void addFiles(files)}
       />
       <div className="split">
@@ -130,8 +177,10 @@ export default function PagesTool() {
           {items.length ? (
             <p className="hint">
               {items.length} file{items.length === 1 ? '' : 's'} · {totalPages} pages
+              {items.length > 1 ? ' Extract, split, and crop stay off until only the first file remains.' : ''}
             </p>
           ) : null}
+          {thumb ? <img src={thumb} alt="First page of the first PDF" style={{ maxWidth: 220 }} /> : null}
         </section>
         <aside className="panel">
           <label className="field">

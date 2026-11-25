@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { CATCH_H, CATCH_W, freshCatch, stepCatch, type CatchGame } from '../../lib/games/catch'
 import { Arcade, HoldKeys } from './kit'
-import { BG, INK, LIME, RED, useHeld, useTick } from './loop'
+import { BG, INK, LIME, RED, lastHeld, useHeld, useTick } from './loop'
 
 const KEYS = ['ArrowLeft', 'ArrowRight'] as const
 
@@ -11,7 +11,8 @@ export default function CatchTool() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useTick(() => {
-    const dir = held.current.has('ArrowLeft') ? -1 : held.current.has('ArrowRight') ? 1 : 0
+    const key = lastHeld(held.current, KEYS)
+    const dir = key === 'ArrowLeft' ? -1 : key === 'ArrowRight' ? 1 : 0
     setState((current) => stepCatch(current, dir))
   }, 16)
 
@@ -33,7 +34,7 @@ export default function CatchTool() {
     <Arcade
       title="Catch"
       lede="Slide the tray. Green squares score. Red squares, and missed green ones, cost a life."
-      status={state.dead ? 'Dropped too many' : `Score ${state.score} · misses ${state.misses}`}
+      status={state.dead ? `Too many misses · ${state.score}` : `Score ${state.score} · misses ${state.misses}`}
       onRestart={() => setState(freshCatch())}
     >
       <canvas ref={canvasRef} className="arcade-canvas" width={CATCH_W} height={CATCH_H} />

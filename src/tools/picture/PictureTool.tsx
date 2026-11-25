@@ -37,7 +37,7 @@ async function loadPixels(file: File): Promise<{ data: Uint8ClampedArray; width:
   }
 }
 
-async function downloadPixels(data: Uint8ClampedArray, width: number, height: number, name: string) {
+async function pixelsToBlob(data: Uint8ClampedArray, width: number, height: number): Promise<Blob> {
   const canvas = document.createElement('canvas')
   canvas.width = width
   canvas.height = height
@@ -46,16 +46,16 @@ async function downloadPixels(data: Uint8ClampedArray, width: number, height: nu
   const pixels = new Uint8ClampedArray(data.length)
   pixels.set(data)
   ctx.putImageData(new ImageData(pixels, width, height), 0, 0)
-  const blob = await new Promise<Blob>((resolve, reject) => {
+  return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((out) => (out ? resolve(out) : reject(new Error('Could not encode the PNG.'))), 'image/png')
   })
-  triggerDownload(blob, name)
 }
 
 export default function PictureTool() {
   const [mode, setMode] = useState<Mode>('circle')
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const [result, setResult] = useState<{ url: string; blob: Blob; name: string } | null>(null)
   const urlRef = useRef<string | null>(null)
   urlRef.current = preview
   const [edge, setEdge] = useState(24)
@@ -70,6 +70,7 @@ export default function PictureTool() {
   const take = (next: File) => {
     setFile(next)
     setError(null)
+    setResult(null)
     setPreview((prev) => {
       if (prev) URL.revokeObjectURL(prev)
       return URL.createObjectURL(next)
@@ -87,6 +88,14 @@ export default function PictureTool() {
     const image = payload.files?.find((item) => item.type.startsWith('image/'))
     if (image) take(image)
   })
+
+  const remember = (blob: Blob, name: string) => {
+    const url = URL.createObjectURL(blob)
+    setResult((current) => {
+      if (current) URL.revokeObjectURL(current.url)
+      return { url, blob, name }
+    })
+  }
 
   const run = async () => {
     setBusy(true)
@@ -107,33 +116,27 @@ export default function PictureTool() {
         const blob = await new Promise<Blob>((resolve, reject) => {
           canvas.toBlob((out) => (out ? resolve(out) : reject(new Error('Could not encode the PNG.'))), 'image/png')
         })
-        triggerDownload(blob, 'text.png')
+        remember(blob, 'text.png')
         return
       }
       if (!file) throw new Error('Drop a picture first.')
       const source = await loadPixels(file)
       if (mode === 'circle') {
-        await downloadPixels(
-          circleCrop(source.data, source.width, source.height),
-          source.width,
-          source.height,
+        remember(
+          await pixelsToBlob(circleCrop(source.data, source.width, source.height), source.width, source.height),
           'circle.png',
         )
       } else if (mode === 'border') {
         const framed = withBorder(source.data, source.width, source.height, edge, parseColor(color))
-        await downloadPixels(framed.data, framed.width, framed.height, 'border.png')
+        remember(await pixelsToBlob(framed.data, framed.width, framed.height), 'border.png')
       } else if (mode === 'sharpen') {
-        await downloadPixels(
-          sharpen(source.data, source.width, source.height),
-          source.width,
-          source.height,
+        remember(
+          await pixelsToBlob(sharpen(source.data, source.width, source.height), source.width, source.height),
           'sharp.png',
         )
       } else {
-        await downloadPixels(
-          pixelate(source.data, source.width, source.height, block),
-          source.width,
-          source.height,
+        remember(
+          await pixelsToBlob(pixelate(source.data, source.width, source.height, block), source.width, source.height),
           'pixel.png',
         )
       }
@@ -184,7 +187,7 @@ export default function PictureTool() {
             hint="The edit stays in this tab and downloads as PNG."
             onFiles={(files) => files[0] && take(files[0])}
           />
-          {preview ? <img alt="" src={preview} style={{ maxWidth: 360, maxHeight: 240 }} /> : null}
+          {preview ? <img alt="Original" src={preview} style={{ maxWidth: 360, maxHeight: 240 }} /> : null}
         </>
       )}
       {mode === 'border' ? (
@@ -205,15 +208,26 @@ export default function PictureTool() {
           <input type="range" min={2} max={64} value={block} onChange={(e) => setBlock(Number(e.target.value))} />
         </label>
       ) : null}
+      {result ? <img alt="Edited picture" src={result.url} style={{ maxWidth: 360, maxHeight: 240 }} /> : null}
       {error ? <p className="status-bad">{error}</p> : null}
-      <button
-        type="button"
-        className="btn btn-primary"
-        disabled={busy || (mode !== 'text' && !file)}
-        onClick={() => void run()}
-      >
-        {busy ? 'Working…' : 'Download PNG'}
-      </button>
+      <div className="row">
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={busy || (mode !== 'text' && !file)}
+          onClick={() => void run()}
+        >
+          {busy ? 'Working…' : 'Show result'}
+        </button>
+        <button
+          type="button"
+          className="btn"
+          disabled={!result}
+          onClick={() => result && triggerDownload(result.blob, result.name)}
+        >
+          Download PNG
+        </button>
+      </div>
     </ToolLayout>
   )
 }

@@ -17,6 +17,16 @@ function canJump(cells: string[], from: number, to: number) {
   return cells[mid] === '*'
 }
 
+export function pegsStuck(cells: string[]) {
+  const pegs = cells.filter((cell) => cell === '*').length
+  if (pegs <= 1) return false
+  for (let from = 0; from < cells.length; from += 1) {
+    if (cells[from] !== '*') continue
+    for (let to = 0; to < cells.length; to += 1) if (canJump(cells, from, to)) return false
+  }
+  return true
+}
+
 export function playPeg(state: Pegs, index: number): Pegs {
   if (state.won || state.cells[index] === '.') return state
   if (state.selected < 0) return state.cells[index] === '*' ? { ...state, selected: index } : state

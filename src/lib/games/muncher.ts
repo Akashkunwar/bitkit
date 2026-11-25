@@ -69,7 +69,11 @@ export function stepMuncher(state: Muncher, dir: { x: number; y: number } | null
   }
   const ghost = moveGhost ? chase({ ...state, px, py }) : { x: state.gx, y: state.gy }
   const won = dots.every((dot) => !dot)
-  if (ghost.x === px && ghost.y === py) {
+  const crossed =
+    (px === state.gx && py === state.gy) ||
+    (px === ghost.x && py === ghost.y) ||
+    (px === state.gx && py === state.gy && ghost.x === state.px && ghost.y === state.py)
+  if (crossed) {
     lives -= 1
     if (lives <= 0) return { ...state, dots, px, py, gx: ghost.x, gy: ghost.y, score, lives, dead: true }
     return { ...state, dots, px: 1, py: 1, gx: 13, gy: 9, score, lives }

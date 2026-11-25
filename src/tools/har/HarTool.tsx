@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { ToolLayout } from '../../components/ToolLayout'
+import { DropZone } from '../../components/DropZone'
 import { Segmented } from '../../components/Segmented'
+import { triggerDownload } from '../../lib/download'
 import { useCopied } from '../../lib/useCopied'
 import { parseHar, sanitizeHar } from '../../lib/har'
 
@@ -49,6 +51,16 @@ export default function HarTool() {
         ]}
         onChange={setMode}
       />
+      <DropZone
+        accept=".har,application/json,text/plain"
+        label="Drop a .har file."
+        hint="Or paste the JSON below. The file stays in this tab."
+        onFiles={(files) => {
+          const file = files[0]
+          if (!file) return
+          void file.text().then(setText)
+        }}
+      />
       <div className="split">
         <section className="panel">
           <textarea
@@ -62,13 +74,19 @@ export default function HarTool() {
         </section>
         <aside className="panel">
           {mode === 'view' ? (
-            <ul>
-              {parsed.rows.map((row, index) => (
-                <li key={`${row.url}-${index}`}>
-                  {row.method} {row.status} · {row.timeMs} ms · {row.url}
-                </li>
-              ))}
-            </ul>
+            parsed.rows.length ? (
+              <ul>
+                {parsed.rows.map((row, index) => (
+                  <li key={`${row.url}-${index}`}>
+                    {row.method} {row.status} · {row.timeMs} ms · {row.url}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="muted">
+                {parsed.error ? 'Fix the HAR before the list can be shown.' : 'No requests in this HAR.'}
+              </p>
+            )
           ) : (
             <>
               <textarea className="code-area" rows={14} readOnly value={parsed.clean} />
@@ -79,6 +97,14 @@ export default function HarTool() {
                 onClick={() => void copy(parsed.clean, 'har')}
               >
                 {copied === 'har' ? 'Copied ✓' : 'Copy cleaned HAR'}
+              </button>
+              <button
+                type="button"
+                className="btn"
+                disabled={!parsed.clean}
+                onClick={() => triggerDownload(new Blob([parsed.clean], { type: 'application/json' }), 'cleaned.har')}
+              >
+                Download cleaned HAR
               </button>
             </>
           )}

@@ -177,7 +177,7 @@ export function stepPins(state: Pins, input: PinsInput): Pins {
   kick('right', right, prevRight)
 
   let locked = false
-  if (y > 430 && x > 108 && x < 214) {
+  if (y > 440) {
     balls -= 1
     if (balls <= 0) {
       return {

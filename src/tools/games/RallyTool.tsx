@@ -114,7 +114,7 @@ export default function RallyTool() {
     }
     state.rivals
       .map((rival) => ({ rival, ahead: rival.z - state.z }))
-      .filter((item) => item.ahead > 14 && item.ahead < 460)
+      .filter((item) => item.ahead > -80 && item.ahead < 460)
       .sort((a, b) => b.ahead - a.ahead)
       .forEach(({ rival, ahead }, index) => {
         const at = projectRally(state.z, state.x, ahead, rival.x)

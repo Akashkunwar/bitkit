@@ -60,7 +60,7 @@ export function freshClimb(): Climb {
 function onLadder(x: number, y: number) {
   return (
     CLIMB_LADDERS.find(
-      (ladder) => Math.abs(x + PW / 2 - ladder.x) < 16 && y + PH > ladder.y && y < ladder.y + ladder.h,
+      (ladder) => Math.abs(x + PW / 2 - ladder.x) < 16 && y + PH >= ladder.y - 1 && y < ladder.y + ladder.h,
     ) ?? null
   )
 }

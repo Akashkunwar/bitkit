@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useQueryMode } from '../../lib/useQueryMode'
 import { Segmented } from '../../components/Segmented'
 import { ToolLayout } from '../../components/ToolLayout'
 import { BoardTimer } from './BoardTimer'
@@ -97,7 +98,10 @@ const RACES: { mode: Mode; label: string; noun: string; step: string; initial: s
 ]
 
 export default function PlayroomTool() {
-  const [mode, setMode] = useState<Mode>('screen')
+  const [mode, setMode] = useQueryMode(
+    MODES.map((item) => item.value),
+    'screen',
+  )
   const [roster, setRoster] = useState('Asha\nDev\nMina\nRohit')
   const names = useMemo(() => splitList(roster), [roster])
   const race = RACES.find((item) => item.mode === mode)

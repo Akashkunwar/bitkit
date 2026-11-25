@@ -9,14 +9,23 @@ export default function HigherTool() {
     <Arcade
       title="Higher"
       lede="The next card is either higher or lower. Ace is high. A tie keeps the streak."
-      status={game.over ? `Streak ${game.streak}` : `Streak ${game.streak}`}
+      status={
+        game.over
+          ? game.deck.length
+            ? `Bust · streak ${game.streak}`
+            : `Deck cleared · streak ${game.streak}`
+          : `Streak ${game.streak}`
+      }
       onRestart={() => {
         const next = seed + 1
         setSeed(next)
         setGame(freshHigher(next))
       }}
     >
-      <p className="arcade-word">{cardLabel(game.current)}</p>
+      <p className="arcade-word">
+        {game.previous !== null ? `${cardLabel(game.previous)}  ` : ''}
+        {cardLabel(game.current)}
+      </p>
       <div className="arcade-keys">
         <button
           type="button"

@@ -1,4 +1,5 @@
 import { useCallback, useMemo, type ReactNode } from 'react'
+import { useCopied } from '../../lib/useCopied'
 import { ToolLayout } from '../../components/ToolLayout'
 import { Segmented } from '../../components/Segmented'
 import { NumberSlider } from '../../components/NumberSlider'
@@ -181,6 +182,7 @@ function Layout({ inputs, results }: { inputs: ReactNode; results: ReactNode }) 
 
 export default function FinanceTool() {
   const { language } = useI18n()
+  const { copied, copy } = useCopied()
   const L = (en: string, hi: string) => (language === 'hi' ? hi : en)
   const { settings: s, update } = useToolSettings('finance', DEFAULTS)
   const applyPreset = useCallback(
@@ -209,41 +211,46 @@ export default function FinanceTool() {
     [s.gross, s.salaried, s.age, s.resident, s.basic, s.hra, s.rent, s.metro, s.oldDeductions],
   )
 
-  const loan = useMemo(() => {
+  const loanTry = useMemo(() => {
     try {
-      return emi(s.loan, s.loanRate, s.loanYears * 12)
-    } catch {
-      return null
+      return { value: emi(s.loan, s.loanRate, s.loanYears * 12), error: null as string | null }
+    } catch (err) {
+      return { value: null, error: err instanceof Error ? err.message : 'Could not calculate that.' }
     }
   }, [s.loan, s.loanRate, s.loanYears])
-  const sipResult = useMemo(() => {
+  const loan = loanTry.value
+  const sipTry = useMemo(() => {
     try {
-      return sip(s.sipMonthly, s.sipRate, s.sipYears)
-    } catch {
-      return null
+      return { value: sip(s.sipMonthly, s.sipRate, s.sipYears), error: null as string | null }
+    } catch (err) {
+      return { value: null, error: err instanceof Error ? err.message : 'Could not calculate that.' }
     }
   }, [s.sipMonthly, s.sipRate, s.sipYears])
-  const growth = useMemo(() => {
+  const sipResult = sipTry.value
+  const growthTry = useMemo(() => {
     try {
-      return compound(s.principal, s.rate, s.years, s.frequency)
-    } catch {
-      return null
+      return { value: compound(s.principal, s.rate, s.years, s.frequency), error: null as string | null }
+    } catch (err) {
+      return { value: null, error: err instanceof Error ? err.message : 'Could not calculate that.' }
     }
   }, [s.principal, s.rate, s.years, s.frequency])
-  const growthRate = useMemo(() => {
+  const growth = growthTry.value
+  const growthRateTry = useMemo(() => {
     try {
-      return cagr(s.cagrStart, s.cagrEnd, s.cagrYears)
-    } catch {
-      return null
+      return { value: cagr(s.cagrStart, s.cagrEnd, s.cagrYears), error: null as string | null }
+    } catch (err) {
+      return { value: null, error: err instanceof Error ? err.message : 'Could not calculate that.' }
     }
   }, [s.cagrStart, s.cagrEnd, s.cagrYears])
-  const sale = useMemo(() => {
+  const growthRate = growthRateTry.value
+  const saleTry = useMemo(() => {
     try {
-      return discount(s.price, s.off1, s.off2)
-    } catch {
-      return null
+      return { value: discount(s.price, s.off1, s.off2), error: null as string | null }
+    } catch (err) {
+      return { value: null, error: err instanceof Error ? err.message : 'Could not calculate that.' }
     }
   }, [s.price, s.off1, s.off2])
+  const sale = saleTry.value
 
   return (
     <ToolLayout
@@ -349,9 +356,24 @@ export default function FinanceTool() {
                     </table>
                   </div>
                 </details>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() =>
+                    void copy(
+                      [
+                        'Year\tPrincipal\tInterest\tBalance',
+                        ...loan.schedule.map((row) => `${row.year}\t${row.principal}\t${row.interest}\t${row.balance}`),
+                      ].join('\n'),
+                      'emi',
+                    )
+                  }
+                >
+                  {copied === 'emi' ? 'Copied' : 'Copy schedule'}
+                </button>
               </>
             ) : (
-              <p className="muted">Enter a loan amount and tenure.</p>
+              <p className="status-bad">{loanTry.error ?? 'Enter a loan amount and tenure.'}</p>
             )
           }
         />
@@ -410,7 +432,7 @@ export default function FinanceTool() {
                 <GrowthBars rows={sipResult.yearly} format={(n) => fmt(n)} />
               </>
             ) : (
-              <p className="muted">Enter an amount and period.</p>
+              <p className="status-bad">{sipTry.error ?? 'Enter an amount and period.'}</p>
             )
           }
         />
@@ -476,7 +498,7 @@ export default function FinanceTool() {
                 <GrowthBars rows={growth.yearly} format={(n) => fmt(n)} />
               </>
             ) : (
-              <p className="muted">Enter an amount and period.</p>
+              <p className="status-bad">{growthTry.error ?? 'Enter an amount and period.'}</p>
             )
           }
         />
@@ -526,7 +548,7 @@ export default function FinanceTool() {
                 <Stat label="Multiple" value={`${(s.cagrEnd / s.cagrStart).toFixed(2)}×`} />
               </div>
             ) : (
-              <p className="muted">Values and years must be above zero.</p>
+              <p className="status-bad">{growthRateTry.error ?? 'Values and years must be above zero.'}</p>
             )
           }
         />
@@ -582,7 +604,7 @@ export default function FinanceTool() {
                 ) : null}
               </>
             ) : (
-              <p className="muted">Enter a price.</p>
+              <p className="status-bad">{saleTry.error ?? 'Enter a price.'}</p>
             )
           }
         />

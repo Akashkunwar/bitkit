@@ -8,10 +8,14 @@ export function isTypingTarget(target: EventTarget | null): boolean {
 
 export function useHeld(keys: readonly string[]) {
   const held = useRef(new Set<string>())
+  const allow = keys.join('\n')
   useEffect(() => {
+    const list = allow.split('\n')
     const down = (event: KeyboardEvent) => {
-      if (!keys.includes(event.key) || isTypingTarget(event.target)) return
+      if (!list.includes(event.key) || isTypingTarget(event.target)) return
       event.preventDefault()
+      if (event.repeat && held.current.has(event.key)) return
+      held.current.delete(event.key)
       held.current.add(event.key)
     }
     const up = (event: KeyboardEvent) => {
@@ -26,15 +30,25 @@ export function useHeld(keys: readonly string[]) {
       window.removeEventListener('keyup', up)
       window.removeEventListener('blur', clear)
     }
-  }, [keys])
+  }, [allow])
   return held
+}
+
+/** Last matching key in insertion order. A newer press wins over one still held. */
+export function lastHeld(held: Set<string>, keys: readonly string[]): string | null {
+  let found: string | null = null
+  for (const key of held) if (keys.includes(key)) found = key
+  return found
 }
 
 export function useTick(run: () => void, ms: number) {
   const saved = useRef(run)
   saved.current = run
   useEffect(() => {
-    const id = window.setInterval(() => saved.current(), ms)
+    const id = window.setInterval(() => {
+      if (document.hidden) return
+      saved.current()
+    }, ms)
     return () => window.clearInterval(id)
   }, [ms])
 }

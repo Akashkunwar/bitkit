@@ -74,7 +74,10 @@ function cpuShoot(state: Ships): Ships {
       ([r, c]) => r >= 0 && c >= 0 && r < 8 && c < 8 && state.theirShots[r * 8 + c] === 2 && state.you[r * 8 + c] > 0,
     )
   })
-  const index = (hits[0] ?? open[0]) as number
+  const pool = hits.length ? hits : open
+  if (!pool.length) return { ...state, turn: 'you' }
+  const salt = state.you.reduce((sum, cell, at) => sum + cell * (at + 3), 11)
+  const index = pool[salt % pool.length]
   const theirShots = state.theirShots.slice()
   theirShots[index] = state.you[index] ? 2 : 1
   return { ...state, theirShots, turn: 'you', over: sunk(state.you, theirShots) ? 2 : 0 }

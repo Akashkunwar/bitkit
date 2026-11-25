@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { BLAST_CELL, BLAST_H, BLAST_W, freshBlast, stepBlast, type Blast } from '../../lib/games/blast'
 import { Arcade, HoldKeys } from './kit'
-import { BG, INK, LIME, RED, useHeld, useTick } from './loop'
+import { BG, INK, LIME, RED, lastHeld, useHeld, useTick } from './loop'
 
 const KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '] as const
 const VIEW_W = BLAST_W * BLAST_CELL
@@ -13,8 +13,10 @@ export default function BlastTool() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useTick(() => {
-    const dc = held.current.has('ArrowLeft') ? -1 : held.current.has('ArrowRight') ? 1 : 0
-    const dr = held.current.has('ArrowUp') ? -1 : held.current.has('ArrowDown') ? 1 : 0
+    const horizontal = lastHeld(held.current, ['ArrowLeft', 'ArrowRight'])
+    const vertical = lastHeld(held.current, ['ArrowUp', 'ArrowDown'])
+    const dc = horizontal === 'ArrowLeft' ? -1 : horizontal === 'ArrowRight' ? 1 : 0
+    const dr = vertical === 'ArrowUp' ? -1 : vertical === 'ArrowDown' ? 1 : 0
     setState((current) => stepBlast(current, { dc, dr, bomb: held.current.has(' ') }))
   }, 16)
 

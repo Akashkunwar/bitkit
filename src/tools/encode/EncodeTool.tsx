@@ -6,6 +6,12 @@ import { SendTo } from '../../components/SendTo'
 import { triggerDownload } from '../../lib/download'
 import { useHandoff } from '../../lib/useHandoff'
 import { useCopied } from '../../lib/useCopied'
+import { HASH_MAX_BYTES } from '../../lib/checksum'
+
+function fileTooBig(file: File): string | null {
+  if (file.size <= HASH_MAX_BYTES) return null
+  return `This file is larger than ${Math.round(HASH_MAX_BYTES / 1024 / 1024)} MB. Reading it in one go would likely crash this tab.`
+}
 import {
   base64ToBytes,
   bytesToBase64,
@@ -94,10 +100,15 @@ export default function EncodeTool() {
   }
 
   const hashFile = async (file: File) => {
+    const tooBig = fileTooBig(file)
+    if (tooBig) {
+      setError(tooBig)
+      return
+    }
     setBusy(true)
     setError(null)
     try {
-      setInput(`(file) ${file.name} · ${file.size.toLocaleString()} bytes`)
+      setOutput(`Hashing ${file.name}…`)
       const bytes = new Uint8Array(await file.arrayBuffer())
       if (algo === 'MD5') setOutput(md5Hex(bytes))
       else if (algo === 'SHA-224') setOutput(sha224Hex(bytes))
@@ -165,9 +176,18 @@ export default function EncodeTool() {
               onFiles={async (files) => {
                 const file = files[0]
                 if (!file) return
-                const bytes = new Uint8Array(await file.arrayBuffer())
-                setInput(`(file) ${file.name}`)
-                setOutput(bytesToBase64(bytes))
+                const tooBig = fileTooBig(file)
+                if (tooBig) {
+                  setError(tooBig)
+                  return
+                }
+                try {
+                  const bytes = new Uint8Array(await file.arrayBuffer())
+                  setError(null)
+                  setOutput(bytesToBase64(bytes))
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : 'Could not read that file.')
+                }
               }}
             />
           ) : null}

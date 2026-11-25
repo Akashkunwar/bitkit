@@ -28,9 +28,15 @@ export function itemId(): string {
   return `li${Date.now().toString(36)}${counter}`
 }
 
+function localISODate(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
+}
+
 export function emptyInvoice(): Invoice {
-  const today = new Date().toISOString().slice(0, 10)
-  const due = new Date(Date.now() + 14 * 86_400_000).toISOString().slice(0, 10)
+  const today = localISODate(new Date())
+  const due = localISODate(new Date(Date.now() + 14 * 86_400_000))
   return {
     title: 'Invoice',
     number: `INV-${new Date().getFullYear()}-001`,

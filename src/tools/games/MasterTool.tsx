@@ -19,7 +19,7 @@ export default function MasterTool() {
   return (
     <Arcade
       title="Codebreaker"
-      lede="Four pegs, six colours. A black mark is the right colour in the right place. A white mark is the right colour elsewhere."
+      lede="Four pegs, six colours, and colours may repeat. A black mark is the right colour in the right place. A white mark is the right colour elsewhere. Each peg shows its number."
       status={status}
       onRestart={() => {
         setGame(freshMaster(rand))
@@ -30,7 +30,14 @@ export default function MasterTool() {
         {game.guesses.map((guess, index) => (
           <div key={index} className="arcade-keys">
             {guess.pegs.map((peg, at) => (
-              <span key={at} className="arcade-cell" style={{ background: COLORS[peg], width: 28 }} />
+              <span
+                key={at}
+                className="arcade-cell"
+                style={{ background: COLORS[peg], width: 28, color: '#161613' }}
+                aria-label={`Colour ${peg + 1}`}
+              >
+                {peg + 1}
+              </span>
             ))}
             <span>
               {'●'.repeat(guess.exact)}
@@ -45,9 +52,12 @@ export default function MasterTool() {
                 key={index}
                 type="button"
                 className="arcade-cell"
-                style={{ background: COLORS[peg], width: 36 }}
+                style={{ background: COLORS[peg], width: 36, color: '#161613' }}
+                aria-label={`Peg ${index + 1}, colour ${peg + 1}`}
                 onClick={() => setPeg(index)}
-              />
+              >
+                {peg + 1}
+              </button>
             ))}
             <button type="button" className="btn" onClick={() => setGame((current) => guessMaster(current, draft))}>
               Try

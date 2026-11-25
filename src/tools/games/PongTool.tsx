@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { freshPong, stepPong, type PongState } from '../../lib/games/pong'
 import { Arcade, HoldKeys } from './kit'
-import { useHeld, useTick } from './loop'
+import { LIME, useHeld, useTick } from './loop'
 
 const KEYS = ['ArrowUp', 'ArrowDown'] as const
 
@@ -23,8 +23,9 @@ export default function PongTool() {
     canvas.height = state.height
     ctx.fillStyle = '#14160f'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
-    ctx.fillStyle = '#f4f1e4'
+    ctx.fillStyle = LIME
     ctx.fillRect(16, state.playerY, 8, state.paddle)
+    ctx.fillStyle = '#f4f1e4'
     ctx.fillRect(state.width - 24, state.cpuY, 8, state.paddle)
     ctx.beginPath()
     ctx.arc(state.ball.x, state.ball.y, 6, 0, Math.PI * 2)

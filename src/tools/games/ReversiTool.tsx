@@ -6,8 +6,14 @@ export default function ReversiTool() {
   const [state, setState] = useState<Reversi>(freshReversi)
   const score = reversiScore(state.cells)
   const play = (index: number) => {
-    const next = playReversi(state, index)
-    setState(next === state ? state : cpuReversi(next))
+    let next = playReversi(state, index)
+    if (next === state) return
+    while (!next.over && next.turn === -1) {
+      const played = cpuReversi(next)
+      if (played === next) break
+      next = played
+    }
+    setState(next)
   }
   const status = state.over
     ? score.you === score.them
@@ -15,7 +21,9 @@ export default function ReversiTool() {
       : score.you > score.them
         ? 'You win'
         : 'You lose'
-    : `You ${score.you} · them ${score.them}`
+    : state.turn === 1
+      ? `Your turn · ${score.you}–${score.them}`
+      : `Their turn · ${score.you}–${score.them}`
   return (
     <Arcade
       title="Reversi"

@@ -37,7 +37,7 @@ export default function BlackjackTool() {
         <button
           type="button"
           className="btn"
-          disabled={game.done}
+          disabled={game.done || handValue(game.you) >= 21}
           onClick={() => setGame((current) => hitBlackjack(current))}
         >
           Hit

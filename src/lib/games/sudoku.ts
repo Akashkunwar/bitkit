@@ -12,6 +12,30 @@ function ok(grid: number[], index: number, value: number) {
   return true
 }
 
+function solutions(grid: number[], limit: number) {
+  const found = { n: 0 }
+  const walk = (index: number) => {
+    if (found.n >= limit) return
+    if (index === 81) {
+      found.n += 1
+      return
+    }
+    if (grid[index]) {
+      walk(index + 1)
+      return
+    }
+    for (let value = 1; value <= 9; value += 1) {
+      if (!ok(grid, index, value)) continue
+      grid[index] = value
+      walk(index + 1)
+      grid[index] = 0
+      if (found.n >= limit) return
+    }
+  }
+  walk(0)
+  return found.n
+}
+
 export function freshSudoku(rand: () => number) {
   const grid = Array(81).fill(0)
   const order = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -48,9 +72,14 @@ export function freshSudoku(rand: () => number) {
     const j = Math.floor(rand() * (i + 1))
     ;[holes[i], holes[j]] = [holes[j], holes[i]]
   }
-  holes.slice(0, 46).forEach((index) => {
+  let removed = 0
+  for (const index of holes) {
+    if (removed >= 46) break
+    const saved = puzzle[index]
     puzzle[index] = 0
-  })
+    if (solutions(puzzle, 2) === 1) removed += 1
+    else puzzle[index] = saved
+  }
   return { puzzle, solution, given: puzzle.map((cell) => cell !== 0) }
 }
 

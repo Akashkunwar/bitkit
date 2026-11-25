@@ -79,7 +79,6 @@ export default function PassportTool() {
       })
       const out = new File([blob], `passport-sheet-${kind}.jpg`, { type: 'image/jpeg' })
       setSheet(out)
-      triggerDownload(out, out.name)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not build the sheet.')
     } finally {
@@ -107,7 +106,7 @@ export default function PassportTool() {
           ) : (
             <p className="muted">Drop a portrait photo.</p>
           )}
-          <canvas ref={canvasRef} className="visually-hidden" />
+          <canvas ref={canvasRef} className="paper-preview" style={{ maxWidth: '100%', height: 'auto' }} />
         </section>
         <aside className="panel">
           <Segmented
@@ -131,9 +130,19 @@ export default function PassportTool() {
               onChange={(e) => setCopies(Number(e.target.value))}
             />
           </label>
-          <button type="button" className="btn btn-primary" disabled={!file || busy} onClick={() => void render()}>
-            {busy ? 'Building…' : 'Download sheet'}
-          </button>
+          <div className="row">
+            <button type="button" className="btn btn-primary" disabled={!file || busy} onClick={() => void render()}>
+              {busy ? 'Building…' : 'Show sheet'}
+            </button>
+            <button
+              type="button"
+              className="btn"
+              disabled={!sheet}
+              onClick={() => sheet && triggerDownload(sheet, sheet.name)}
+            >
+              Download sheet
+            </button>
+          </div>
           {error ? <p className="status-bad">{error}</p> : null}
           <p className="hint">
             4×6 holds six 2-inch photos at 300 dpi. This is a print aid, not a guarantee of visa acceptance.

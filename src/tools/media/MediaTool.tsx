@@ -280,13 +280,13 @@ export default function MediaTool() {
                       const bytes = encodeGif(sampled.frames)
                       const name = `${file?.name.replace(/\.[^.]+$/, '') ?? 'clip'}.gif`
                       triggerDownload(new Blob([bytes.slice().buffer as ArrayBuffer], { type: 'image/gif' }), name)
-                      if (sampled.truncated) setError('The GIF uses the first 8 seconds at 10 frames per second.')
+                      if (sampled.truncated) setError(null)
                     })
                     .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Could not make a GIF.'))
                     .finally(() => setBusy(false))
                 }}
               >
-                Export GIF
+                Export GIF · first 8s at 10 fps
               </button>
             ) : null}
             {info.kind === 'video' && !busy ? (

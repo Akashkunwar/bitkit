@@ -50,6 +50,14 @@ describe('classic games', () => {
     )
     expect(moved.grid[0][0]).toBe(4)
     expect(moved.score).toBe(4)
+    const column = [
+      [0, 2, 0, 0],
+      [0, 2, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+    ]
+    expect(moveGrid(column, 'up').grid[0][1]).toBe(4)
+    expect(moveGrid(column, 'down').grid[3][1]).toBe(4)
   })
 
   it('keeps the first mines click safe and opens a zero', () => {

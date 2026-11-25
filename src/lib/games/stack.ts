@@ -33,14 +33,10 @@ export function dropStack(state: StackGame): StackGame {
   return {
     ...state,
     blocks: state.blocks.concat({ x: left, w }),
-    x: dirStart(left),
-    dir: 1,
+    x: left + w / 2 > 160 ? 0 : 320 - w,
+    dir: left + w / 2 > 160 ? 1 : -1,
     w,
     score: state.score + 1,
-    speed: Math.min(9, state.speed + 0.25),
+    speed: Math.min(state.speed + 0.15, Math.max(2.4, (w - 8) / 3)),
   }
-}
-
-function dirStart(x: number) {
-  return x > 160 ? 0 : 0
 }

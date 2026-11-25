@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { freshRing, stepRing, type Ring, type RingSide } from '../../lib/games/ring'
 import { Arcade, HoldKeys } from './kit'
-import { BG, INK, LIME, RED, useHeld, useTick } from './loop'
+import { BG, INK, LIME, RED, lastHeld, useHeld, useTick } from './loop'
 
 const KEYS = ['ArrowUp', 'ArrowDown', 'z', 'x', 'Z', 'X'] as const
 const W = 480
@@ -35,17 +35,11 @@ export default function RingTool() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useTick(() => {
-    const dodge: RingSide | 'none' = held.current.has('ArrowUp')
-      ? 'high'
-      : held.current.has('ArrowDown')
-        ? 'low'
-        : 'none'
+    const dodgeKey = lastHeld(held.current, ['ArrowUp', 'ArrowDown'])
+    const punchKey = lastHeld(held.current, ['z', 'Z', 'x', 'X'])
+    const dodge: RingSide | 'none' = dodgeKey === 'ArrowUp' ? 'high' : dodgeKey === 'ArrowDown' ? 'low' : 'none'
     const punch: RingSide | 'none' =
-      held.current.has('z') || held.current.has('Z')
-        ? 'high'
-        : held.current.has('x') || held.current.has('X')
-          ? 'low'
-          : 'none'
+      punchKey === 'z' || punchKey === 'Z' ? 'high' : punchKey === 'x' || punchKey === 'X' ? 'low' : 'none'
     setState((current) => stepRing(current, { dodge, punch }))
   }, 16)
 

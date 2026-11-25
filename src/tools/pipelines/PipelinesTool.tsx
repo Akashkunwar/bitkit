@@ -21,7 +21,7 @@ import {
 export default function PipelinesTool() {
   const [list, setList] = useState<Pipeline[]>([])
   const [editing, setEditing] = useState<Pipeline | null>(null)
-  const [status, setStatus] = useState<string | null>(null)
+  const [status, setStatus] = useState<{ text: string; tone: 'ok' | 'bad' } | null>(null)
   const navigate = useNavigate()
   const undo = useUndo()
 
@@ -35,7 +35,7 @@ export default function PipelinesTool() {
   const save = async (pipeline: Pipeline) => {
     setList(await upsertPipeline(pipeline))
     setEditing(null)
-    setStatus(`Saved “${pipeline.name}”.`)
+    setStatus({ text: `Saved “${pipeline.name}”.`, tone: 'ok' })
   }
 
   const remove = async (pipeline: Pipeline) => {
@@ -51,7 +51,7 @@ export default function PipelinesTool() {
   const run = async (pipeline: Pipeline) => {
     const missing = missingSteps(pipeline)
     if (missing.length) {
-      setStatus(`This pipeline refers to tools that no longer exist: ${missing.join(', ')}.`)
+      setStatus({ text: `This pipeline refers to tools that no longer exist: ${missing.join(', ')}.`, tone: 'bad' })
       return
     }
     if (!pipeline.steps.length) return
@@ -82,7 +82,7 @@ export default function PipelinesTool() {
               className="btn"
               onClick={() => {
                 endRun()
-                setStatus('Pipeline stopped.')
+                setStatus({ text: 'Pipeline stopped.', tone: 'bad' })
               }}
             >
               Stop
@@ -229,7 +229,7 @@ export default function PipelinesTool() {
         </p>
       )}
 
-      {status ? <p className="status-ok">{status}</p> : null}
+      {status ? <p className={status.tone === 'bad' ? 'status-bad' : 'status-ok'}>{status.text}</p> : null}
 
       <p className="hint" style={{ marginTop: '1.2rem' }}>
         A pipeline stores the route, not your files. Running one takes you through each tool in turn with the previous

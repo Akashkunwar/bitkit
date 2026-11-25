@@ -43,7 +43,7 @@ export default function HopperTool() {
         ArrowDown: [0, 1],
       }
       const step = map[event.key]
-      if (!step || isTypingTarget(event.target)) return
+      if (event.repeat || !step || isTypingTarget(event.target)) return
       event.preventDefault()
       go(step[0], step[1])
     }

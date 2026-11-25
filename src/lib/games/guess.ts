@@ -52,10 +52,10 @@ export const GUESS_WORDS = [
 ]
 
 export type Mark = 'g' | 'y' | 'b'
-export type Guess = { word: string; target: string; guesses: string[]; status: '' | 'win' | 'lose' }
+export type Guess = { word: string; target: string; guesses: string[]; status: '' | 'win' | 'lose'; note: string }
 
 export function freshGuess(rand: () => number): Guess {
-  return { word: GUESS_WORDS[Math.floor(rand() * GUESS_WORDS.length)], target: '', guesses: [], status: '' }
+  return { word: GUESS_WORDS[Math.floor(rand() * GUESS_WORDS.length)], target: '', guesses: [], status: '', note: '' }
 }
 
 export function markGuess(guess: string, target: string): Mark[] {
@@ -81,8 +81,10 @@ export function markGuess(guess: string, target: string): Mark[] {
 export function submitGuess(state: Guess, raw: string): Guess {
   if (state.status) return state
   const word = raw.toUpperCase()
-  if (!GUESS_WORDS.includes(word) || state.guesses.includes(word)) return state
+  if (word.length !== 5) return { ...state, note: 'Five letters' }
+  if (!GUESS_WORDS.includes(word)) return { ...state, note: 'Not in the word list' }
+  if (state.guesses.includes(word)) return { ...state, note: 'Already tried' }
   const guesses = state.guesses.concat(word)
   const status = word === state.word ? 'win' : guesses.length >= 6 ? 'lose' : ''
-  return { ...state, guesses, status, target: '' }
+  return { ...state, guesses, status, target: '', note: '' }
 }

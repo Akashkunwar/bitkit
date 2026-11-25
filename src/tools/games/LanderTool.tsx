@@ -32,21 +32,25 @@ export default function LanderTool() {
     ctx.fillRect(0, GROUND + 6, LAND_W, LAND_H - GROUND)
     ctx.fillStyle = state.crashed ? RED : INK
     ctx.beginPath()
-    ctx.moveTo(state.x, state.y - 12)
-    ctx.lineTo(state.x - 8, state.y + 8)
-    ctx.lineTo(state.x + 8, state.y + 8)
+    ctx.moveTo(state.x, state.y - 16)
+    ctx.lineTo(state.x - 8, state.y)
+    ctx.lineTo(state.x + 8, state.y)
     ctx.fill()
-    if (held.current.has('ArrowUp') && state.fuel > 0) {
+    if (held.current.has('ArrowUp') && state.fuel > 0 && !state.landed && !state.crashed) {
       ctx.fillStyle = RED
-      ctx.fillRect(state.x - 3, state.y + 8, 6, 8)
+      ctx.fillRect(state.x - 3, state.y, 6, 8)
     }
   }, 16)
 
-  const status = state.landed ? 'Down safely' : state.crashed ? 'Crashed' : `Fuel ${state.fuel}`
+  const status = state.landed
+    ? 'Down safely'
+    : state.crashed
+      ? 'Crashed'
+      : `Fuel ${state.fuel} · vx ${state.vx.toFixed(1)} · vy ${state.vy.toFixed(1)}`
   return (
     <Arcade
       title="Lander"
-      lede="Left and right to aim. Up burns fuel and pushes against gravity. Land slowly on the green pad."
+      lede="Left and right push sideways. Up burns fuel. A safe landing needs a slow vertical speed and almost no sideways speed, on the green pad."
       status={status}
       onRestart={() => setState(freshLander(80 + (Date.now() % 240)))}
     >

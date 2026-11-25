@@ -16,9 +16,26 @@ type Props = {
   children: ReactNode
 }
 
-/** Up to four neighbours from the same category, so a tool is never a dead end. */
+/** Up to four tools that share a file type or a keyword, then the same category. */
 function relatedTools(tool: ToolMeta): ToolMeta[] {
-  return tools.filter((other) => other.category === tool.category && other.id !== tool.id).slice(0, 4)
+  const accepts = new Set(tool.accepts ?? [])
+  const words = new Set(tool.keywords.map((word) => word.toLowerCase()))
+  const ranked = tools
+    .filter((other) => other.id !== tool.id)
+    .map((other) => {
+      let score = other.category === tool.category ? 2 : 0
+      for (const kind of other.accepts ?? []) if (accepts.has(kind)) score += 4
+      for (const word of other.keywords) if (words.has(word.toLowerCase())) score += 1
+      return { other, score }
+    })
+    .filter((row) => row.score > 0)
+    .sort((a, b) => b.score - a.score || a.other.title.localeCompare(b.other.title))
+  const picked = ranked.slice(0, 4).map((row) => row.other)
+  for (const other of tools) {
+    if (picked.length >= 4) break
+    if (other.id !== tool.id && other.category === tool.category && !picked.includes(other)) picked.push(other)
+  }
+  return picked
 }
 
 /**
