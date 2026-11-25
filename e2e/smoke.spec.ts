@@ -54,8 +54,9 @@ for (const route of ROUTES) {
     const errors = watchErrors(page)
     await page.goto(route)
 
-    // Every tool page renders its title through ToolLayout.
-    await expect(page.locator('.tool-hero h1, .hero h1').first()).toBeVisible({ timeout: 15_000 })
+    // Tool pages title themselves through ToolLayout. The live clock is a
+    // full-screen face, so its stage is the signal that it mounted.
+    await expect(page.locator('.tool-hero h1, .hero h1, .live-stage').first()).toBeVisible({ timeout: 15_000 })
     await expect(page.locator('.crash')).toHaveCount(0)
 
     // Nothing may push the document into horizontal scroll.
